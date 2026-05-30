@@ -1,0 +1,1826 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>House Maintenance, Utilities, Contacts & Finance Tracker - v5 Contacts Fixed</title>
+  <style>
+    :root { --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --accent:#2563eb; --danger:#dc2626; --warn:#d97706; --ok:#059669; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
+    header { background:var(--card); border-bottom:1px solid var(--border); padding:18px 20px; position:sticky; top:0; z-index:2; }
+    h1 { margin:0 0 6px; font-size:24px; }
+    .sub { color:var(--muted); font-size:14px; }
+    main { max-width:1250px; margin:0 auto; padding:20px; }
+    .tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+    .tab { background:#e5e7eb; color:#111827; }
+    .tab.active { background:var(--accent); color:white; }
+    .toolbar, .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+    .toolbar { display:grid; gap:12px; grid-template-columns: 1.2fr 1fr 1fr auto; align-items:end; margin-bottom:16px; }
+    label { font-size:13px; font-weight:600; display:block; margin-bottom:6px; }
+    input, select, textarea, button { font:inherit; }
+    input, select, textarea { width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; background:#fff; }
+    textarea { min-height:38px; resize:vertical; }
+    button { border:0; border-radius:10px; padding:10px 13px; background:var(--accent); color:white; cursor:pointer; font-weight:600; }
+    button.secondary { background:#111827; }
+    button.light { background:#eef2ff; color:#1e3a8a; }
+    button.danger { background:var(--danger); }
+    .grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:16px; }
+    #utilityApp.grid { grid-template-columns: 1fr; }
+    .house-title { display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:12px; }
+    .house-title h2 { margin:0; font-size:20px; }
+    .summary { display:flex; gap:8px; flex-wrap:wrap; font-size:13px; color:var(--muted); }
+    .pill { border:1px solid var(--border); padding:4px 8px; border-radius:999px; background:#fafafa; }
+    table { width:100%; border-collapse:collapse; }
+    .table-wrap { width:100%; overflow-x:auto; }
+    .utility-table { min-width:1050px; table-layout:auto; }
+    .utility-table th, .utility-table td { white-space:normal; }
+    .utility-table th:nth-child(1), .utility-table td:nth-child(1) { min-width:145px; }
+    .utility-table th:nth-child(2), .utility-table td:nth-child(2) { min-width:170px; }
+    .utility-table th:nth-child(3), .utility-table td:nth-child(3) { min-width:145px; }
+    .utility-table th:nth-child(4), .utility-table td:nth-child(4) { min-width:115px; }
+    .utility-table th:nth-child(5), .utility-table td:nth-child(5) { min-width:120px; }
+    .utility-table th:nth-child(6), .utility-table td:nth-child(6) { min-width:115px; }
+    .utility-table th:nth-child(7), .utility-table td:nth-child(7) { min-width:135px; }
+    .utility-table th:nth-child(8), .utility-table td:nth-child(8) { min-width:130px; }
+    .utility-table th:nth-child(9), .utility-table td:nth-child(9) { min-width:150px; }
+    th, td { text-align:left; padding:10px 8px; border-top:1px solid var(--border); vertical-align:top; font-size:14px; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .status { font-weight:700; }
+    .overdue, .unpaid-overdue { color:var(--danger); }
+    .soon { color:var(--warn); }
+    .ok, .paid { color:var(--ok); }
+    .unpaid { color:var(--warn); }
+    .actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .actions button { padding:6px 8px; font-size:12px; }
+    dialog { border:0; border-radius:16px; padding:0; max-width:620px; width:92vw; box-shadow:0 20px 60px rgba(0,0,0,.22); }
+    .modal { padding:18px; background:white; }
+    .modal h3 { margin:0 0 14px; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .full { grid-column:1 / -1; }
+    .small { font-size:12px; color:var(--muted); }
+    .house-card { border:1px solid var(--border); border-radius:14px; padding:14px; background:#fff; }
+    .house-card.pending-delete { opacity:.55; background:#f3f4f6; border-style:dashed; }
+    .house-card.pending-delete input { background:#f9fafb; color:#6b7280; }
+    .warning { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:12px; border-radius:12px; margin-bottom:16px; font-size:14px; }
+    footer { color:var(--muted); font-size:12px; margin-top:16px; }
+    @media (max-width:900px) { .toolbar, .grid, .form-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>House Maintenance, Utilities, Contacts & Finance Tracker</h1>
+    <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data is saved locally in this browser.</div>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button id="maintTab" class="tab" onclick="showView('maintenance')">Maintenance</button>
+      <button id="utilTab" class="tab active" onclick="showView('utilities')">Utility bills</button>
+      <button id="financeTab" class="tab" onclick="showView('finance')">Mortgage / Taxes / Insurance</button>
+      <button id="contactsTab" class="tab" onclick="showView('contacts')">Contacts</button>
+    </div>
+
+    <section class="toolbar">
+      <button class="light" onclick="openHouseModal()">View/edit/delete houses</button>
+      <button class="secondary" onclick="exportData()">Export all data</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">Import previous backup</button>
+      <button class="secondary" onclick="document.getElementById('restoreFile').click()">Restore backup</button>
+      <label style="display:flex; gap:8px; align-items:center; margin:0;">
+        <input id="autoBackupToggle" type="checkbox" checked style="width:auto;" onchange="setAutoBackup(this.checked)">
+        Auto-backup on changes
+      </label>
+      <button class="danger" onclick="resetData()">Reset sample data</button>
+      <input id="importFile" type="file" accept="application/json" hidden onchange="importData(event)">
+      <input id="restoreFile" type="file" accept="application/json" hidden onchange="restoreBackup(event)">
+    </section>
+
+    <section id="maintenanceView" style="display:none;">
+      <section class="toolbar">
+        <div>
+          <label for="search">Search maintenance</label>
+          <input id="search" placeholder="filter, water, roof, House 1..." />
+        </div>
+        <div>
+          <label for="filterStatus">Status</label>
+          <select id="filterStatus">
+            <option value="all">All</option>
+            <option value="overdue">Overdue</option>
+            <option value="soon">Due in 30 days</option>
+            <option value="ok">Not due soon</option>
+          </select>
+        </div>
+        <div>
+          <label for="houseSelect">House</label>
+          <select id="houseSelect"></select>
+        </div>
+        <button onclick="openItemModal()">+ Add item</button>
+      </section>
+      <div id="app" class="grid"></div>
+    </section>
+
+    <section id="utilitiesView">
+      <div class="warning">
+        Do not store passwords here. Use your browser or password manager for credentials. This app stores provider links, account notes, bill totals, due dates, autopay, and paid/unpaid status only.
+      </div>
+      <section class="toolbar">
+        <div>
+          <label for="utilitySearch">Search utilities</label>
+          <input id="utilitySearch" placeholder="TECO, water, electric, paid..." />
+        </div>
+        <div>
+          <label for="utilityStatusFilter">Payment status</label>
+          <select id="utilityStatusFilter">
+            <option value="all">All</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Unpaid and overdue</option>
+          </select>
+        </div>
+        <div>
+          <label for="utilityHouseFilter">House</label>
+          <select id="utilityHouseFilter"></select>
+        </div>
+        <button onclick="openUtilityModal()">+ Add bill</button>
+      </section>
+      
+      <section class="toolbar" style="grid-template-columns:1fr;">
+        <span class="small"><b>Others:</b> Use “+ Add bill” and choose Auto Insurance, Car Payment, Mobile Phones, Math Class, Soccer Club, or Other from the bill type dropdown.</span>
+      </section>
+      <div id="utilityApp" class="grid"></div>
+    </section>
+
+
+    <section id="financeView" style="display:none;">
+      <section class="toolbar">
+        <div>
+          <label for="financeSearch">Search finance records</label>
+          <input id="financeSearch" placeholder="mortgage, insurance, DBPR, county, company..." />
+        </div>
+        <div>
+          <label for="financeStatusFilter">Status</label>
+          <select id="financeStatusFilter">
+            <option value="all">All</option>
+            <option value="unpaid">Not paid</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Not paid and overdue</option>
+          </select>
+        </div>
+        <div>
+          <label for="financeHouseFilter">Property</label>
+          <select id="financeHouseFilter"></select>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;"><button onclick="openFinanceModal()">Edit selected</button><button class="light" onclick="openFinanceItemModal()">+ Add item</button></div>
+      </section>
+      <div id="financeApp"></div>
+    </section>
+
+
+    <section id="otherBillsView" style="display:none;">
+      <section class="toolbar">
+        <div>
+          <label for="otherBillsSearch">Search other bills</label>
+          <input id="otherBillsSearch" placeholder="auto insurance, phone, soccer..." />
+        </div>
+        <div>
+          <label for="otherBillsStatusFilter">Status</label>
+          <select id="otherBillsStatusFilter">
+            <option value="all">All</option>
+            <option value="unpaid">Not paid</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Not paid and overdue</option>
+          </select>
+        </div>
+        <div></div>
+        <button onclick="openOtherBillModal()">+ Add other bill</button>
+      </section>
+      <div id="otherBillsApp" class="card"></div>
+    </section>
+
+    <section id="contactsView" style="display:none;">
+      <section class="toolbar">
+        <div>
+          <label for="contactSearch">Search contacts</label>
+          <input id="contactSearch" placeholder="AC, plumber, pest, name, email..." />
+        </div>
+        <div>
+          <label for="contactServiceFilter">Service type</label>
+          <select id="contactServiceFilter">
+            <option value="all">All services</option>
+            <option>AC / HVAC</option>
+            <option>Plumbing</option>
+            <option>Electrical</option>
+            <option>Pest control</option>
+            <option>Landscaping</option>
+            <option>Pool</option>
+            <option>Handyman</option>
+            <option>Appliance repair</option>
+            <option>Roofing</option>
+            <option>Internet / cable</option>
+            <option>Property management</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="contactHouseFilter">Property</label>
+          <select id="contactHouseFilter"></select>
+        </div>
+        <button onclick="openContactModal()">+ Add contact</button>
+      </section>
+      <div id="contactsApp"></div>
+    </section>
+
+    <footer>
+      Tip: auto-backup downloads a JSON backup when data changes. Keep the newest backup file somewhere safe.
+    </footer>
+  </main>
+
+  <dialog id="itemDialog">
+    <form method="dialog" class="modal" onsubmit="saveItem(event)">
+      <h3 id="modalTitle">Add maintenance item</h3>
+      <input type="hidden" id="editId">
+      <div class="form-grid">
+        <div><label>House</label><select id="itemHouse"></select></div>
+        <div><label>Category</label><select id="itemCategory">
+          <option>Air filter</option><option>Water filter</option><option>AC / HVAC</option><option>Plumbing</option><option>Appliance</option><option>Landscaping</option><option>Insurance / taxes</option><option>Other</option>
+        </select></div>
+        <div class="full"><label>Task name</label><input id="itemName" required placeholder="Replace AC air filter"></div>
+        <div><label>Due date</label><input id="itemDue" type="date" required></div>
+        <div><label>Repeat every</label><div style="display:flex; gap:8px;"><input id="itemEvery" type="number" min="0" value="3"><select id="itemUnit"><option value="days">days</option><option value="months" selected>months</option><option value="years">years</option><option value="none">no repeat</option></select></div></div>
+        <div class="full"><label>Notes</label><textarea id="itemNotes" placeholder="Filter size, store, brand, tenant notes..."></textarea></div>
+      </div>
+      <p class="small">For one-time deadlines, choose “no repeat.”</p>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;"><button type="button" class="light" onclick="itemDialog.close()">Cancel</button><button type="submit">Save</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="utilityDialog">
+    <form method="dialog" class="modal" onsubmit="saveUtility(event)">
+      <h3 id="utilityModalTitle">Add utility bill</h3>
+      <input type="hidden" id="utilityEditId">
+      <div class="form-grid">
+        <div><label>House</label><select id="utilityHouse"></select></div>
+        <div><label>Bill type</label><select id="utilityType"></select></div>
+        <div><label>Provider</label><input id="utilityProvider" required placeholder="TECO, county water..."></div>
+        <div><label>Login page URL</label><input id="utilityUrl" placeholder="https://..."></div>
+        <div><label>Account number</label><input id="utilityAccount" placeholder="Utility account number"></div>
+        <div><label>Statement date</label><input id="utilityStatementDate" type="date"></div>
+        <div><label>Amount due</label><input id="utilityAmount" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label>Due date</label><input id="utilityDue" type="date" required></div>
+        <div><label>Payment status</label><select id="utilityPaid"><option value="unpaid">Unpaid</option><option value="paid">Paid</option></select></div>
+        <div><label>Autopay</label><select id="utilityAutopay"><option value="off">Off</option><option value="on">On</option></select></div>
+        <div id="utilityPaidDateWrap"><label>Paid date</label><input id="utilityPaidDate" type="date"></div>
+        <div class="full"><label>Notes, confirmation #, or autopay info</label><textarea id="utilityNotes" placeholder="Autopay enabled, confirmation number, meter notes. Do NOT store passwords."></textarea></div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;"><button type="button" class="light" onclick="utilityDialog.close()">Cancel</button><button type="submit">Save</button></div>
+    </form>
+  </dialog>
+
+
+
+
+  <dialog id="financeItemDialog">
+    <form method="dialog" class="modal" onsubmit="saveFinanceItem(event)">
+      <h3 id="financeItemModalTitle">Add mortgage/tax/insurance item</h3>
+      <input type="hidden" id="financeItemEditId">
+      <div class="form-grid">
+        <div><label>House</label><select id="financeItemHouse"></select></div>
+        <div><label>Payment frequency</label><select id="financeItemFrequency"><option value="monthly">Monthly</option><option value="annual">Annual</option></select></div>
+        <div class="full"><label>Item name</label><input id="financeItemName" required placeholder="Flood Insurance, Extra assessment, Other..."></div>
+        <div><label>Company / agency</label><input id="financeItemCompany" placeholder="Company or agency"></div>
+        <div><label>Login page</label><input id="financeItemLogin" placeholder="https://..."></div>
+        <div><label>Account / policy number</label><input id="financeItemAccount" placeholder="Account or policy number"></div>
+        <div><label>Amount due</label><input id="financeItemAmount" type="number" step="0.01" min="0"></div>
+        <div><label>Due date</label><input id="financeItemDue" type="date"></div>
+        <div><label>Paid?</label><select id="financeItemPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div><label>Paid date</label><input id="financeItemPaidDate" type="date"></div>
+        <div class="full"><label>Notes</label><textarea id="financeItemNotes" placeholder="Notes, confirmation number, policy details..."></textarea></div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button type="button" class="light" onclick="financeItemDialog.close()">Cancel</button>
+        <button type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="financeDialog">
+    <form method="dialog" class="modal" onsubmit="saveFinance(event)">
+      <h3>Edit mortgage / insurance / taxes</h3>
+      <div class="form-grid">
+        <div class="full"><label>Property</label><select id="financeHouse"></select></div>
+
+        <div class="full"><h4>Monthly mortgage</h4></div>
+        <div><label>Mortgage company</label><input id="finMortgageCompany" placeholder="Mortgage company"></div>
+        <div><label>Mortgage number</label><input id="finMortgageNumber" placeholder="Mortgage/account number"></div>
+        <div><label>Mortgage login page</label><input id="finMortgageLogin" placeholder="https://..."></div>
+        <div><label>Monthly amount due</label><input id="finMortgageAmount" type="number" step="0.01" min="0"></div>
+        <div><label>Due on the 1-st</label><input id="finMortgageDueDay" type="number" min="1" max="28" value="1"></div>
+        <div><label>Paid?</label><select id="finMortgagePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full"><label>Notes</label><textarea id="finMortgageNotes" placeholder="Mortgage notes..."></textarea></div>
+        <div><label>Paid date</label><input id="finMortgagePaidDate" type="date"></div>
+
+        <div class="full"><h4>Monthly sales tax</h4></div>
+        <div><label>Show sales tax for this property?</label><select id="finSalesVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
+        <div><label>Agency name</label><input id="finSalesAgency" placeholder="Florida Sales Tax"></div>
+        <div><label>Login page</label><input id="finSalesLogin" placeholder="https://..."></div>
+        <div><label>Return filed?</label><select id="finSalesFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
+        <div><label>Taxable amount</label><input id="finSalesTaxable" type="number" step="0.01" min="0"></div>
+        <div><label>Paid?</label><select id="finSalesPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full"><label>Notes</label><textarea id="finSalesNotes" placeholder="Sales tax notes..."></textarea></div>
+        <div><label>Due on the 1-st</label><input id="finSalesDueDay" type="number" min="1" max="28" value="20"></div>
+
+        <div class="full"><h4>Monthly tourist tax</h4></div>
+        <div><label>Show tourist tax for this property?</label><select id="finTouristVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
+        <div><label>Agency name</label><input id="finTouristAgency" placeholder="County Name - tourist county tax"></div>
+        <div><label>Login page</label><input id="finTouristLogin" placeholder="https://..."></div>
+        <div><label>Return filed?</label><select id="finTouristFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
+        <div><label>Taxable amount</label><input id="finTouristTaxable" type="number" step="0.01" min="0"></div>
+        <div><label>Paid?</label><select id="finTouristPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full"><label>Notes</label><textarea id="finTouristNotes" placeholder="Tourist tax notes..."></textarea></div>
+        <div><label>Due on the 1-st</label><input id="finTouristDueDay" type="number" min="1" max="28" value="20"></div>
+
+        <div class="full"><h4>Annual hazardous insurance</h4></div>
+        <div><label>Hazardous Insurance company</label><input id="finInsuranceCompany" placeholder="Hazardous Insurance company"></div>
+        <div><label>Policy number</label><input id="finInsurancePolicyNumber" placeholder="Policy number"></div>
+        <div><label>Login page</label><input id="finInsuranceLogin" placeholder="https://..."></div>
+        <div><label>Policy period start</label><input id="finInsuranceStart" type="date"></div>
+        <div><label>Policy period end</label><input id="finInsuranceEnd" type="date"></div>
+        <div><label>Amount per year</label><input id="finInsuranceAmount" type="number" step="0.01" min="0"></div>
+        <div><label>Due date</label><input id="finInsuranceDue" type="date"></div>
+        <div><label>Paid?</label><select id="finInsurancePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full"><label>Notes</label><textarea id="finInsuranceNotes" placeholder="Policy notes, escrow, reminders..."></textarea></div>
+
+        <div class="full"><h4>Annual property taxes</h4></div>
+        <div><label>County / agency</label><input id="finPropertyTaxAgency" placeholder="County property tax"></div>
+        <div><label>County tax page / login</label><input id="finPropertyTaxLogin" placeholder="https://..."></div>
+        <div><label>Property taxes per year</label><input id="finPropertyTaxAmount" type="number" step="0.01" min="0"></div>
+        <div><label>Due date</label><input id="finPropertyTaxDue" type="date"></div>
+        <div><label>Paid?</label><select id="finPropertyTaxPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full"><label>Notes</label><textarea id="finPropertyTaxNotes" placeholder="Parcel ID, reminders, confirmations..."></textarea></div>
+
+        <div class="full"><label>Notes</label><textarea id="finNotes" placeholder="Escrow, parcel ID, confirmation numbers, reminders..."></textarea></div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button type="button" class="light" onclick="financeDialog.close()">Cancel</button>
+        <button type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="contactDialog">
+    <form method="dialog" class="modal" onsubmit="saveContact(event)">
+      <h3 id="contactModalTitle">Add service contact</h3>
+      <input type="hidden" id="contactEditId">
+      <div class="form-grid">
+        <div><label>Name / company</label><input id="contactName" required placeholder="ABC AC Repair"></div>
+        <div><label>Service type</label><select id="contactType">
+          <option>AC / HVAC</option><option>Plumbing</option><option>Electrical</option><option>Pest control</option><option>Landscaping</option><option>Pool</option><option>Handyman</option><option>Appliance repair</option><option>Roofing</option><option>Internet / cable</option><option>Property management</option><option>Other</option>
+        </select></div>
+        <div><label>Email</label><input id="contactEmail" type="email" placeholder="name@example.com"></div>
+        <div><label>Phone</label><input id="contactPhone" placeholder="(555) 555-5555"></div>
+        <div><label>Property</label><select id="contactHouse"></select></div>
+        <div><label>Website / login / booking link</label><input id="contactWebsite" placeholder="https://..."></div>
+        <div class="full"><label>Address</label><input id="contactAddress" placeholder="Company or service address"></div>
+        <div class="full"><label>Notes</label><textarea id="contactNotes" placeholder="Rates, preferred tech, emergency instructions, warranty info..."></textarea></div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button type="button" class="light" onclick="contactDialog.close()">Cancel</button>
+        <button type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="houseDialog">
+    <form method="dialog" class="modal" onsubmit="saveHouses(event)">
+      <h3>View/edit/delete houses</h3>
+      <p class="small">Addresses are only shown here. Other pages show only the nickname.</p><div id="houseInputs" class="form-grid"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;"><button type="button" class="light" onclick="houseDialog.close()">Cancel</button><button type="submit">Save</button></div>
+    </form>
+  </dialog>
+
+<script>
+const STORAGE_KEY = "house-maintenance-tracker-v2";
+let state = loadData();
+let pendingHouseDeletes = new Set();
+let editableHouses = new Set();
+let maintenanceViewOnly = false;
+let currentView = "utilities";
+
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function uid() { return crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()); }
+function parseDate(s) { const [y,m,d]=s.split("-").map(Number); return new Date(y, m-1, d); }
+function daysUntil(s) { if (!s) return 9999; return Math.ceil((parseDate(s) - parseDate(todayISO())) / 86400000); }
+function money(n) { return Number(n || 0).toLocaleString(undefined, {style:"currency", currency:"USD"}); }
+
+function houseDisplayName(house) {
+  if (!house) return "";
+  return house.nickname || house.name || "Unnamed house";
+}
+
+function houseAddress(house) {
+  if (!house) return "";
+  return house.address || "";
+}
+
+function normalizeHouseRecord(house) {
+  if (!house.nickname && !house.address) {
+    house.nickname = house.name || "";
+    house.address = house.name || "";
+  }
+  house.name = houseDisplayName(house);
+  return house;
+}
+
+function refreshHouseNames() {
+  state.houses.forEach(normalizeHouseRecord);
+}
+
+function addMonthsISO(dateStr, months = 1) {
+  if (!dateStr) return todayISO();
+  const d = parseDate(dateStr);
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().slice(0,10);
+}
+
+function isMonthlyUtilityType(type) {
+  const t = String(type || "").toLowerCase();
+  return t.includes("water") || t.includes("electric") || t.includes("internet");
+}
+
+function isOtherBillType(type) {
+  return ["Auto Insurance", "Car Payment", "Mobile Phones", "Soccer Club", "Math Class"].includes(String(type || ""));
+}
+
+function latestUtilityByType(houseId, type) {
+  const matches = state.utilities
+    .filter(u => u.houseId === houseId && u.type === type)
+    .sort((a,b) => parseDate(b.statementDate || b.due || "1900-01-01") - parseDate(a.statementDate || a.due || "1900-01-01"));
+  return matches[0] || null;
+}
+
+function createNextMonthUtilityFrom(id) {
+  const source = state.utilities.find(u => u.id === id);
+  if (!source) return;
+  const newItem = {
+    ...source,
+    id: uid(),
+    statementDate: addMonthsISO(source.statementDate || source.due, 1),
+    due: addMonthsISO(source.due || source.statementDate, 1),
+    amount: 0,
+    paid: "unpaid",
+    paidDate: "",
+    notes: source.notes || ""
+  };
+  state.utilities.push(newItem);
+  saveData();
+}
+
+function createNextMonthUtilityForHouseType(houseId, selectedType) {
+  if (!selectedType) {
+    alert("Choose Electric, Water, or Internet first.");
+    return;
+  }
+
+  const source = state.utilities
+    .filter(u => u.houseId === houseId && String(u.type || "").toLowerCase().includes(selectedType))
+    .sort((a,b) => parseDate(b.statementDate || b.due || "1900-01-01") - parseDate(a.statementDate || a.due || "1900-01-01"))[0];
+
+  if (!source) {
+    alert(`No ${selectedType} entry found for this house yet.`);
+    return;
+  }
+
+  state.utilities.push({
+    ...source,
+    id: uid(),
+    statementDate: addMonthsISO(source.statementDate || source.due, 1),
+    due: addMonthsISO(source.due || source.statementDate, 1),
+    amount: 0,
+    paid: "unpaid",
+    paidDate: "",
+    notes: source.notes || ""
+  });
+  saveData();
+}
+
+function createNextMonthUtilitiesForHouse(houseId) {
+  const types = [...new Set(state.utilities
+    .filter(u => u.houseId === houseId && isMonthlyUtilityType(u.type))
+    .map(u => u.type))];
+
+  if (!types.length) {
+    alert("No water, electric, or internet entries found for this house yet.");
+    return;
+  }
+
+  types.forEach(type => {
+    const source = latestUtilityByType(houseId, type);
+    if (!source) return;
+    state.utilities.push({
+      ...source,
+      id: uid(),
+      statementDate: addMonthsISO(source.statementDate || source.due, 1),
+      due: addMonthsISO(source.due || source.statementDate, 1),
+      amount: 0,
+      paid: "unpaid",
+      paidDate: "",
+      notes: source.notes || ""
+    });
+  });
+  saveData();
+}
+
+function monthStartFromISO(dateStr) {
+  const d = parseDate(dateStr);
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+function isPaidBeforeCurrentMonth(item) {
+  if (!item || item.paid !== "paid" || !item.paidDate) return false;
+  const paidMonthStart = monthStartFromISO(item.paidDate);
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  return paidMonthStart < currentMonthStart;
+}
+
+function isPaidBeforeCurrentMonth(item) {
+  if (!item || item.paid !== "paid" || !item.paidDate) return false;
+  const paid = parseDate(item.paidDate);
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  return paid < currentMonthStart;
+}
+
+function addInterval(dateStr, every, unit) {
+  let d = parseDate(dateStr);
+  every = Number(every || 0);
+  if (!every || unit === "none") return dateStr;
+  if (unit === "days") d.setDate(d.getDate() + every);
+  if (unit === "months") d.setMonth(d.getMonth() + every);
+  if (unit === "years") d.setFullYear(d.getFullYear() + every);
+  return d.toISOString().slice(0,10);
+}
+
+
+function dueDateForDay(day) {
+  day = Math.min(Math.max(Number(day || 1), 1), 28);
+  const now = new Date();
+  let due = new Date(now.getFullYear(), now.getMonth(), day);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (due < today) due = new Date(now.getFullYear(), now.getMonth() + 1, day);
+  return due.toISOString().slice(0,10);
+}
+
+function previousMonthForDueDate(dueDateStr) {
+  const d = parseDate(dueDateStr);
+  d.setMonth(d.getMonth() - 1);
+  return d.toLocaleString(undefined, { month: "long", year: "numeric" });
+}
+
+function daysLeftText(dateStr) {
+  const d = daysUntil(dateStr);
+  if (d < 0) return `${Math.abs(d)} day(s) overdue`;
+  if (d === 0) return "Due today";
+  return `${d} day(s) left`;
+}
+
+function financeStatus(paid, dueDate) {
+  const d = daysUntil(dueDate);
+  if (paid === "paid") return {key:"paid", text:"Paid"};
+  if (d < 0) return {key:"unpaid-overdue", text:`Not paid, overdue ${Math.abs(d)} day(s)`};
+  if (d === 0) return {key:"unpaid", text:"Not paid, due today"};
+  return {key:"unpaid", text:`Not paid, ${d} day(s) left`};
+}
+
+function countyNameForHouse(houseId) {
+  const h = state && state.houses ? state.houses.find(x => x.id === houseId) : null;
+  const n = h ? h.name.toLowerCase() : "";
+  if (n.includes("port charlotte")) return "Charlotte County";
+  if (n.includes("cape coral")) return "Lee County";
+  if (n.includes("venice") || n.includes("nokomis")) return "Sarasota County";
+  return "County";
+}
+
+function makeFinanceRecord(houseId) {
+  return {
+    houseId,
+    mortgageCompany: "",
+    mortgageNumber: "",
+    mortgageLogin: "",
+    mortgageAmount: 0,
+    mortgageDueDay: 1,
+    mortgagePaid: "unpaid",
+    mortgagePaidDate: "",
+    salesVisible: "yes",
+    salesAgency: "Florida Sales Tax",
+    salesLogin: "",
+    salesFiled: "not filed",
+    salesTaxable: 0,
+    salesPaid: "unpaid",
+    salesDueDay: 20,
+    touristVisible: "yes",
+    touristAgency: `${countyNameForHouse(houseId)} - tourist county tax`,
+    touristLogin: "",
+    touristFiled: "not filed",
+    touristTaxable: 0,
+    touristPaid: "unpaid",
+    touristDueDay: 20,
+    insuranceCompany: "",
+    insurancePolicyNumber: "",
+    insuranceLogin: "",
+    insuranceStart: "",
+    insuranceEnd: "",
+    insuranceAmount: 0,
+    insuranceDue: "",
+    insurancePaid: "unpaid",
+    propertyTaxAgency: `${countyNameForHouse(houseId)} property tax`,
+    propertyTaxLogin: "",
+    propertyTaxAmount: 0,
+    propertyTaxDue: "",
+    propertyTaxPaid: "unpaid",
+    notes: ""
+  };
+}
+
+function makeDefaultFinanceRecords() {
+  return ["h1","h2","h3","h4"].map(makeFinanceRecord);
+}
+
+function ensureFinanceRecords() {
+  if (!state.finance) state.finance = [];
+  state.houses.forEach(h => {
+    if (!state.finance.some(f => f.houseId === h.id)) state.finance.push(makeFinanceRecord(h.id));
+  });
+  state.finance = state.finance.filter(f => state.houses.some(h => h.id === f.houseId));
+}
+
+function salesTaxAmount(amount) {
+  return Number(amount || 0) * 0.065;
+}
+
+function touristTaxAmount(amount) {
+  return Number(amount || 0) * 0.05;
+}
+
+
+
+function makeDefaultOtherBills() {
+  return ["Auto Insurance", "Car Payment", "Mobile Phones", "Math Class", "Soccer Club"].map(type => ({
+    id: uid(), type, provider: "", login: "", account: "", statementDate: "",
+    amount: 0, due: todayISO(), paid: "unpaid", paidDate: "", notes: ""
+  }));
+}
+
+function loadData() {
+  const old = localStorage.getItem("house-maintenance-tracker-v1");
+  const saved = localStorage.getItem(STORAGE_KEY);
+  let data = saved ? JSON.parse(saved) : (old ? JSON.parse(old) : null);
+  if (!data) {
+    const today = todayISO();
+    data = {
+      houses: [
+{id:"h1",name:"116 Runaway Field Ave, Nokomis, FL 34275"},
+{id:"h2",name:"1008 Pine Forest Ct, Venice, FL 34293"},
+{id:"h3",name:"13680 Drysdale Ave, Port Charlotte, FL 33981"},
+{id:"h4",name:"310 SW 29th Street, Cape Coral, FL 33914"}
+],
+      items: [
+        {id:uid(),houseId:"h1",category:"Air filter",name:"Replace AC air filter",due:today,every:3,unit:"months",notes:"Add filter size in notes."},
+        {id:uid(),houseId:"h1",category:"Water filter",name:"Replace refrigerator water filter",due:today,every:6,unit:"months",notes:""},
+        {id:uid(),houseId:"h2",category:"Air filter",name:"Replace AC air filter",due:today,every:3,unit:"months",notes:""},
+        {id:uid(),houseId:"h3",category:"Water filter",name:"Whole-house water filter",due:today,every:6,unit:"months",notes:""},
+        {id:uid(),houseId:"h4",category:"AC / HVAC",name:"Schedule AC maintenance",due:today,every:1,unit:"years",notes:""}
+      ],
+      utilities: []
+    };
+  }
+  data.houses.forEach(normalizeHouseRecord);
+  if (!data.utilities) data.utilities = [];
+  data.utilities.forEach(u => { if (!("autopay" in u)) u.autopay = "off"; });
+  return data;
+}
+
+function saveData(options = {}) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
+  initializeAutoBackupSetting();
+render();
+  if (!options.skipAutoBackup) scheduleAutoBackup();
+}
+function showView(view) {
+  currentView = view;
+  maintenanceView.style.display = view === "maintenance" ? "" : "none";
+  utilitiesView.style.display = view === "utilities" ? "" : "none";
+  financeView.style.display = view === "finance" ? "" : "none";
+  contactsView.style.display = view === "contacts" ? "" : "none";
+  otherBillsView.style.display = view === "otherBills" ? "" : "none";
+  maintTab.classList.toggle("active", view === "maintenance");
+  utilTab.classList.toggle("active", view === "utilities");
+  financeTab.classList.toggle("active", view === "finance");
+  contactsTab.classList.toggle("active", view === "contacts");
+  otherBillsTab.classList.toggle("active", view === "otherBills");
+  render();
+}
+
+function renderSelectors() {
+  const selects = [houseSelect, itemHouse, utilityHouseFilter, utilityHouse, financeHouseFilter, financeHouse, financeItemHouse, contactHouseFilter, contactHouse];
+  selects.forEach(sel => {
+    const current = sel.value;
+    const all = (sel.id === "houseSelect" || sel.id === "utilityHouseFilter" || sel.id === "financeHouseFilter" || sel.id === "contactHouseFilter");
+    sel.innerHTML = all ? '<option value="all">All houses</option>' : "";
+    state.houses.forEach(h => {
+      const opt = document.createElement("option");
+      opt.value = h.id; opt.textContent = houseDisplayName(h);
+      sel.appendChild(opt);
+    });
+    if (sel.id === "utilityHouse") {
+      const opt = document.createElement("option");
+      opt.value = "other";
+      opt.textContent = "Other";
+      sel.appendChild(opt);
+    }
+    if ([...sel.options].some(o => o.value === current)) sel.value = current;
+  });
+}
+
+function statusFor(item) {
+  const d = daysUntil(item.due);
+  if (d < 0) return { key:"overdue", text:`Overdue ${Math.abs(d)} day(s)` };
+  if (d <= 30) return { key:"soon", text:d === 0 ? "Due today" : `Due in ${d} day(s)` };
+  return { key:"ok", text:`Due in ${d} day(s)` };
+}
+
+function utilityStatus(u) {
+  const d = daysUntil(u.due);
+  if (u.paid === "paid") return { key:"paid", text: u.paidDate ? `Paid ${u.paidDate}` : "Paid" };
+  if (d < 0) return { key:"unpaid-overdue", text:`<b>Unpaid, overdue ${Math.abs(d)} day(s)</b>` };
+  if (d === 0) return { key:"unpaid", text:"Unpaid, due today" };
+  return { key:"unpaid", text:`<b>Unpaid, due in ${d} day(s)</b>` };
+}
+
+
+function applyUtilityAutopay() {
+  let changed = false;
+  const today = todayISO();
+
+  (state.utilities || []).forEach(u => {
+    if (!("autopay" in u)) u.autopay = "off";
+
+    if (u.autopay === "on" && u.paid !== "paid" && u.due && daysUntil(u.due) <= 0) {
+      u.paid = "paid";
+      u.paidDate = u.due;
+      if (u.notes) {
+        if (!u.notes.includes("Autopay marked paid")) {
+          u.notes += " | Autopay marked paid on due date " + u.due;
+        }
+      } else {
+        u.notes = "Autopay marked paid on due date " + u.due;
+      }
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
+  }
+}
+
+
+function render() {
+  applyUtilityAutopay();
+  renderSelectors();
+  renderMaintenance();
+  renderUtilities();
+  renderFinance();
+  renderContacts();
+  renderOtherBills();
+}
+
+function renderMaintenance() {
+  const q = search.value.toLowerCase().trim();
+  const statusFilter = filterStatus.value;
+  const houseFilter = houseSelect.value;
+  app.innerHTML = "";
+  state.houses.forEach(house => {
+    if (houseFilter !== "all" && houseFilter !== house.id) return;
+    let items = state.items.filter(i => i.houseId === house.id);
+    items = items.filter(i => {
+      const status = statusFor(i).key;
+      const text = `${houseDisplayName(house)} ${i.category} ${i.name} ${i.notes}`.toLowerCase();
+      return (!q || text.includes(q)) && (statusFilter === "all" || statusFilter === status);
+    }).sort((a,b) => parseDate(a.due) - parseDate(b.due));
+    const overdue = items.filter(i => statusFor(i).key === "overdue").length;
+    const soon = items.filter(i => statusFor(i).key === "soon").length;
+    const card = document.createElement("section");
+    card.className = "card";
+    card.style.width = "100%";
+    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${items.length} item(s)</span><span class="pill">${overdue} overdue</span><span class="pill">${soon} due soon</span></div></div>
+      <table><thead><tr><th>Task</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead><tbody>${items.length ? items.map(rowHtml).join("") : `<tr><td colspan="4" class="small">No items match this filter.</td></tr>`}</tbody></table>`;
+    app.appendChild(card);
+  });
+}
+
+function renderUtilities() {
+  const q = utilitySearch.value.toLowerCase().trim();
+  const statusFilter = utilityStatusFilter.value;
+  const houseFilter = utilityHouseFilter.value;
+  utilityApp.innerHTML = "";
+
+  state.houses.forEach(house => {
+    if (houseFilter !== "all" && houseFilter !== house.id) return;
+    let allBillsForHouse = state.utilities.filter(u => u.houseId === house.id && !isOtherBillType(u.type))
+      .sort((a,b) => parseDate(a.due) - parseDate(b.due));
+
+    const oldPaidCount = allBillsForHouse.filter(u => isPaidBeforeCurrentMonth(u)).length;
+
+    const visibleBills = allBillsForHouse.filter(u => {
+      const s = utilityStatus(u).key;
+      const text = `${houseDisplayName(house)} ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
+      const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid";
+
+      // Hide bills paid last month or older in the normal property view,
+      // but allow them to appear when searching or when the Paid filter is selected.
+      if (isPaidBeforeCurrentMonth(u) && !searchingOrPaidFilter) return false;
+
+      const statusMatch = statusFilter === "all" || 
+        (statusFilter === "overdue" && s === "unpaid-overdue") ||
+        (statusFilter === "unpaid" && u.paid === "unpaid") ||
+        (statusFilter === "paid" && u.paid === "paid");
+      return (!q || text.includes(q)) && statusMatch;
+    });
+
+    const houseUtilityBills = visibleBills.filter(u => !isOtherBillType(u.type)).sort((a,b) => parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31"));
+    const otherBills = visibleBills.filter(u => isOtherBillType(u.type));
+
+    const totalUnpaid = allBillsForHouse.filter(u => u.paid !== "paid").reduce((sum,u) => sum + Number(u.amount || 0), 0);
+    const overdue = allBillsForHouse.filter(u => utilityStatus(u).key === "unpaid-overdue").length;
+    const card = document.createElement("section");
+    card.className = "card";
+    card.style.width = "100%";
+    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${visibleBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount ? `<span class="pill">${oldPaidCount} old paid hidden</span>` : ""}</div></div>
+      <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account number</th><th>Amount due</th><th>Statement date</th><th>Due date</th><th>Autopay</th><th>Paid status</th><th>Actions</th></tr></thead><tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="9" class="small">No utility bills match this view. Old paid bills are hidden unless you search or select the Paid filter.</td></tr>`}</tbody></table></div>
+      <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <button class="light" onclick="openUtilityModal('${house.id}')">+ Add bill for this house</button>
+        <select id="newMonthType-${house.id}" style="max-width:180px;">
+          <option value="">Choose bill</option>
+          <option value="electric">Electric</option>
+          <option value="water">Water</option>
+          <option value="internet">Internet</option>
+        </select>
+        <button class="secondary" onclick="createNextMonthUtilityForHouseType('${house.id}', document.getElementById('newMonthType-${house.id}').value)">+ Add new month</button>
+      </div>`;
+    utilityApp.appendChild(card);
+  });
+
+  // Standalone Other section
+  const allOtherBills = (state.utilities || []).filter(u => u.houseId === "other" || isOtherBillType(u.type)).sort((a,b) => parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31"));
+
+  const otherCard = document.createElement("section");
+  otherCard.className = "card";
+  otherCard.style.width = "100%";
+
+  otherCard.innerHTML = `
+    <div class="house-title">
+      <h2>Other</h2>
+      <div class="summary"><span class="pill">${allOtherBills.length} bill(s)</span></div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="utility-table">
+        <thead>
+          <tr>
+            <th>Bill type</th>
+            <th>Provider / login</th>
+            <th>Account number</th>
+            <th>Amount due</th>
+            <th>Statement date</th>
+            <th>Due date</th>
+            <th>Autopay</th>
+            <th>Paid status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allOtherBills.length
+            ? allOtherBills.map(utilityRowHtml).join("")
+            : `<tr><td colspan="9" class="small">No Other bills yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="light" onclick="openUtilityModal('other')">+ Add bill to Other</button>
+    </div>
+  `;
+
+  utilityApp.appendChild(otherCard);
+}
+
+function rowHtml(i) {
+  const s = statusFor(i);
+  return `<tr><td><b>${escapeHtml(i.name)}</b><br><span class="small">${escapeHtml(i.category)}${i.notes ? " · " + escapeHtml(i.notes) : ""}</span></td><td>${i.due}<br><span class="small">${i.unit === "none" ? "One-time" : `Every ${i.every} ${i.unit}`}</span></td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markDone('${i.id}')">Done</button><button class="light" onclick="viewItem('${i.id}')">View</button><button class="secondary" onclick="editItem('${i.id}')">Edit</button><button class="danger" onclick="deleteItem('${i.id}')">Delete</button></div></td></tr>`;
+}
+
+function utilityRowHtml(u) {
+  const s = utilityStatus(u);
+  const link = u.url ? `<a href="${escapeHtml(u.url)}" target="_blank" rel="noopener">Open login</a>` : "";
+  return `<tr>
+    <td><b>${escapeHtml(u.type || "")}</b></td>
+    <td><b>${escapeHtml(u.provider || "")}</b><br><span class="small">${link}</span></td>
+    <td>${escapeHtml(u.account || "")}</td>
+    <td><b>${money(u.amount)}</b></td>
+    <td>${escapeHtml(u.statementDate || "")}</td>
+    <td>${escapeHtml(u.due || "")}</td>
+    <td>${u.autopay === "on" ? "On" : "Off"}</td>
+    <td class="status ${s.key}">${u.paid === "paid" ? "Paid" : "Not paid"}${u.paidDate ? `<br><span class="small">${escapeHtml(u.paidDate)}</span>` : ""}</td>
+    <td><div class="actions"><button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button>${isMonthlyUtilityType(u.type) ? `<button class="light" onclick="createNextMonthUtilityFrom('${u.id}')">New month</button>` : ""}<button class="secondary" onclick="editUtility('${u.id}')">Edit</button><button class="danger" onclick="deleteUtility('${u.id}')">Delete</button></div></td>
+  </tr>`;
+}
+
+function escapeHtml(str) { return String(str || "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+
+function openItemModal(houseId) {
+  modalTitle.textContent = "Add maintenance item"; editId.value = "";
+  itemHouse.value = houseId || (houseSelect.value !== "all" ? houseSelect.value : state.houses[0].id);
+  itemCategory.value = "Air filter"; itemName.value = ""; itemDue.value = todayISO(); itemEvery.value = 3; itemUnit.value = "months"; itemNotes.value = ""; itemDialog.showModal();
+}
+
+function viewItem(id) {
+  maintenanceViewOnly = true;
+  editItem(id);
+
+  setTimeout(() => {
+    itemModalTitle.textContent = "View maintenance item";
+
+    [
+      itemCategory,
+      itemName,
+      itemDue,
+      itemEvery,
+      itemUnit,
+      itemNotes,
+      itemHouse
+    ].forEach(el => {
+      if (el) el.disabled = true;
+    });
+
+    const submitBtn = itemDialog.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.style.display = "none";
+  }, 30);
+}
+
+function editItem(id) {
+  maintenanceViewOnly = false;
+
+  [
+    itemCategory,
+    itemName,
+    itemDue,
+    itemEvery,
+    itemUnit,
+    itemNotes,
+    itemHouse
+  ].forEach(el => {
+    if (el) el.disabled = false;
+  });
+
+  const submitBtn = itemDialog.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.style.display = "";
+
+  const i = state.items.find(x => x.id === id); if (!i) return;
+  modalTitle.textContent = "Edit maintenance item"; editId.value = i.id; itemHouse.value = i.houseId; itemCategory.value = i.category; itemName.value = i.name; itemDue.value = i.due; itemEvery.value = i.every; itemUnit.value = i.unit; itemNotes.value = i.notes || ""; itemDialog.showModal();
+}
+function saveItem(e) {
+  e.preventDefault();
+  const item = { id: editId.value || uid(), houseId:itemHouse.value, category:itemCategory.value, name:itemName.value.trim(), due:itemDue.value, every:Number(itemEvery.value || 0), unit:itemUnit.value, notes:itemNotes.value.trim() };
+  state.items = editId.value ? state.items.map(i => i.id === item.id ? item : i) : [...state.items, item];
+  itemDialog.close(); saveData();
+}
+function markDone(id) { const i = state.items.find(x => x.id === id); if (!i) return; i.due = addInterval(i.due, i.every, i.unit); if (i.unit === "none") state.items = state.items.filter(x => x.id !== id); saveData(); }
+function deleteItem(id) { if (confirm("Delete this item?")) { state.items = state.items.filter(i => i.id !== id); saveData(); } }
+
+
+const HOUSE_UTILITY_TYPES = ["Electric", "Water", "Gas", "Trash", "Internet", "HOA", "Other"];
+const OTHER_BILL_TYPES = ["Auto Insurance", "Car Payment", "Mobile Phones", "Soccer Club", "Math Class"];
+
+function populateUtilityTypeOptions(destination = "") {
+  const current = utilityType.value;
+  const types = destination === "other" ? OTHER_BILL_TYPES : HOUSE_UTILITY_TYPES;
+  utilityType.innerHTML = types.map(t => `<option>${t}</option>`).join("");
+  if (types.includes(current)) utilityType.value = current;
+}
+
+function updateUtilityTypeOptionsFromHouse() {
+  populateUtilityTypeOptions(utilityHouse.value);
+}
+
+
+
+function updateUtilityPaidDateVisibility() {
+  const wrap = document.getElementById("utilityPaidDateWrap");
+  if (!wrap) return;
+
+  if (utilityPaid.value === "paid") {
+    wrap.style.display = "";
+    utilityPaidDate.required = false;
+  } else {
+    wrap.style.display = "none";
+    utilityPaidDate.required = false;
+    utilityPaidDate.value = "";
+  }
+}
+
+
+function openUtilityModal(houseId) {
+  utilityModalTitle.textContent = houseId === "other" ? "Add Other bill" : "Add utility bill";
+  utilityEditId.value = "";
+  utilityHouse.value = houseId || (utilityHouseFilter.value !== "all" ? utilityHouseFilter.value : state.houses[0].id);
+  populateUtilityTypeOptions(utilityHouse.value);
+  utilityType.value = utilityHouse.value === "other" ? "Auto Insurance" : "Electric";
+  utilityProvider.value = ""; utilityUrl.value = ""; utilityAccount.value = ""; utilityStatementDate.value = ""; utilityAmount.value = ""; utilityDue.value = todayISO(); utilityPaid.value = "unpaid"; utilityAutopay.value = "off"; utilityPaidDate.value = ""; utilityNotes.value = ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
+}
+function editUtility(id) {
+  const u = state.utilities.find(x => x.id === id); if (!u) return;
+  utilityModalTitle.textContent = "Edit utility bill"; utilityEditId.value = u.id; utilityHouse.value = isOtherBillType(u.type) ? "other" : u.houseId; populateUtilityTypeOptions(utilityHouse.value); utilityType.value = u.type; utilityProvider.value = u.provider; utilityUrl.value = u.url || ""; utilityAccount.value = u.account || ""; utilityStatementDate.value = u.statementDate || ""; utilityAmount.value = u.amount || ""; utilityDue.value = u.due; utilityPaid.value = u.paid || "unpaid"; utilityAutopay.value = u.autopay || "off"; utilityPaidDate.value = u.paidDate || ""; utilityNotes.value = u.notes || ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
+}
+function saveUtility(e) {
+  e.preventDefault();
+  if (utilityPaid.value !== "paid") utilityPaidDate.value = "";
+  const utility = { id: utilityEditId.value || uid(), houseId:utilityHouse.value === "other" ? "other" : utilityHouse.value, type:utilityType.value, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
+  state.utilities = utilityEditId.value ? state.utilities.map(u => u.id === utility.id ? utility : u) : [...state.utilities, utility];
+  utilityDialog.close(); saveData();
+}
+function markUtilityPaid(id) {
+  const u = state.utilities.find(x => x.id === id); if (!u) return;
+  u.paid = "paid"; u.paidDate = todayISO(); saveData();
+}
+function deleteUtility(id) { if (confirm("Delete this utility bill?")) { state.utilities = state.utilities.filter(u => u.id !== id); saveData(); } }
+
+
+
+
+function deleteFinanceRow(houseId,rowType){
+  if(!confirm('Delete this item?')) return;
+  const f = state.finance.find(x=>x.houseId===houseId);
+  if(!f) return;
+
+  switch(rowType){
+    case 'mortgage':
+      f.mortgageCompany=''; f.mortgageNumber=''; f.mortgageLogin=''; f.mortgageAmount=0;
+      break;
+    case 'salesTax':
+      f.salesVisible='no';
+      break;
+    case 'touristTax':
+      f.touristVisible='no';
+      break;
+    case 'insurance':
+      f.insuranceCompany=''; f.insurancePolicyNumber=''; f.insuranceAmount=0; f.insuranceDue='';
+      break;
+    case 'propertyTax':
+      f.propertyTaxAgency=''; f.propertyTaxAmount=0; f.propertyTaxDue='';
+      break;
+  }
+  saveData();
+}
+function renderFinance() {
+  ensureFinanceRecords();
+
+  const q = financeSearch.value.toLowerCase().trim();
+  const statusFilter = financeStatusFilter.value;
+  const houseFilter = financeHouseFilter.value;
+  financeApp.innerHTML = "";
+
+  const monthlyRows = [];
+  const annualRows = [];
+
+  state.houses.forEach(house => {
+    if (houseFilter !== "all" && houseFilter !== house.id) return;
+
+    const f = state.finance.find(x => x.houseId === house.id);
+    if (!f) return;
+
+    const searchable = `${houseDisplayName(house)} mortgage hazardous insurance property taxes florida sales tax tourist tax ${f.mortgageCompany||''} ${f.mortgageNumber||''} ${f.salesAgency||''} ${f.touristAgency||''} ${f.insuranceCompany||''} ${f.insurancePolicyNumber||''} ${f.propertyTaxAgency||''} ${f.notes||''}`.toLowerCase();
+    if (q && !searchable.includes(q)) return;
+
+    const mortgageDue = dueDateForDay(f.mortgageDueDay);
+    const salesDue = dueDateForDay(f.salesDueDay);
+    const touristDue = dueDateForDay(f.touristDueDay);
+
+    const mortgageSt = financeStatus(f.mortgagePaid, mortgageDue);
+    const salesSt = financeStatus(f.salesPaid, salesDue);
+    const touristSt = financeStatus(f.touristPaid, touristDue);
+    const insuranceSt = f.insuranceDue ? financeStatus(f.insurancePaid, f.insuranceDue) : {key:"", text:""};
+    const propertyTaxSt = f.propertyTaxDue ? financeStatus(f.propertyTaxPaid, f.propertyTaxDue) : {key:"", text:""};
+
+    const allowedByStatus = (paid, st) => {
+      return statusFilter === "all" ||
+        (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
+        (statusFilter === "unpaid" && paid === "unpaid") ||
+        (statusFilter === "paid" && paid === "paid");
+    };
+
+    const link = (url, text) => url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${text}</a>` : "";
+
+    if (allowedByStatus(f.mortgagePaid, mortgageSt)) {
+      monthlyRows.push(`
+        <tr>
+          <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
+          <td><b>Mortgage</b></td>
+          <td>${escapeHtml(f.mortgageCompany || "")}<br><span class="small">Mortgage #: ${escapeHtml(f.mortgageNumber || "")}</span></td>
+          <td>${link(f.mortgageLogin, "Login")}</td>
+          <td>${money(f.mortgageAmount)}</td>
+          <td>Due ${escapeHtml(f.mortgageDueDay || 1)} of month<br><span class="small">${mortgageDue}</span></td>
+          <td class="status ${mortgageSt.key}">${mortgageSt.text}</td>
+          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','mortgage')">Delete</button></div></td>
+        </tr>`);
+    }
+
+    if (f.salesVisible !== "no" && allowedByStatus(f.salesPaid, salesSt)) {
+      monthlyRows.push(`
+        <tr>
+          <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
+          <td><b>Florida Sales Tax</b><br><span class="small">Return: ${escapeHtml(f.salesFiled || "not filed")}</span></td>
+          <td>${escapeHtml(f.salesAgency || "Florida Sales Tax")}</td>
+          <td>${link(f.salesLogin, "Login")}</td>
+          <td>${money(salesTaxAmount(f.salesTaxable))}<br><span class="small">Taxable: ${money(f.salesTaxable)}</span></td>
+          <td>Due ${salesDue}<br><span class="small">For ${previousMonthForDueDate(salesDue)}</span><br><span class="small">${daysLeftText(salesDue)}</span></td>
+          <td class="status ${salesSt.key}">${salesSt.text}</td>
+          <td><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','salesTax')">Delete</button></td>
+        </tr>`);
+    }
+
+    if (f.touristVisible !== "no" && allowedByStatus(f.touristPaid, touristSt)) {
+      monthlyRows.push(`
+        <tr>
+          <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
+          <td><b>Tourist Tax</b><br><span class="small">Return: ${escapeHtml(f.touristFiled || "not filed")}</span></td>
+          <td>${escapeHtml(f.touristAgency || "")}</td>
+          <td>${link(f.touristLogin, "Login")}</td>
+          <td>${money(touristTaxAmount(f.touristTaxable))}<br><span class="small">Taxable: ${money(f.touristTaxable)}</span></td>
+          <td>Due ${touristDue}<br><span class="small">For ${previousMonthForDueDate(touristDue)}</span><br><span class="small">${daysLeftText(touristDue)}</span></td>
+          <td class="status ${touristSt.key}">${touristSt.text}</td>
+          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
+        </tr>`);
+    }
+
+    if (allowedByStatus(f.insurancePaid, insuranceSt)) {
+      annualRows.push(`
+        <tr>
+          <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
+          <td><b>Hazardous Insurance</b></td>
+          <td>${escapeHtml(f.insuranceCompany || "")}<br><span class="small">Policy #: ${escapeHtml(f.insurancePolicyNumber || "")}</span></td>
+          <td>${link(f.insuranceLogin, "Login")}</td>
+          <td>${money(f.insuranceAmount)}</td>
+          <td>Due ${escapeHtml(f.insuranceDue || "")}<br><span class="small">Period ${escapeHtml(f.insuranceStart || "")} to ${escapeHtml(f.insuranceEnd || "")}</span></td>
+          <td class="status ${insuranceSt.key}">${insuranceSt.text}</td>
+          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
+        </tr>`);
+    }
+
+    if (allowedByStatus(f.propertyTaxPaid, propertyTaxSt)) {
+      annualRows.push(`
+        <tr>
+          <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
+          <td><b>Property Taxes</b></td>
+          <td>${escapeHtml(f.propertyTaxAgency || "")}</td>
+          <td>${link(f.propertyTaxLogin, "County tax page")}</td>
+          <td>${money(f.propertyTaxAmount)}</td>
+          <td>Due ${escapeHtml(f.propertyTaxDue || "")}</td>
+          <td class="status ${propertyTaxSt.key}">${propertyTaxSt.text}</td>
+          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
+        </tr>`);
+    }
+  });
+
+
+  (state.financeItems || []).forEach(item => {
+    if (houseFilter !== "all" && houseFilter !== item.houseId) return;
+    const house = state.houses.find(h => h.id === item.houseId);
+    if (!house) return;
+    const searchable = `${houseDisplayName(house)} ${item.name} ${item.company} ${item.account} ${item.notes}`.toLowerCase();
+    if (q && !searchable.includes(q)) return;
+
+    const st = item.due ? financeStatus(item.paid, item.due) : {key:"", text:""};
+    const statusMatch = statusFilter === "all" ||
+      (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
+      (statusFilter === "unpaid" && item.paid === "unpaid") ||
+      (statusFilter === "paid" && item.paid === "paid");
+    if (!statusMatch) return;
+
+    const linkHtml = item.login ? `<a href="${escapeHtml(item.login)}" target="_blank" rel="noopener">Login</a>` : "";
+    const row = `
+      <tr>
+        <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
+        <td><b>${escapeHtml(item.name || "Custom item")}</b></td>
+        <td>${escapeHtml(item.company || "")}<br><span class="small">Account/policy #: ${escapeHtml(item.account || "")}</span></td>
+        <td>${linkHtml}</td>
+        <td>${money(item.amount)}</td>
+        <td>Due ${escapeHtml(item.due || "")}</td>
+        <td class="status ${st.key}">${st.text}</td>
+        <td><div class="actions"><button class="secondary" onclick="editFinanceItem('${item.id}')">Edit</button>${String(item.name||'').toLowerCase().includes('flood insurance') ? '' : `<button class="danger" onclick="deleteFinanceItem('${item.id}')">Delete</button>`}</div></td>
+      </tr>`;
+
+    if (item.frequency === "annual") annualRows.push(row);
+    else monthlyRows.push(row);
+  });
+
+  financeApp.innerHTML = `
+    <section class="card" style="margin-bottom:16px;">
+      <div class="house-title">
+        <h2>Monthly Dues — All Houses</h2>
+        <div class="summary"><span class="pill">${monthlyRows.length} item(s)</span></div>
+      </div>
+      <div class="table-wrap">
+        <table class="utility-table">
+          <thead>
+            <tr>
+              <th>House</th>
+              <th>Item</th>
+              <th>Company / agency</th>
+              <th>Login</th>
+              <th>Amount</th>
+              <th>Due</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>${monthlyRows.length ? monthlyRows.join("") : `<tr><td colspan="8" class="small">No monthly dues match this filter.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="house-title">
+        <h2>Annual Dues — All Houses</h2>
+        <div class="summary"><span class="pill">${annualRows.length} item(s)</span></div>
+      </div>
+      <div class="table-wrap">
+        <table class="utility-table">
+          <thead>
+            <tr>
+              <th>House</th>
+              <th>Item</th>
+              <th>Company / agency</th>
+              <th>Login</th>
+              <th>Amount</th>
+              <th>Due</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>${annualRows.length ? annualRows.join("") : `<tr><td colspan="8" class="small">No annual dues match this filter.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </section>`;
+}
+
+
+function openFinanceItemModal() {
+  financeItemModalTitle.textContent = "Add mortgage/tax/insurance item";
+  financeItemEditId.value = "";
+  financeItemHouse.value = financeHouseFilter.value !== "all" ? financeHouseFilter.value : state.houses[0].id;
+  financeItemFrequency.value = "annual";
+  financeItemName.value = "";
+  financeItemCompany.value = "";
+  financeItemLogin.value = "";
+  financeItemAccount.value = "";
+  financeItemAmount.value = "";
+  financeItemDue.value = "";
+  financeItemPaid.value = "unpaid";
+  financeItemPaidDate.value = "";
+  financeItemNotes.value = "";
+  financeItemDialog.showModal();
+}
+
+function editFinanceItem(id) {
+  const item = (state.financeItems || []).find(x => x.id === id);
+  if (!item) return;
+  financeItemModalTitle.textContent = "Edit mortgage/tax/insurance item";
+  financeItemEditId.value = item.id;
+  financeItemHouse.value = item.houseId;
+  financeItemFrequency.value = item.frequency || "annual";
+  financeItemName.value = item.name || "";
+  financeItemCompany.value = item.company || "";
+  financeItemLogin.value = item.login || "";
+  financeItemAccount.value = item.account || "";
+  financeItemAmount.value = item.amount || "";
+  financeItemDue.value = item.due || "";
+  financeItemPaid.value = item.paid || "unpaid";
+  financeItemPaidDate.value = item.paidDate || "";
+  financeItemNotes.value = item.notes || "";
+  financeItemDialog.showModal();
+}
+
+function saveFinanceItem(e) {
+  e.preventDefault();
+  if (!state.financeItems) state.financeItems = [];
+  const item = {
+    id: financeItemEditId.value || uid(),
+    houseId: financeItemHouse.value,
+    frequency: financeItemFrequency.value,
+    name: financeItemName.value.trim(),
+    company: financeItemCompany.value.trim(),
+    login: financeItemLogin.value.trim(),
+    account: financeItemAccount.value.trim(),
+    amount: Number(financeItemAmount.value || 0),
+    due: financeItemDue.value,
+    paid: financeItemPaid.value,
+    paidDate: financeItemPaid.value === "paid" ? financeItemPaidDate.value : "",
+    notes: financeItemNotes.value.trim()
+  };
+  const idx = state.financeItems.findIndex(x => x.id === item.id);
+  if (idx >= 0) state.financeItems[idx] = item;
+  else state.financeItems.push(item);
+  financeItemDialog.close();
+  saveData();
+}
+
+function deleteFinanceItem(id) {
+  if (confirm("Delete this item?")) {
+    state.financeItems = (state.financeItems || []).filter(x => x.id !== id);
+    saveData();
+  }
+}
+
+
+function openFinanceModal() {
+  const houseId = financeHouseFilter.value !== "all" ? financeHouseFilter.value : state.houses[0].id;
+  editFinance(houseId);
+}
+
+function editFinance(houseId) {
+  ensureFinanceRecords();
+  const f = state.finance.find(x => x.houseId === houseId);
+  if (!f) return;
+  financeHouse.value = houseId;
+  finMortgageCompany.value = f.mortgageCompany || "";
+  finMortgageNumber.value = f.mortgageNumber || "";
+  finMortgageLogin.value = f.mortgageLogin || "";
+  finMortgageAmount.value = f.mortgageAmount || "";
+  finMortgageDueDay.value = f.mortgageDueDay || 1;
+  finMortgagePaid.value = f.mortgagePaid || "unpaid";
+  finMortgagePaidDate.value = f.mortgagePaidDate || "";
+  finSalesVisible.value = f.salesVisible || "yes";
+  finSalesAgency.value = f.salesAgency || "Florida Sales Tax";
+  finSalesLogin.value = f.salesLogin || "";
+  finSalesFiled.value = f.salesFiled || "not filed";
+  finSalesTaxable.value = f.salesTaxable || "";
+  finSalesPaid.value = f.salesPaid || "unpaid";
+  finSalesDueDay.value = f.salesDueDay || 20;
+  finTouristVisible.value = f.touristVisible || "yes";
+  finTouristAgency.value = f.touristAgency || `${countyNameForHouse(houseId)} - tourist county tax`;
+  finTouristLogin.value = f.touristLogin || "";
+  finTouristFiled.value = f.touristFiled || "not filed";
+  finTouristTaxable.value = f.touristTaxable || "";
+  finTouristPaid.value = f.touristPaid || "unpaid";
+  finTouristDueDay.value = f.touristDueDay || 20;
+  finInsuranceCompany.value = f.insuranceCompany || "";
+  finInsurancePolicyNumber.value = f.insurancePolicyNumber || "";
+  finInsuranceLogin.value = f.insuranceLogin || "";
+  finInsuranceStart.value = f.insuranceStart || "";
+  finInsuranceEnd.value = f.insuranceEnd || "";
+  finInsuranceAmount.value = f.insuranceAmount || "";
+  finInsuranceDue.value = f.insuranceDue || "";
+  finInsurancePaid.value = f.insurancePaid || "unpaid";
+  finPropertyTaxAgency.value = f.propertyTaxAgency || `${countyNameForHouse(houseId)} property tax`;
+  finPropertyTaxLogin.value = f.propertyTaxLogin || "";
+  finPropertyTaxAmount.value = f.propertyTaxAmount || "";
+  finPropertyTaxDue.value = f.propertyTaxDue || "";
+  finPropertyTaxPaid.value = f.propertyTaxPaid || "unpaid";
+  finNotes.value = f.notes || "";
+  financeDialog.showModal();
+}
+
+function saveFinance(e) {
+  e.preventDefault();
+  const houseId = financeHouse.value;
+  const record = {
+    houseId,
+    mortgageCompany: finMortgageCompany.value.trim(),
+    mortgageNumber: finMortgageNumber.value.trim(),
+    mortgageLogin: finMortgageLogin.value.trim(),
+    mortgageAmount: Number(finMortgageAmount.value || 0),
+    mortgageDueDay: Number(finMortgageDueDay.value || 1),
+    mortgagePaid: finMortgagePaid.value,
+    mortgagePaidDate: finMortgagePaidDate.value,
+    salesVisible: finSalesVisible.value,
+    salesAgency: finSalesAgency.value.trim() || "Florida Sales Tax",
+    salesLogin: finSalesLogin.value.trim(),
+    salesFiled: finSalesFiled.value,
+    salesTaxable: Number(finSalesTaxable.value || 0),
+    salesPaid: finSalesPaid.value,
+    salesDueDay: Number(finSalesDueDay.value || 20),
+    touristVisible: finTouristVisible.value,
+    touristAgency: finTouristAgency.value.trim() || `${countyNameForHouse(houseId)} - tourist county tax`,
+    touristLogin: finTouristLogin.value.trim(),
+    touristFiled: finTouristFiled.value,
+    touristTaxable: Number(finTouristTaxable.value || 0),
+    touristPaid: finTouristPaid.value,
+    touristDueDay: Number(finTouristDueDay.value || 20),
+    insuranceCompany: finInsuranceCompany.value.trim(),
+    insurancePolicyNumber: finInsurancePolicyNumber.value.trim(),
+    insuranceLogin: finInsuranceLogin.value.trim(),
+    insuranceStart: finInsuranceStart.value,
+    insuranceEnd: finInsuranceEnd.value,
+    insuranceAmount: Number(finInsuranceAmount.value || 0),
+    insuranceDue: finInsuranceDue.value,
+    insurancePaid: finInsurancePaid.value,
+    propertyTaxAgency: finPropertyTaxAgency.value.trim() || `${countyNameForHouse(houseId)} property tax`,
+    propertyTaxLogin: finPropertyTaxLogin.value.trim(),
+    propertyTaxAmount: Number(finPropertyTaxAmount.value || 0),
+    propertyTaxDue: finPropertyTaxDue.value,
+    propertyTaxPaid: finPropertyTaxPaid.value,
+    notes: finNotes.value.trim()
+  };
+  const idx = state.finance.findIndex(f => f.houseId === houseId);
+  if (idx >= 0) state.finance[idx] = record;
+  else state.finance.push(record);
+  financeDialog.close();
+  saveData();
+}
+
+
+
+function otherBillStatus(b) {
+  const d = daysUntil(b.due);
+  if (b.paid === "paid") return {key:"paid", text:b.paidDate ? `Paid ${b.paidDate}` : "Paid"};
+  if (d < 0) return {key:"unpaid-overdue", text:`Not paid, overdue ${Math.abs(d)} day(s)`};
+  if (d === 0) return {key:"unpaid", text:"Not paid, due today"};
+  return {key:"unpaid", text:`Not paid, ${d} day(s) left`};
+}
+
+function renderOtherBills() {
+  if (!state.otherBills) state.otherBills = makeDefaultOtherBills();
+  const q = otherBillsSearch.value.toLowerCase().trim();
+  const statusFilter = otherBillsStatusFilter.value;
+  let bills = state.otherBills.filter(b => {
+    const s = otherBillStatus(b).key;
+    const text = `${b.type} ${b.provider} ${b.account} ${b.notes} ${b.paid} ${b.due}`.toLowerCase();
+    const ok = statusFilter === "all" || (statusFilter === "overdue" && s === "unpaid-overdue") || (statusFilter === "unpaid" && b.paid === "unpaid") || (statusFilter === "paid" && b.paid === "paid");
+    return (!q || text.includes(q)) && ok;
+  }).sort((a,b) => parseDate(a.due) - parseDate(b.due));
+  const totalUnpaid = bills.filter(b => b.paid !== "paid").reduce((sum,b) => sum + Number(b.amount || 0), 0);
+  otherBillsApp.innerHTML = `<div class="house-title"><h2>Other Bills</h2><div class="summary"><span class="pill">${bills.length} bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span></div></div>
+    <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account #</th><th>Statement date</th><th>Amount due</th><th>Due date</th><th>Paid status</th><th>Actions</th></tr></thead>
+    <tbody>${bills.length ? bills.map(otherBillRowHtml).join("") : `<tr><td colspan="8" class="small">No other bills match this view.</td></tr>`}</tbody></table></div>`;
+}
+
+function otherBillRowHtml(b) {
+  const s = otherBillStatus(b);
+  const link = b.login ? `<a href="${escapeHtml(b.login)}" target="_blank" rel="noopener">Open login</a>` : "";
+  return `<tr><td><b>${escapeHtml(b.type || "")}</b></td><td><b>${escapeHtml(b.provider || "")}</b><br><span class="small">${link}</span></td><td>${escapeHtml(b.account || "")}</td><td>${escapeHtml(b.statementDate || "")}</td><td><b>${money(b.amount)}</b></td><td>${escapeHtml(b.due || "")}</td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markOtherBillPaid('${b.id}')">Mark paid</button><button class="secondary" onclick="editOtherBill('${b.id}')">Edit</button><button class="danger" onclick="deleteOtherBill('${b.id}')">Delete</button></div></td></tr>`;
+}
+
+function openOtherBillModal() {
+  otherBillModalTitle.textContent = "Add other bill"; otherBillEditId.value = "";
+  otherBillType.value = "Auto Insurance"; otherBillProvider.value = ""; otherBillLogin.value = ""; otherBillAccount.value = "";
+  otherBillStatementDate.value = ""; otherBillAmount.value = ""; otherBillDue.value = todayISO(); otherBillPaid.value = "unpaid"; otherBillPaidDate.value = ""; otherBillNotes.value = "";
+  otherBillDialog.showModal();
+}
+
+function editOtherBill(id) {
+  const b = state.otherBills.find(x => x.id === id); if (!b) return;
+  otherBillModalTitle.textContent = "Edit other bill"; otherBillEditId.value = b.id; otherBillType.value = b.type || "Other";
+  otherBillProvider.value = b.provider || ""; otherBillLogin.value = b.login || ""; otherBillAccount.value = b.account || "";
+  otherBillStatementDate.value = b.statementDate || ""; otherBillAmount.value = b.amount || ""; otherBillDue.value = b.due || todayISO();
+  otherBillPaid.value = b.paid || "unpaid"; otherBillPaidDate.value = b.paidDate || ""; otherBillNotes.value = b.notes || "";
+  otherBillDialog.showModal();
+}
+
+function saveOtherBill(e) {
+  e.preventDefault(); if (!state.otherBills) state.otherBills = [];
+  const bill = {id: otherBillEditId.value || uid(), type: otherBillType.value, provider: otherBillProvider.value.trim(), login: otherBillLogin.value.trim(), account: otherBillAccount.value.trim(), statementDate: otherBillStatementDate.value, amount: Number(otherBillAmount.value || 0), due: otherBillDue.value, paid: otherBillPaid.value, paidDate: otherBillPaidDate.value, notes: otherBillNotes.value.trim()};
+  const idx = state.otherBills.findIndex(b => b.id === bill.id); if (idx >= 0) state.otherBills[idx] = bill; else state.otherBills.push(bill);
+  otherBillDialog.close(); saveData();
+}
+
+function markOtherBillPaid(id) {
+  const b = state.otherBills.find(x => x.id === id); if (!b) return; b.paid = "paid"; b.paidDate = todayISO(); saveData();
+}
+
+function deleteOtherBill(id) {
+  if (confirm("Delete this other bill?")) { state.otherBills = state.otherBills.filter(b => b.id !== id); saveData(); }
+}
+
+
+function renderContacts() {
+  const q = contactSearch.value.toLowerCase().trim();
+  const serviceFilter = contactServiceFilter.value;
+  const houseFilter = contactHouseFilter.value;
+
+  contactsApp.innerHTML = "";
+  const housesToShow = state.houses.filter(h => houseFilter === "all" || h.id === houseFilter);
+
+  setupContactButtons();
+  housesToShow.forEach(house => {
+    let contacts = (state.contacts || []).filter(c => c.houseId === house.id);
+    contacts = contacts.filter(c => {
+      const text = `${c.name} ${c.email} ${c.phone} ${c.type} ${c.address} ${c.website} ${c.notes} ${house.name}`.toLowerCase();
+      const serviceMatch = serviceFilter === "all" || c.type === serviceFilter;
+      return (!q || text.includes(q)) && serviceMatch;
+    }).sort((a,b) => (a.type || "").localeCompare(b.type || "") || (a.name || "").localeCompare(b.name || ""));
+
+    const card = document.createElement("section");
+    card.className = "card";
+    card.style.marginBottom = "16px";
+    card.innerHTML = `
+      <div class="house-title">
+        <h2>${escapeHtml(houseDisplayName(house))}</h2>
+        <div class="summary"><span class="pill">${contacts.length} contact(s)</span></div>
+      </div>
+      <table>
+        <thead><tr><th>Name</th><th>Service</th><th>Email / phone</th><th>Address</th><th>Actions</th></tr></thead>
+        <tbody>${contacts.length ? contacts.map(contactRowHtml).join("") : `<tr><td colspan="5" class="small">No contacts for this property yet.</td></tr>`}</tbody>
+      </table>`;
+    contactsApp.appendChild(card);
+  });
+}
+
+function contactRowHtml(c) {
+  const email = c.email ? `<a href="mailto:${escapeHtml(c.email)}">${escapeHtml(c.email)}</a>` : "";
+  const phone = c.phone ? `<br><span class="small">${escapeHtml(c.phone)}</span>` : "";
+  const website = c.website ? `<br><a href="${escapeHtml(c.website)}" target="_blank" rel="noopener">Website</a>` : "";
+  return `<tr>
+    <td><b>${escapeHtml(c.name || "")}</b>${website}<br><span class="small">${escapeHtml(c.notes || "")}</span></td>
+    <td>${escapeHtml(c.type || "")}</td>
+    <td>${email}${phone}</td>
+    <td>${escapeHtml(c.address || "")}</td>
+    <td><div class="actions"><button type="button" class="secondary contact-edit-btn" data-contact-id="${escapeHtml(c.id)}">Edit</button><button type="button" class="danger contact-delete-btn" data-contact-id="${escapeHtml(c.id)}">Delete</button></div></td>
+  </tr>`;
+}
+
+function openContactModal() {
+  contactModalTitle.textContent = "Add service contact";
+  contactEditId.value = "";
+  contactName.value = "";
+  contactType.value = "AC / HVAC";
+  contactEmail.value = "";
+  contactPhone.value = "";
+  contactHouse.value = contactHouseFilter.value !== "all" ? contactHouseFilter.value : state.houses[0].id;
+  contactWebsite.value = "";
+  contactAddress.value = "";
+  contactNotes.value = "";
+  contactDialog.showModal();
+}
+
+function editContact(id) {
+  if (!state.contacts) state.contacts = [];
+  const c = state.contacts.find(x => String(x.id) === String(id));
+  if (!c) {
+    alert("Could not find this saved contact. Try refreshing the page.");
+    return;
+  }
+  contactModalTitle.textContent = "Edit service contact";
+  contactEditId.value = c.id;
+  contactName.value = c.name || "";
+  contactType.value = c.type || "Other";
+  contactEmail.value = c.email || "";
+  contactPhone.value = c.phone || "";
+  contactHouse.value = c.houseId || state.houses[0].id;
+  contactWebsite.value = c.website || "";
+  contactAddress.value = c.address || "";
+  contactNotes.value = c.notes || "";
+  contactDialog.showModal();
+}
+
+function saveContact(e) {
+  e.preventDefault();
+  if (!state.contacts) state.contacts = [];
+
+  const existingId = contactEditId.value;
+  const contact = {
+    id: existingId || uid(),
+    name: contactName.value.trim(),
+    type: contactType.value,
+    email: contactEmail.value.trim(),
+    phone: contactPhone.value.trim(),
+    houseId: contactHouse.value,
+    website: contactWebsite.value.trim(),
+    address: contactAddress.value.trim(),
+    notes: contactNotes.value.trim()
+  };
+
+  if (!contact.name) {
+    alert("Please enter a contact name or company name.");
+    return;
+  }
+
+  const index = state.contacts.findIndex(c => c.id === contact.id);
+  if (index >= 0) {
+    state.contacts[index] = contact;
+  } else {
+    state.contacts.push(contact);
+  }
+
+  contactDialog.close();
+  saveData();
+}
+
+function deleteContact(id) {
+  if (!state.contacts) state.contacts = [];
+  if (confirm("Delete this contact?")) {
+    state.contacts = state.contacts.filter(c => c.id !== id);
+    saveData();
+  }
+}
+
+function setupContactButtons() {
+  if (!contactsApp || contactsApp.dataset.listenerAttached === "yes") return;
+  contactsApp.dataset.listenerAttached = "yes";
+  contactsApp.addEventListener("click", function(event) {
+    const editButton = event.target.closest(".contact-edit-btn");
+    const deleteButton = event.target.closest(".contact-delete-btn");
+    if (editButton) {
+      editContact(editButton.dataset.contactId);
+    }
+    if (deleteButton) {
+      deleteContact(deleteButton.dataset.contactId);
+    }
+  });
+}
+
+function openHouseModal() {
+  refreshHouseNames();
+  houseInputs.innerHTML = state.houses.map((h, idx) => {
+    const pending = pendingHouseDeletes.has(h.id);
+    const editing = editableHouses.has(h.id);
+    return `
+    <div class="full house-card ${pending ? "pending-delete" : ""}" id="houseCard-${h.id}">
+      <div class="house-title">
+        <h3 style="margin:0;">${escapeHtml(h.nickname || `House ${idx + 1}`)}</h3>
+        ${pending ? `<span class="pill">Will be deleted when you Save</span>` : editing ? `<span class="pill">Editing</span>` : `<span class="pill">View only</span>`}
+      </div>
+      <div class="form-grid">
+        <div>
+          <label>Nickname</label>
+          <input data-house-id="${h.id}" data-field="nickname" value="${escapeHtml(h.nickname || "")}" placeholder="Beach house, Nokomis, Cape Coral..." ${(!editing || pending) ? "disabled" : ""}>
+        </div>
+        <div>
+          <label>Address</label>
+          <input data-house-id="${h.id}" data-field="address" value="${escapeHtml(h.address || "")}" placeholder="Street, city, state ZIP" ${(!editing || pending) ? "disabled" : ""}>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px;">
+        ${pending 
+          ? `<button type="button" class="light" onclick="undoDeleteHouse('${h.id}')">Undo delete</button><button type="button" class="danger" disabled style="opacity:.6; cursor:not-allowed;">Delete marked</button>`
+          : editing
+            ? `<button type="button" class="light" onclick="lockHouseCard('${h.id}')">Done editing</button><button type="button" class="danger" onclick="markHouseForDelete('${h.id}')">Delete</button>`
+            : `<button type="button" class="secondary" onclick="editHouseCard('${h.id}')">Edit</button><button type="button" class="danger" onclick="markHouseForDelete('${h.id}')">Delete</button>`}
+      </div>
+    </div>`;
+  }).join("") + `
+    <div class="full house-card" style="border-top:1px solid var(--border);">
+      <h4 style="margin:0 0 8px;">Add another house</h4>
+      <div class="form-grid">
+        <div>
+          <label>Nickname</label>
+          <input id="newHouseNickname" placeholder="Short name, e.g. Tampa rental">
+        </div>
+        <div>
+          <label>Address</label>
+          <input id="newHouseAddress" placeholder="Street, city, state ZIP">
+        </div>
+      </div>
+    </div>`;
+  houseDialog.showModal();
+}
+
+function editHouseCard(id) {
+  editableHouses.add(id);
+  openHouseModal();
+  setTimeout(() => {
+    const input = houseInputs.querySelector(`input[data-house-id="${id}"][data-field="nickname"]`);
+    if (input) input.focus();
+  }, 50);
+}
+
+function lockHouseCard(id) {
+  editableHouses.delete(id);
+  openHouseModal();
+}
+
+function markHouseForDelete(id) {
+  if (state.houses.length - pendingHouseDeletes.size <= 1) {
+    alert("You need at least one house.");
+    return;
+  }
+  const house = state.houses.find(h => h.id === id);
+  const label = houseDisplayName(house);
+  if (!confirm(`Mark ${label} for deletion? It will be removed only after you click Save.`)) return;
+  pendingHouseDeletes.add(id);
+  editableHouses.delete(id);
+  openHouseModal();
+}
+
+function undoDeleteHouse(id) {
+  pendingHouseDeletes.delete(id);
+  openHouseModal();
+}
+
+function saveHouses(e) {
+  e.preventDefault();
+
+  [...houseInputs.querySelectorAll("input[data-house-id]:not(:disabled)")].forEach(input => {
+    const h = state.houses.find(x => x.id === input.dataset.houseId);
+    if (h) h[input.dataset.field] = input.value.trim();
+  });
+  refreshHouseNames();
+
+  if (pendingHouseDeletes.size) {
+    state.houses = state.houses.filter(h => !pendingHouseDeletes.has(h.id));
+    state.items = (state.items || []).filter(i => !pendingHouseDeletes.has(i.houseId));
+    state.utilities = (state.utilities || []).filter(u => !pendingHouseDeletes.has(u.houseId));
+    state.contacts = (state.contacts || []).filter(c => !pendingHouseDeletes.has(c.houseId));
+    state.finance = (state.finance || []).filter(f => !pendingHouseDeletes.has(f.houseId));
+    pendingHouseDeletes.clear();
+  }
+
+  const nick = document.getElementById("newHouseNickname") ? document.getElementById("newHouseNickname").value.trim() : "";
+  const addr = document.getElementById("newHouseAddress") ? document.getElementById("newHouseAddress").value.trim() : "";
+
+  if (nick || addr) {
+    const newId = uid();
+    const house = normalizeHouseRecord({ id: newId, nickname: nick, address: addr, name: "" });
+    state.houses.push(house);
+    if (!state.utilities) state.utilities = [];
+    if (!state.items) state.items = [];
+if (!state.contacts) state.contacts = [];
+    if (!state.finance) state.finance = [];
+    if (typeof makeFinanceRecord === "function") {
+      state.finance.push(makeFinanceRecord(newId));
+    }
+  }
+
+  editableHouses.clear();
+  houseDialog.close();
+  saveData();
+}
+
+function exportData() {
+  downloadJsonBackup(backupFilename("house-tracker-full-export"));
+}
+
+function importData(event) {
+  const file = event.target.files[0]; 
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { 
+    try { 
+      const imported = normalizeImportedData(JSON.parse(reader.result));
+      state = imported;
+      saveData({skipAutoBackup:true});
+      alert("Backup imported successfully.");
+    } catch(e) { 
+      alert("Could not import this backup file.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function restoreBackup(event) {
+  const file = event.target.files[0]; 
+  if (!file) return;
+  if (!confirm("Restore this backup? This will replace the current tracker data in this browser.")) {
+    event.target.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => { 
+    try { 
+      const imported = normalizeImportedData(JSON.parse(reader.result));
+      state = imported;
+      saveData({skipAutoBackup:true});
+      downloadJsonBackup(backupFilename("before-restore-safety-copy"));
+      alert("Backup restored successfully. A safety copy of the restored data was also downloaded.");
+    } catch(e) { 
+      alert("Could not restore this backup file.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetData() { if (confirm("Reset to sample data? This will erase current tracker data in this browser.")) { localStorage.removeItem(STORAGE_KEY); state = loadData(); saveData(); } }
+
+search.addEventListener("input", render);
+filterStatus.addEventListener("change", render);
+houseSelect.addEventListener("change", render);
+utilityHouse.addEventListener("change", updateUtilityTypeOptionsFromHouse);
+utilityPaid.addEventListener("change", updateUtilityPaidDateVisibility);
+utilitySearch.addEventListener("input", render);
+utilityStatusFilter.addEventListener("change", render);
+utilityHouseFilter.addEventListener("change", render);
+financeSearch.addEventListener("input", render);
+financeStatusFilter.addEventListener("change", render);
+financeHouseFilter.addEventListener("change", render);
+otherBillsSearch.addEventListener("input", render);
+otherBillsStatusFilter.addEventListener("change", render);
+contactSearch.addEventListener("input", render);
+contactServiceFilter.addEventListener("change", render);
+contactHouseFilter.addEventListener("change", render);
+render();
+</script>
+</body>
+</html>
