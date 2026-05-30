@@ -1,4 +1,4 @@
-House Tracker
+House Tracker Utilities
 
 How to use:
 1. Extract this ZIP folder anywhere on your computer.
