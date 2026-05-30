@@ -11,11 +11,15 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "kv_namespaces": [
+    "kv_namespaces": [
     {
-      "binding": "TRACKER_BACKUPS",
-      "id": "0979c60b1e69497988130f1cb71bdbf9"
+      "binding": "KV",
+      "id": "0979c60b1e69497988130f1cb71bdbf9",
+      
+      // Optional: preview_id used when running `wrangler dev` for local dev
+      "preview_id": "<ID_OF_PREVIEW_KV_NAMESPACE_FOR_LOCAL_DEVELOPMENT>"
     }
   ]
+
 }
 
