@@ -6,39 +6,41 @@ export default {
     async function getData() {
       let data = await kv.get("data", "json");
 
-    // ✅ Only seed once if KV is empty
       if (!data) {
-      const res = await fetch(new URL("../public/data.json", import.meta.url));
-      data = await res.json();
-
-      await kv.put("data", JSON.stringify(data));
+        const seed = await fetch(new URL("./public/data.json", import.meta.url));
+        data = await seed.json();
+        await kv.put("data", JSON.stringify(data));
       }
 
-    return data;
+      return data;
     }
 
     async function saveData(data) {
       await kv.put("data", JSON.stringify(data));
     }
 
-    // READ
+    // ---------------- GET ALL ----------------
     if (url.pathname === "/api/items" && request.method === "GET") {
       return Response.json(await getData());
     }
 
-    // CREATE
+    // ---------------- CREATE ----------------
     if (url.pathname === "/api/items" && request.method === "POST") {
       const body = await request.json();
       const data = await getData();
 
-      const newItem = { id: Date.now(), ...body };
-      data.push(newItem);
+      const newItem = {
+        id: Date.now(),
+        ...body
+      };
 
+      data.push(newItem);
       await saveData(data);
+
       return Response.json(newItem);
     }
 
-    // UPDATE
+    // ---------------- UPDATE ----------------
     if (url.pathname.startsWith("/api/items/") && request.method === "PUT") {
       const id = Number(url.pathname.split("/").pop());
       const body = await request.json();
@@ -56,7 +58,7 @@ export default {
       return Response.json(data[index]);
     }
 
-    // DELETE
+    // ---------------- DELETE ----------------
     if (url.pathname.startsWith("/api/items/") && request.method === "DELETE") {
       const id = Number(url.pathname.split("/").pop());
 
