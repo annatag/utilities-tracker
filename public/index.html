@@ -808,13 +808,37 @@ function loadData() {
   return data;
 }
 
-function saveData(options = {}) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
+async function saveData(options = {}) {
+
+  // local browser backup
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(state, null, 2)
+  );
+
+  // save to Cloudflare KV
+  try {
+    await fetch("/api/items", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify(state)
+    });
+
+  } catch (err) {
+    console.error("Failed saving to KV", err);
+  }
+
   initializeAutoBackupSetting();
-render();
-  if (!options.skipAutoBackup) scheduleAutoBackup();
-}
-function showView(view) {
+
+  render();
+
+  if (!options.skipAutoBackup) {
+    scheduleAutoBackup();
+  }
+}function showView(view) {
   currentView = view;
   maintenanceView.style.display = view === "maintenance" ? "" : "none";
   utilitiesView.style.display = view === "utilities" ? "" : "none";
