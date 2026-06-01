@@ -6,12 +6,9 @@ export async function onRequest(context) {
   async function getData() {
     let data = await kv.get("data", "json");
 
-    // Seed from public/data.json ONLY ONCE
+    // Seed from data.json ONLY ONCE
     if (!data) {
-      const seedResponse = await fetch(
-        `${url.origin}/data.json`
-      );
-
+      const seedResponse = await fetch(`${url.origin}/data.json`);
       data = await seedResponse.json();
 
       await kv.put("data", JSON.stringify(data));
@@ -24,39 +21,66 @@ export async function onRequest(context) {
     await kv.put("data", JSON.stringify(data));
   }
 
-  // GET ALL
+  // ================= GET =================
   if (url.pathname === "/api/items" && request.method === "GET") {
     return Response.json(await getData());
   }
 
-  // CREATE
-  const body = await request.json();
-  const data = await getData();
+  // ================= CREATE =================
+  if (url.pathname === "/api/items" && request.method === "POST") {
+    const body = await request.json();
+    const data = await getData();
 
-  const item = {
-  id: crypto.randomUUID(),
-  ...body
-  };
+    const item = {
+      id: crypto.randomUUID(),
+      ...body
+    };
 
-  data.data.items.push(item);
+    data.data.items.push(item);
 
-  await saveData(data);
+    await saveData(data);
 
-  return Response.json(item);
+    return Response.json(item);
+  }
 
-  // UPDATE
-   const items = data.data.items;
+  // ================= UPDATE =================
+  if (url.pathname.startsWith("/api/items/") && request.method === "PUT") {
+    const id = url.pathname.split("/").pop();
 
-  const index = items.findIndex(i => i.id === id);
+    const body = await request.json();
+    const data = await getData();
 
-  items[index] = {
-  ...items[index],
-  ...body
-  };
+    const items = data.data.items;
 
-  // DELETE
-  data.data.items =
-  data.data.items.filter(i => i.id !== id);
+    const index = items.findIndex(i => i.id === id);
+
+    if (index === -1) {
+      return new Response("Not found", { status: 404 });
+    }
+
+    items[index] = {
+      ...items[index],
+      ...body
+    };
+
+    await saveData(data);
+
+    return Response.json(items[index]);
+  }
+
+  // ================= DELETE =================
+  if (url.pathname.startsWith("/api/items/") && request.method === "DELETE") {
+    const id = url.pathname.split("/").pop();
+
+    const data = await getData();
+
+    data.data.items =
+      data.data.items.filter(i => i.id !== id);
+
+    await saveData(data);
+
+    return Response.json({ success: true });
+  }
 
   return new Response("Not found", { status: 404 });
 }
