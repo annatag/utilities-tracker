@@ -73,38 +73,76 @@
     <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data is saved locally in this browser.</div>
   </header>
 
-  <h1>KV Data</h1>
+  <h1>Items</h1>
 
-  <pre id="output"></pre>
+<input id="name" placeholder="Enter item name" />
+<button onclick="createItem()">Add</button>
 
-  <button onclick="save()">Save test data</button>
+<ul id="list"></ul>
 
-  <script>
-    async function load() {
-      const res = await fetch("/api");
-      const data = await res.json();
-      document.getElementById("output").textContent =
-        JSON.stringify(data, null, 2);
-    }
+<script>
+const API = "/api/items";
 
-    async function save() {
-      const newData = {
-        items: [
-          { id: 1, name: "Updated Item", value: 999 }
-        ]
-      };
+// Load items
+async function loadItems() {
+  const res = await fetch(API);
+  const data = await res.json();
 
-      await fetch("/api", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newData)
-      });
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
-      load();
-    }
+  data.forEach(item => {
+    const li = document.createElement("li");
 
-    load();
-  </script>
+    li.innerHTML = `
+      ${item.name}
+      <button onclick="editItem(${item.id})">Edit</button>
+      <button onclick="deleteItem(${item.id})">Delete</button>
+    `;
+
+    list.appendChild(li);
+  });
+}
+
+// Create
+async function createItem() {
+  const name = document.getElementById("name").value;
+
+  await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name })
+  });
+
+  document.getElementById("name").value = "";
+  loadItems();
+}
+
+// Update
+async function editItem(id) {
+  const name = prompt("New name:");
+
+  await fetch(`${API}/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name })
+  });
+
+  loadItems();
+}
+
+// Delete
+async function deleteItem(id) {
+  await fetch(`${API}/${id}`, {
+    method: "DELETE"
+  });
+
+  loadItems();
+}
+
+// initial load
+loadItems();
+</script>
 
   <main>
     <div class="tabs">
