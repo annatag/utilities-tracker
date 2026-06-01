@@ -4,7 +4,17 @@ export default {
     const kv = env.TRACKER_BACKUPS;
 
     async function getData() {
-      return (await kv.get("data", "json")) || [];
+      let data = await kv.get("data", "json");
+
+    // ✅ Only seed once if KV is empty
+      if (!data) {
+      const res = await fetch(new URL("../public/data.json", import.meta.url));
+      data = await res.json();
+
+      await kv.put("data", JSON.stringify(data));
+      }
+
+    return data;
     }
 
     async function saveData(data) {
