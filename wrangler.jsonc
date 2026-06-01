@@ -13,7 +13,7 @@
   ],
     "kv_namespaces": [
     {
-      "binding": "tracker-backups",
+      "binding": "TRACKER-BACKUPS",
       "id": "0979c60b1e69497988130f1cb71bdbf9",
       
       // Optional: preview_id used when running `wrangler dev` for local dev
