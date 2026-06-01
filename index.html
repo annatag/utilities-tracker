@@ -73,6 +73,39 @@
     <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data is saved locally in this browser.</div>
   </header>
 
+  <h1>KV Data</h1>
+
+  <pre id="output"></pre>
+
+  <button onclick="save()">Save test data</button>
+
+  <script>
+    async function load() {
+      const res = await fetch("/api");
+      const data = await res.json();
+      document.getElementById("output").textContent =
+        JSON.stringify(data, null, 2);
+    }
+
+    async function save() {
+      const newData = {
+        items: [
+          { id: 1, name: "Updated Item", value: 999 }
+        ]
+      };
+
+      await fetch("/api", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newData)
+      });
+
+      load();
+    }
+
+    load();
+  </script>
+
   <main>
     <div class="tabs">
       <button id="maintTab" class="tab" onclick="showView('maintenance')">Maintenance</button>
