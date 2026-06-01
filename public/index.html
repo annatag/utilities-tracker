@@ -73,82 +73,6 @@
     <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data is saved locally in this browser.</div>
   </header>
 
-  <h1>Items</h1>
-
-<input id="name" placeholder="Enter item name" />
-<button onclick="createItem()">Add</button>
-
-<ul id="list"></ul>
-
-<script>
-const API = "/api/items";
-
-// Load items
-async function loadItems() {
-  const res = await fetch("/api/items");
-  const data = await res.json();
-
-  console.log("API DATA:", data);
-
-  // IMPORTANT FIX
-  const items = data.data.items;
-
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  items.forEach(item => {
-    const li = document.createElement("li");
-
-    li.innerHTML = `
-      <b>${item.name}</b>
-      (${item.category || ""})
-      <button onclick="editItem('${item.id}')">Edit</button>
-      <button onclick="deleteItem('${item.id}')">Delete</button>
-    `;
-
-    list.appendChild(li);
-  });
-}
-
-// Create
-async function createItem() {
-  const name = document.getElementById("name").value;
-
-  await fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name })
-  });
-
-  document.getElementById("name").value = "";
-  loadItems();
-}
-
-// Update
-async function editItem(id) {
-  const name = prompt("New name:");
-
-  await fetch(`${API}/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name })
-  });
-
-  loadItems();
-}
-
-// Delete
-async function deleteItem(id) {
-  await fetch(`${API}/${id}`, {
-    method: "DELETE"
-  });
-
-  loadItems();
-}
-
-// initial load
-loadItems();
-</script>
 
   <main>
     <div class="tabs">
@@ -161,6 +85,7 @@ loadItems();
     <section class="toolbar">
       <button class="light" onclick="openHouseModal()">View/edit/delete houses</button>
       <button class="secondary" onclick="exportData()">Export all data</button>
+      <button class="secondary" onclick="downloadIndexHtml()">Download corrected index.html</button>
       <button class="secondary" onclick="document.getElementById('importFile').click()">Import previous backup</button>
       <button class="secondary" onclick="document.getElementById('restoreFile').click()">Restore backup</button>
       <label style="display:flex; gap:8px; align-items:center; margin:0;">
@@ -1889,6 +1814,27 @@ if (!state.contacts) state.contacts = [];
   editableHouses.clear();
   houseDialog.close();
   saveData();
+}
+
+async function downloadIndexHtml() {
+  let html = "<!doctype html>\n" + document.documentElement.outerHTML;
+
+  try {
+    const sourceUrl = new URL("index.html", window.location.href);
+    const response = await fetch(sourceUrl, { cache: "no-store" });
+    if (response.ok) {
+      html = await response.text();
+    }
+  } catch (err) {
+    console.warn("Could not fetch index.html source; downloading current page markup instead.", err);
+  }
+
+  const blob = new Blob([html], { type: "text/html" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "index.html";
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function exportData() {
