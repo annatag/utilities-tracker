@@ -6,9 +6,14 @@ export async function onRequest(context) {
   async function getData() {
     let data = await kv.get("data", "json");
 
+    // Seed from public/data.json ONLY ONCE
     if (!data) {
-      const seed = await fetch(new URL("../../../public/data.json", import.meta.url));
-      data = await seed.json();
+      const seedResponse = await fetch(
+        `${url.origin}/data.json`
+      );
+
+      data = await seedResponse.json();
+
       await kv.put("data", JSON.stringify(data));
     }
 
@@ -19,7 +24,7 @@ export async function onRequest(context) {
     await kv.put("data", JSON.stringify(data));
   }
 
-  // GET all
+  // GET ALL
   if (url.pathname === "/api/items" && request.method === "GET") {
     return Response.json(await getData());
   }
@@ -29,10 +34,15 @@ export async function onRequest(context) {
     const body = await request.json();
     const data = await getData();
 
-    const item = { id: Date.now(), ...body };
+    const item = {
+      id: Date.now(),
+      ...body
+    };
+
     data.push(item);
 
     await saveData(data);
+
     return Response.json(item);
   }
 
@@ -49,6 +59,7 @@ export async function onRequest(context) {
     }
 
     data[index] = { ...data[index], ...body };
+
     await saveData(data);
 
     return Response.json(data[index]);
@@ -59,6 +70,7 @@ export async function onRequest(context) {
     const id = Number(url.pathname.split("/").pop());
 
     let data = await getData();
+
     data = data.filter(i => i.id !== id);
 
     await saveData(data);
@@ -66,5 +78,5 @@ export async function onRequest(context) {
     return Response.json({ success: true });
   }
 
-  return new Response("API running");
+  return new Response("Not found", { status: 404 });
 }
