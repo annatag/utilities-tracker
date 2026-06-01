@@ -45,36 +45,18 @@ export async function onRequest(context) {
   return Response.json(item);
 
   // UPDATE
-  if (url.pathname.startsWith("/api/items/") && request.method === "PUT") {
-    const id = Number(url.pathname.split("/").pop());
-    const body = await request.json();
+   const items = data.data.items;
 
-    const data = await getData();
-    const index = data.findIndex(i => i.id === id);
+  const index = items.findIndex(i => i.id === id);
 
-    if (index === -1) {
-      return new Response("Not found", { status: 404 });
-    }
-
-    data[index] = { ...data[index], ...body };
-
-    await saveData(data);
-
-    return Response.json(data[index]);
-  }
+  items[index] = {
+  ...items[index],
+  ...body
+  };
 
   // DELETE
-  if (url.pathname.startsWith("/api/items/") && request.method === "DELETE") {
-    const id = Number(url.pathname.split("/").pop());
-
-    let data = await getData();
-
-    data = data.filter(i => i.id !== id);
-
-    await saveData(data);
-
-    return Response.json({ success: true });
-  }
+  data.data.items =
+  data.data.items.filter(i => i.id !== id);
 
   return new Response("Not found", { status: 404 });
 }
