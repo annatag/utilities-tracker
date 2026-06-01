@@ -85,19 +85,25 @@ const API = "/api/items";
 
 // Load items
 async function loadItems() {
-  const res = await fetch(API);
+  const res = await fetch("/api/items");
   const data = await res.json();
+
+  console.log("API DATA:", data);
+
+  // IMPORTANT FIX
+  const items = data.data.items;
 
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  data.forEach(item => {
+  items.forEach(item => {
     const li = document.createElement("li");
 
     li.innerHTML = `
-      ${item.name}
-      <button onclick="editItem(${item.id})">Edit</button>
-      <button onclick="deleteItem(${item.id})">Delete</button>
+      <b>${item.name}</b>
+      (${item.category || ""})
+      <button onclick="editItem('${item.id}')">Edit</button>
+      <button onclick="deleteItem('${item.id}')">Delete</button>
     `;
 
     list.appendChild(li);
