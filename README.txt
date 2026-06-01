@@ -1,5 +1,4 @@
 House Tracker Utilities
-Test Deploy
 How to use:
 1. Extract this ZIP folder anywhere on your computer.
 2. Open index.html in your browser.
