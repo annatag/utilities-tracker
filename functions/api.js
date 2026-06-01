@@ -16,3 +16,11 @@ export async function onRequestGet(context) {
     headers: { "Content-Type": "application/json" }
   });
 }
+export async function onRequestPost(context) {
+  const kv = context.env.TRACKER_BACKUPS;
+  const body = await context.request.json();
+
+  await kv.put("data", JSON.stringify(body));
+
+  return new Response("Saved");
+}
