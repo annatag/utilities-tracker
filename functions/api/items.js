@@ -30,21 +30,19 @@ export async function onRequest(context) {
   }
 
   // CREATE
-  if (url.pathname === "/api/items" && request.method === "POST") {
-    const body = await request.json();
-    const data = await getData();
+  const body = await request.json();
+  const data = await getData();
 
-    const item = {
-      id: Date.now(),
-      ...body
-    };
+  const item = {
+  id: crypto.randomUUID(),
+  ...body
+  };
 
-    data.push(item);
+  data.data.items.push(item);
 
-    await saveData(data);
+  await saveData(data);
 
-    return Response.json(item);
-  }
+  return Response.json(item);
 
   // UPDATE
   if (url.pathname.startsWith("/api/items/") && request.method === "PUT") {
