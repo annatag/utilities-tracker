@@ -818,14 +818,18 @@ async function saveData(options = {}) {
 
   // save to Cloudflare KV
   try {
-    await fetch("/api/items", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+  await fetch("/api/items", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
 
-      body: JSON.stringify(state)
-    });
+  body: JSON.stringify({
+    app: "House Maintenance Utilities Contacts Finance Tracker",
+    createdAt: new Date().toISOString(),
+    data: state
+  })
+});
 
   } catch (err) {
     console.error("Failed saving to KV", err);
