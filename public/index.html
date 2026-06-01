@@ -477,27 +477,38 @@ loadItems();
 
 <script>
 const STORAGE_KEY = "house-maintenance-tracker-v2";
-const STORAGE_KEY = "house-maintenance-tracker-v2";
 let state = null;
 
 async function initializeApp() {
   try {
-    // LOAD FROM CLOUDLFARE API
     const res = await fetch("/api/items");
 
     if (!res.ok) {
-      throw new Error("Failed to load API");
+      throw new Error("Failed loading API");
     }
 
     const cloudData = await res.json();
 
-    console.log("Loaded from API:", cloudData);
+    console.log("Loaded cloud data:", cloudData);
 
-    // IMPORTANT:
-    // your JSON structure is { data: { houses, items, utilities... } }
+    // IMPORTANT
     state = cloudData.data;
 
-    // save local backup
+    // local browser backup
+      localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(state, null, 2)
+    );
+
+  } catch (err) {
+    console.error("API failed, using local backup", err);
+
+    state = loadData();
+  }
+
+  ensureFinanceRecords();
+  render();
+}
 let pendingHouseDeletes = new Set();
 let editableHouses = new Set();
 let maintenanceViewOnly = false;
