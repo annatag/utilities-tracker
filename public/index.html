@@ -656,9 +656,9 @@ function daysLeftText(dateStr) {
   return `${d} day(s) left`;
 }
 
-function financeStatus(paid, dueDate) {
+function financeStatus(paid, dueDate, paidDate = "") {
   const d = daysUntil(dueDate);
-  if (paid === "paid") return {key:"paid", text:"Paid"};
+  if (paid === "paid") return {key:"paid", text: paidDate ? `Paid ${paidDate}` : "Paid"};
   if (d < 0) return {key:"unpaid-overdue", text:`Not paid, overdue ${Math.abs(d)} day(s)`};
   if (d === 0) return {key:"unpaid", text:"Not paid, due today"};
   return {key:"unpaid", text:`Not paid, ${d} day(s) left`};
@@ -689,6 +689,7 @@ function makeFinanceRecord(houseId) {
     salesFiled: "not filed",
     salesTaxable: 0,
     salesPaid: "unpaid",
+    salesPaidDate: "",
     salesDueDay: 20,
     touristVisible: "yes",
     touristAgency: `${countyNameForHouse(houseId)} - tourist county tax`,
@@ -696,6 +697,7 @@ function makeFinanceRecord(houseId) {
     touristFiled: "not filed",
     touristTaxable: 0,
     touristPaid: "unpaid",
+    touristPaidDate: "",
     touristDueDay: 20,
     insuranceCompany: "",
     insurancePolicyNumber: "",
@@ -705,11 +707,13 @@ function makeFinanceRecord(houseId) {
     insuranceAmount: 0,
     insuranceDue: "",
     insurancePaid: "unpaid",
+    insurancePaidDate: "",
     propertyTaxAgency: `${countyNameForHouse(houseId)} property tax`,
     propertyTaxLogin: "",
     propertyTaxAmount: 0,
     propertyTaxDue: "",
     propertyTaxPaid: "unpaid",
+    propertyTaxPaidDate: "",
     notes: ""
   };
 }
@@ -1229,6 +1233,52 @@ function deleteUtility(id) { if (confirm("Delete this utility bill?")) { state.u
 
 
 
+function financeRowPaymentFields(rowType) {
+  const fields = {
+    mortgage: ["mortgagePaid", "mortgagePaidDate"],
+    salesTax: ["salesPaid", "salesPaidDate"],
+    touristTax: ["touristPaid", "touristPaidDate"],
+    insurance: ["insurancePaid", "insurancePaidDate"],
+    propertyTax: ["propertyTaxPaid", "propertyTaxPaidDate"]
+  };
+  return fields[rowType] || [];
+}
+
+function markFinanceRowPaid(houseId, rowType) {
+  const f = state.finance.find(x => x.houseId === houseId);
+  const [paidField, paidDateField] = financeRowPaymentFields(rowType);
+  if (!f || !paidField || !paidDateField) return;
+  f[paidField] = "paid";
+  f[paidDateField] = todayISO();
+  saveData();
+}
+
+function markFinanceRowUnpaid(houseId, rowType) {
+  const f = state.finance.find(x => x.houseId === houseId);
+  const [paidField, paidDateField] = financeRowPaymentFields(rowType);
+  if (!f || !paidField || !paidDateField) return;
+  f[paidField] = "unpaid";
+  f[paidDateField] = "";
+  saveData();
+}
+
+function markFinanceItemPaid(id) {
+  const item = (state.financeItems || []).find(x => x.id === id);
+  if (!item) return;
+  item.paid = "paid";
+  item.paidDate = todayISO();
+  saveData();
+}
+
+function markFinanceItemUnpaid(id) {
+  const item = (state.financeItems || []).find(x => x.id === id);
+  if (!item) return;
+  item.paid = "unpaid";
+  item.paidDate = "";
+  saveData();
+}
+
+
 function deleteFinanceRow(houseId,rowType){
   if(!confirm('Delete this item?')) return;
   const f = state.finance.find(x=>x.houseId===houseId);
@@ -1277,11 +1327,11 @@ function renderFinance() {
     const salesDue = dueDateForDay(f.salesDueDay);
     const touristDue = dueDateForDay(f.touristDueDay);
 
-    const mortgageSt = financeStatus(f.mortgagePaid, mortgageDue);
-    const salesSt = financeStatus(f.salesPaid, salesDue);
-    const touristSt = financeStatus(f.touristPaid, touristDue);
-    const insuranceSt = f.insuranceDue ? financeStatus(f.insurancePaid, f.insuranceDue) : {key:"", text:""};
-    const propertyTaxSt = f.propertyTaxDue ? financeStatus(f.propertyTaxPaid, f.propertyTaxDue) : {key:"", text:""};
+    const mortgageSt = financeStatus(f.mortgagePaid, mortgageDue, f.mortgagePaidDate);
+    const salesSt = financeStatus(f.salesPaid, salesDue, f.salesPaidDate);
+    const touristSt = financeStatus(f.touristPaid, touristDue, f.touristPaidDate);
+    const insuranceSt = f.insuranceDue ? financeStatus(f.insurancePaid, f.insuranceDue, f.insurancePaidDate) : {key:"", text:""};
+    const propertyTaxSt = f.propertyTaxDue ? financeStatus(f.propertyTaxPaid, f.propertyTaxDue, f.propertyTaxPaidDate) : {key:"", text:""};
 
     const allowedByStatus = (paid, st) => {
       return statusFilter === "all" ||
@@ -1291,6 +1341,9 @@ function renderFinance() {
     };
 
     const link = (url, text) => url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${text}</a>` : "";
+    const paymentButton = (rowType, paid) => paid === "paid"
+      ? `<button class="light" onclick="markFinanceRowUnpaid('${house.id}','${rowType}')">Mark not paid</button>`
+      : `<button class="light" onclick="markFinanceRowPaid('${house.id}','${rowType}')">Mark paid</button>`;
 
     if (allowedByStatus(f.mortgagePaid, mortgageSt)) {
       monthlyRows.push(`
@@ -1302,7 +1355,7 @@ function renderFinance() {
           <td>${money(f.mortgageAmount)}</td>
           <td>Due ${escapeHtml(f.mortgageDueDay || 1)} of month<br><span class="small">${mortgageDue}</span></td>
           <td class="status ${mortgageSt.key}">${mortgageSt.text}</td>
-          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','mortgage')">Delete</button></div></td>
+          <td><div class="actions">${paymentButton("mortgage", f.mortgagePaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','mortgage')">Delete</button></div></td>
         </tr>`);
     }
 
@@ -1316,7 +1369,7 @@ function renderFinance() {
           <td>${money(salesTaxAmount(f.salesTaxable))}<br><span class="small">Taxable: ${money(f.salesTaxable)}</span></td>
           <td>Due ${salesDue}<br><span class="small">For ${previousMonthForDueDate(salesDue)}</span><br><span class="small">${daysLeftText(salesDue)}</span></td>
           <td class="status ${salesSt.key}">${salesSt.text}</td>
-          <td><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','salesTax')">Delete</button></td>
+          <td><div class="actions">${paymentButton("salesTax", f.salesPaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','salesTax')">Delete</button></div></td>
         </tr>`);
     }
 
@@ -1330,7 +1383,7 @@ function renderFinance() {
           <td>${money(touristTaxAmount(f.touristTaxable))}<br><span class="small">Taxable: ${money(f.touristTaxable)}</span></td>
           <td>Due ${touristDue}<br><span class="small">For ${previousMonthForDueDate(touristDue)}</span><br><span class="small">${daysLeftText(touristDue)}</span></td>
           <td class="status ${touristSt.key}">${touristSt.text}</td>
-          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
+          <td><div class="actions">${paymentButton("touristTax", f.touristPaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','touristTax')">Delete</button></div></td>
         </tr>`);
     }
 
@@ -1344,7 +1397,7 @@ function renderFinance() {
           <td>${money(f.insuranceAmount)}</td>
           <td>Due ${escapeHtml(f.insuranceDue || "")}<br><span class="small">Period ${escapeHtml(f.insuranceStart || "")} to ${escapeHtml(f.insuranceEnd || "")}</span></td>
           <td class="status ${insuranceSt.key}">${insuranceSt.text}</td>
-          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
+          <td><div class="actions">${paymentButton("insurance", f.insurancePaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','insurance')">Delete</button></div></td>
         </tr>`);
     }
 
@@ -1358,7 +1411,7 @@ function renderFinance() {
           <td>${money(f.propertyTaxAmount)}</td>
           <td>Due ${escapeHtml(f.propertyTaxDue || "")}</td>
           <td class="status ${propertyTaxSt.key}">${propertyTaxSt.text}</td>
-          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
+          <td><div class="actions">${paymentButton("propertyTax", f.propertyTaxPaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
         </tr>`);
     }
   });
@@ -1371,7 +1424,7 @@ function renderFinance() {
     const searchable = `${houseDisplayName(house)} ${item.name} ${item.company} ${item.account} ${item.notes}`.toLowerCase();
     if (q && !searchable.includes(q)) return;
 
-    const st = item.due ? financeStatus(item.paid, item.due) : {key:"", text:""};
+    const st = item.due ? financeStatus(item.paid, item.due, item.paidDate) : {key:"", text:""};
     const statusMatch = statusFilter === "all" ||
       (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
       (statusFilter === "unpaid" && item.paid === "unpaid") ||
@@ -1388,7 +1441,7 @@ function renderFinance() {
         <td>${money(item.amount)}</td>
         <td>Due ${escapeHtml(item.due || "")}</td>
         <td class="status ${st.key}">${st.text}</td>
-        <td><div class="actions"><button class="secondary" onclick="editFinanceItem('${item.id}')">Edit</button>${String(item.name||'').toLowerCase().includes('flood insurance') ? '' : `<button class="danger" onclick="deleteFinanceItem('${item.id}')">Delete</button>`}</div></td>
+        <td><div class="actions">${item.paid === "paid" ? `<button class="light" onclick="markFinanceItemUnpaid('${item.id}')">Mark not paid</button>` : `<button class="light" onclick="markFinanceItemPaid('${item.id}')">Mark paid</button>`}<button class="secondary" onclick="editFinanceItem('${item.id}')">Edit</button>${String(item.name||'').toLowerCase().includes('flood insurance') ? '' : `<button class="danger" onclick="deleteFinanceItem('${item.id}')">Delete</button>`}</div></td>
       </tr>`;
 
     if (item.frequency === "annual") annualRows.push(row);
@@ -1565,6 +1618,7 @@ function editFinance(houseId) {
 function saveFinance(e) {
   e.preventDefault();
   const houseId = financeHouse.value;
+  const existing = state.finance.find(f => f.houseId === houseId) || {};
   const record = {
     houseId,
     mortgageCompany: finMortgageCompany.value.trim(),
@@ -1573,13 +1627,14 @@ function saveFinance(e) {
     mortgageAmount: Number(finMortgageAmount.value || 0),
     mortgageDueDay: Number(finMortgageDueDay.value || 1),
     mortgagePaid: finMortgagePaid.value,
-    mortgagePaidDate: finMortgagePaidDate.value,
+    mortgagePaidDate: finMortgagePaid.value === "paid" ? finMortgagePaidDate.value : "",
     salesVisible: finSalesVisible.value,
     salesAgency: finSalesAgency.value.trim() || "Florida Sales Tax",
     salesLogin: finSalesLogin.value.trim(),
     salesFiled: finSalesFiled.value,
     salesTaxable: Number(finSalesTaxable.value || 0),
     salesPaid: finSalesPaid.value,
+    salesPaidDate: finSalesPaid.value === "paid" ? (existing.salesPaidDate || "") : "",
     salesDueDay: Number(finSalesDueDay.value || 20),
     touristVisible: finTouristVisible.value,
     touristAgency: finTouristAgency.value.trim() || `${countyNameForHouse(houseId)} - tourist county tax`,
@@ -1587,6 +1642,7 @@ function saveFinance(e) {
     touristFiled: finTouristFiled.value,
     touristTaxable: Number(finTouristTaxable.value || 0),
     touristPaid: finTouristPaid.value,
+    touristPaidDate: finTouristPaid.value === "paid" ? (existing.touristPaidDate || "") : "",
     touristDueDay: Number(finTouristDueDay.value || 20),
     insuranceCompany: finInsuranceCompany.value.trim(),
     insurancePolicyNumber: finInsurancePolicyNumber.value.trim(),
@@ -1596,11 +1652,13 @@ function saveFinance(e) {
     insuranceAmount: Number(finInsuranceAmount.value || 0),
     insuranceDue: finInsuranceDue.value,
     insurancePaid: finInsurancePaid.value,
+    insurancePaidDate: finInsurancePaid.value === "paid" ? (existing.insurancePaidDate || "") : "",
     propertyTaxAgency: finPropertyTaxAgency.value.trim() || `${countyNameForHouse(houseId)} property tax`,
     propertyTaxLogin: finPropertyTaxLogin.value.trim(),
     propertyTaxAmount: Number(finPropertyTaxAmount.value || 0),
     propertyTaxDue: finPropertyTaxDue.value,
     propertyTaxPaid: finPropertyTaxPaid.value,
+    propertyTaxPaidDate: finPropertyTaxPaid.value === "paid" ? (existing.propertyTaxPaidDate || "") : "",
     notes: finNotes.value.trim()
   };
   const idx = state.finance.findIndex(f => f.houseId === houseId);
