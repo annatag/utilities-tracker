@@ -1,0 +1,10 @@
+{
+  "name": "utilities-tracker",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev public --functions functions",
+    "deploy": "wrangler pages deploy public --project-name utilities-tracker",
+    "deploy:pages": "wrangler pages deploy public --project-name utilities-tracker"
+  },
+  "devDependencies": {}
+}

@@ -1,4 +1,8 @@
 const DATA_KEY = "data";
+const KV_BINDING_NAME = "TRACKER_BACKUPS";
+const KV_SETUP_HINT =
+  `Add a ${KV_BINDING_NAME} KV namespace binding to this Cloudflare Pages project, ` +
+  "then redeploy so /api/items can save shared data.";
 
 function jsonResponse(body, init = {}) {
   return Response.json(body, {
@@ -11,7 +15,7 @@ function jsonResponse(body, init = {}) {
 }
 
 function getKvNamespace(env) {
-  return env && env.TRACKER_BACKUPS;
+  return env && env[KV_BINDING_NAME];
 }
 
 export async function onRequest(context) {
@@ -39,13 +43,13 @@ export async function onRequest(context) {
       return jsonResponse({
         ...data,
         cloudStorageConfigured: false,
-        warning: "Cloud storage is not configured. Showing public/data.json without shared saving."
+        warning: `Cloud storage is not configured. Showing public/data.json without shared saving. ${KV_SETUP_HINT}`
       });
     }
 
     return jsonResponse(
       {
-        error: "Cloud storage is not configured. Add a TRACKER_BACKUPS KV binding to this Cloudflare Pages project."
+        error: `Cloud storage is not configured. ${KV_SETUP_HINT}`
       },
       { status: 503 }
     );
