@@ -88,17 +88,7 @@
 
     <section class="toolbar">
       <button class="light" onclick="openHouseModal()">View/edit/delete houses</button>
-      <button class="secondary" onclick="exportData()">Export all data</button>
       <button class="secondary" onclick="downloadIndexHtml()">Download current app HTML</button>
-      <button class="secondary" onclick="document.getElementById('importFile').click()">Import previous backup</button>
-      <button class="secondary" onclick="document.getElementById('restoreFile').click()">Restore backup</button>
-      <label style="display:flex; gap:8px; align-items:center; margin:0;">
-        <input id="autoBackupToggle" type="checkbox" checked style="width:auto;" onchange="setAutoBackup(this.checked)">
-        Auto-backup on changes
-      </label>
-      <button class="danger" onclick="resetData()">Reset sample data</button>
-      <input id="importFile" type="file" accept="application/json" hidden onchange="importData(event)">
-      <input id="restoreFile" type="file" accept="application/json" hidden onchange="restoreBackup(event)">
     </section>
 
     <section id="maintenanceView" style="display:none;">
@@ -1991,74 +1981,12 @@ function downloadJsonBackup(filename) {
   URL.revokeObjectURL(a.href);
 }
 
-function scheduleAutoBackup() {
-  initializeAutoBackupSetting();
-  if (!window.autoBackupToggle || !autoBackupToggle.checked) return;
-  clearTimeout(autoBackupTimer);
-  autoBackupTimer = setTimeout(() => {
-    downloadJsonBackup(backupFilename("house-tracker-auto-backup"));
-  }, 500);
-}
 
 function normalizeImportedData(source) {
   return normalizeLoadedData(source);
 }
 
-function exportData() {
-  downloadJsonBackup(backupFilename("house-tracker-full-export"));
-}
 
-function importData(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = normalizeImportedData(JSON.parse(reader.result));
-      state = imported;
-      saveData({skipAutoBackup:true});
-      alert("Backup imported successfully.");
-    } catch(e) {
-      alert("Could not import this backup file.");
-    } finally {
-      event.target.value = "";
-    }
-  };
-  reader.readAsText(file);
-}
-
-function restoreBackup(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  if (!confirm("Restore this backup? This will replace the current tracker data in this browser.")) {
-    event.target.value = "";
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = normalizeImportedData(JSON.parse(reader.result));
-      state = imported;
-      saveData({skipAutoBackup:true});
-      downloadJsonBackup(backupFilename("before-restore-safety-copy"));
-      alert("Backup restored successfully. A safety copy of the restored data was also downloaded.");
-    } catch(e) {
-      alert("Could not restore this backup file.");
-    } finally {
-      event.target.value = "";
-    }
-  };
-  reader.readAsText(file);
-}
-
-async function resetData() {
-  if (confirm("Reset local browser data and reload public/data.json? This will erase current tracker data in this browser.")) {
-    safeLocalStorageRemove(STORAGE_KEY);
-    safeLocalStorageRemove("house-maintenance-tracker-v1");
-    state = await loadData();
-    saveData();
-  }
-}
 
 search.addEventListener("input", render);
 filterStatus.addEventListener("change", render);
