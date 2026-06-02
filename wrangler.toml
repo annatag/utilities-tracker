@@ -1,9 +1,0 @@
-name = "utilities-tracker"
-compatibility_date = "2026-06-01"
-pages_build_output_dir = "public"
-
-# This configuration is for Cloudflare Pages, not standalone Workers.
-# Deploy with `wrangler pages deploy public --project-name utilities-tracker` or `npm run deploy`.
-# Configure the TRACKER_BACKUPS KV binding in the Cloudflare Pages dashboard.
-# This keeps namespace IDs out of the repository and lets production/preview
-# deployments use different namespaces if needed.

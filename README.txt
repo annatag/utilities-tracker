@@ -34,6 +34,8 @@ If the KV binding has already been configured for the Pages project in Cloudflar
 - npm run deploy
 - wrangler pages deploy public --project-name utilities-tracker
 
+This repository intentionally does not include a `wrangler.toml` file. When a Pages deployment contains a Wrangler configuration file, Cloudflare treats that file as the source of truth and the dashboard binding controls can become read-only/greyed out. Keep the binding in the Pages dashboard unless you intentionally want to manage every Pages setting from Wrangler.
+
 Do not use `wrangler deploy` for this repository. That command deploys a standalone Worker and can fail because the API is intentionally written as a Pages Function under `functions/`.
 
 How cloud saving works
@@ -44,6 +46,19 @@ How cloud saving works
 - If the API is unavailable, the browser falls back to the local browser backup.
 - The page now shows a cloud-storage status banner. If it says cloud storage is not configured or unreachable, edits are only in the current browser and will not appear on another phone/computer until the Pages Function and TRACKER_BACKUPS KV binding are fixed.
 - Safari Private Browsing or restrictive site settings can block localStorage. The app treats localStorage as a backup only, so Safari local backup failures should not stop saves from posting to Cloudflare KV when cloud storage is connected.
+
+Fixing "Cloud storage is not configured"
+That banner means the Pages Function is running, but Cloudflare did not provide the required TRACKER_BACKUPS KV binding to /api/items. To fix it:
+1. Redeploy this version of the repository first. It removes the Wrangler configuration file that can make the Pages dashboard binding controls read-only.
+2. In Cloudflare, open Workers & Pages, select the utilities-tracker Pages project, then open Settings.
+3. Under Functions > Bindings, add a KV namespace binding named exactly TRACKER_BACKUPS. The name is case-sensitive.
+4. Select the KV namespace you created with `wrangler kv namespace create TRACKER_BACKUPS`, or create a new namespace if one does not exist yet.
+5. Add the same binding to Production and any Preview environment where you test the app.
+6. Redeploy the Pages project again, then refresh the app. The banner should change to "Shared cloud storage is connected."
+
+If Add binding is still greyed out, Cloudflare is still using a Wrangler file as the source of truth from a previous deployment. Make sure this repository version has no `wrangler.toml`, redeploy it, wait for the deployment to finish, and reload the Cloudflare Pages Settings > Bindings page. If you prefer to keep a Wrangler file, add `[[kv_namespaces]]` with binding `TRACKER_BACKUPS` and the KV namespace ID to that file instead of using the dashboard.
+
+If the banner remains after the binding is added and redeployed, check that the deployed project uses this repository's `functions/` directory and that `/api/items` returns JSON rather than a 404.
 
 Local use
 1. Open public/index.html in your browser, or serve the folder with a small static server.
