@@ -417,6 +417,35 @@ function setCloudStatus(message, kind = "warn") {
   status.className = `cloud-status ${kind}`;
 }
 
+function safeLocalStorageGet(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch (err) {
+    console.warn(`Browser localStorage could not read ${key}. Safari Private Browsing or site settings may block local backups.`, err);
+    return null;
+  }
+}
+
+function safeLocalStorageSet(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    console.warn(`Browser localStorage could not save ${key}. Safari Private Browsing or site settings may block local backups.`, err);
+    return false;
+  }
+}
+
+function safeLocalStorageRemove(key) {
+  try {
+    window.localStorage.removeItem(key);
+    return true;
+  } catch (err) {
+    console.warn(`Browser localStorage could not remove ${key}. Safari Private Browsing or site settings may block local backups.`, err);
+    return false;
+  }
+}
+
 async function initializeApp() {
   try {
     const res = await fetch("/api/items", { cache: "no-store" });
@@ -438,7 +467,7 @@ async function initializeApp() {
     }
 
     // Keep a local browser backup for offline fallback.
-    localStorage.setItem(
+    safeLocalStorageSet(
       STORAGE_KEY,
       JSON.stringify(state, null, 2)
     );
@@ -775,8 +804,8 @@ async function loadPublicDataJson() {
 }
 
 async function loadData() {
-  const old = localStorage.getItem("house-maintenance-tracker-v1");
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const old = safeLocalStorageGet("house-maintenance-tracker-v1");
+  const saved = safeLocalStorageGet(STORAGE_KEY);
 
   if (saved || old) {
     try {
@@ -788,7 +817,7 @@ async function loadData() {
 
   try {
     const publicData = await loadPublicDataJson();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(publicData, null, 2));
+    safeLocalStorageSet(STORAGE_KEY, JSON.stringify(publicData, null, 2));
     return publicData;
   } catch (err) {
     console.warn("public/data.json is unavailable or invalid; using built-in sample data", err);
@@ -799,8 +828,9 @@ async function loadData() {
 
 async function saveData(options = {}) {
 
-  // local browser backup
-  localStorage.setItem(
+  // Keep a local browser backup when the browser allows it. Safari can block
+  // localStorage in some privacy modes, so this must never prevent the cloud save.
+  safeLocalStorageSet(
     STORAGE_KEY,
     JSON.stringify(state, null, 2)
   );
@@ -930,7 +960,7 @@ function applyUtilityAutopay() {
   });
 
   if (changed) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
+    safeLocalStorageSet(STORAGE_KEY, JSON.stringify(state, null, 2));
   }
 }
 
@@ -1932,12 +1962,12 @@ let autoBackupTimer = null;
 
 function initializeAutoBackupSetting() {
   if (!window.autoBackupToggle) return;
-  const saved = localStorage.getItem(AUTO_BACKUP_KEY);
+  const saved = safeLocalStorageGet(AUTO_BACKUP_KEY);
   autoBackupToggle.checked = saved === null ? true : saved === "true";
 }
 
 function setAutoBackup(enabled) {
-  localStorage.setItem(AUTO_BACKUP_KEY, enabled ? "true" : "false");
+  safeLocalStorageSet(AUTO_BACKUP_KEY, enabled ? "true" : "false");
 }
 
 function backupFilename(prefix) {
@@ -2021,8 +2051,8 @@ function restoreBackup(event) {
 
 async function resetData() {
   if (confirm("Reset local browser data and reload public/data.json? This will erase current tracker data in this browser.")) {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem("house-maintenance-tracker-v1");
+    safeLocalStorageRemove(STORAGE_KEY);
+    safeLocalStorageRemove("house-maintenance-tracker-v1");
     state = await loadData();
     saveData();
   }

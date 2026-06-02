@@ -38,6 +38,7 @@ How cloud saving works
 - Every save posts the full tracker state back to /api/items.
 - If the API is unavailable, the browser falls back to the local browser backup.
 - The page now shows a cloud-storage status banner. If it says cloud storage is not configured or unreachable, edits are only in the current browser and will not appear on another phone/computer until the Pages Function and TRACKER_BACKUPS KV binding are fixed.
+- Safari Private Browsing or restrictive site settings can block localStorage. The app treats localStorage as a backup only, so Safari local backup failures should not stop saves from posting to Cloudflare KV when cloud storage is connected.
 
 Local use
 1. Open public/index.html in your browser, or serve the folder with a small static server.
