@@ -301,60 +301,60 @@
 
   <dialog id="financeDialog">
     <form method="dialog" class="modal" onsubmit="saveFinance(event)">
-      <h3>Edit mortgage / insurance / taxes</h3>
+      <h3 id="financeModalTitle">Edit mortgage / insurance / taxes</h3>
       <div class="form-grid">
         <div class="full"><label>Property</label><select id="financeHouse"></select></div>
 
-        <div class="full"><h4>Monthly mortgage</h4></div>
-        <div><label>Mortgage company</label><input id="finMortgageCompany" placeholder="Mortgage company"></div>
-        <div><label>Mortgage number</label><input id="finMortgageNumber" placeholder="Mortgage/account number"></div>
-        <div><label>Mortgage login page</label><input id="finMortgageLogin" placeholder="https://..."></div>
-        <div><label>Monthly amount due</label><input id="finMortgageAmount" type="number" step="0.01" min="0"></div>
-        <div><label>Due on the 1-st</label><input id="finMortgageDueDay" type="number" min="1" max="28" value="1"></div>
-        <div><label>Paid?</label><select id="finMortgagePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finMortgageNotes" placeholder="Mortgage notes..."></textarea></div>
-        <div><label>Paid date</label><input id="finMortgagePaidDate" type="date"></div>
+        <div class="full" data-finance-section="mortgage"><h4>Monthly mortgage</h4></div>
+        <div data-finance-section="mortgage"><label>Mortgage company</label><input id="finMortgageCompany" placeholder="Mortgage company"></div>
+        <div data-finance-section="mortgage"><label>Mortgage number</label><input id="finMortgageNumber" placeholder="Mortgage/account number"></div>
+        <div data-finance-section="mortgage"><label>Mortgage login page</label><input id="finMortgageLogin" placeholder="https://..."></div>
+        <div data-finance-section="mortgage"><label>Monthly amount due</label><input id="finMortgageAmount" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="mortgage"><label>Due on the 1-st</label><input id="finMortgageDueDay" type="number" min="1" max="28" value="1"></div>
+        <div data-finance-section="mortgage"><label>Paid?</label><select id="finMortgagePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full" data-finance-section="mortgage"><label>Notes</label><textarea id="finMortgageNotes" placeholder="Mortgage notes..."></textarea></div>
+        <div data-finance-section="mortgage"><label>Paid date</label><input id="finMortgagePaidDate" type="date"></div>
 
-        <div class="full"><h4>Monthly sales tax</h4></div>
-        <div><label>Show sales tax for this property?</label><select id="finSalesVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
-        <div><label>Agency name</label><input id="finSalesAgency" placeholder="Florida Sales Tax"></div>
-        <div><label>Login page</label><input id="finSalesLogin" placeholder="https://..."></div>
-        <div><label>Return filed?</label><select id="finSalesFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
-        <div><label>Taxable amount</label><input id="finSalesTaxable" type="number" step="0.01" min="0"></div>
-        <div><label>Paid?</label><select id="finSalesPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finSalesNotes" placeholder="Sales tax notes..."></textarea></div>
-        <div><label>Due on the 1-st</label><input id="finSalesDueDay" type="number" min="1" max="28" value="20"></div>
+        <div class="full" data-finance-section="salesTax"><h4>Monthly sales tax</h4></div>
+        <div data-finance-section="salesTax"><label>Show sales tax for this property?</label><select id="finSalesVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
+        <div data-finance-section="salesTax"><label>Agency name</label><input id="finSalesAgency" placeholder="Florida Sales Tax"></div>
+        <div data-finance-section="salesTax"><label>Login page</label><input id="finSalesLogin" placeholder="https://..."></div>
+        <div data-finance-section="salesTax"><label>Return filed?</label><select id="finSalesFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
+        <div data-finance-section="salesTax"><label>Taxable amount</label><input id="finSalesTaxable" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="salesTax"><label>Paid?</label><select id="finSalesPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full" data-finance-section="salesTax"><label>Notes</label><textarea id="finSalesNotes" placeholder="Sales tax notes..."></textarea></div>
+        <div data-finance-section="salesTax"><label>Due on the 1-st</label><input id="finSalesDueDay" type="number" min="1" max="28" value="20"></div>
 
-        <div class="full"><h4>Monthly tourist tax</h4></div>
-        <div><label>Show tourist tax for this property?</label><select id="finTouristVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
-        <div><label>Agency name</label><input id="finTouristAgency" placeholder="County Name - tourist county tax"></div>
-        <div><label>Login page</label><input id="finTouristLogin" placeholder="https://..."></div>
-        <div><label>Return filed?</label><select id="finTouristFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
-        <div><label>Taxable amount</label><input id="finTouristTaxable" type="number" step="0.01" min="0"></div>
-        <div><label>Paid?</label><select id="finTouristPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finTouristNotes" placeholder="Tourist tax notes..."></textarea></div>
-        <div><label>Due on the 1-st</label><input id="finTouristDueDay" type="number" min="1" max="28" value="20"></div>
+        <div class="full" data-finance-section="touristTax"><h4>Monthly tourist tax</h4></div>
+        <div data-finance-section="touristTax"><label>Show tourist tax for this property?</label><select id="finTouristVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
+        <div data-finance-section="touristTax"><label>Agency name</label><input id="finTouristAgency" placeholder="County Name - tourist county tax"></div>
+        <div data-finance-section="touristTax"><label>Login page</label><input id="finTouristLogin" placeholder="https://..."></div>
+        <div data-finance-section="touristTax"><label>Return filed?</label><select id="finTouristFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
+        <div data-finance-section="touristTax"><label>Taxable amount</label><input id="finTouristTaxable" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="touristTax"><label>Paid?</label><select id="finTouristPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full" data-finance-section="touristTax"><label>Notes</label><textarea id="finTouristNotes" placeholder="Tourist tax notes..."></textarea></div>
+        <div data-finance-section="touristTax"><label>Due on the 1-st</label><input id="finTouristDueDay" type="number" min="1" max="28" value="20"></div>
 
-        <div class="full"><h4>Annual hazardous insurance</h4></div>
-        <div><label>Hazardous Insurance company</label><input id="finInsuranceCompany" placeholder="Hazardous Insurance company"></div>
-        <div><label>Policy number</label><input id="finInsurancePolicyNumber" placeholder="Policy number"></div>
-        <div><label>Login page</label><input id="finInsuranceLogin" placeholder="https://..."></div>
-        <div><label>Policy period start</label><input id="finInsuranceStart" type="date"></div>
-        <div><label>Policy period end</label><input id="finInsuranceEnd" type="date"></div>
-        <div><label>Amount per year</label><input id="finInsuranceAmount" type="number" step="0.01" min="0"></div>
-        <div><label>Due date</label><input id="finInsuranceDue" type="date"></div>
-        <div><label>Paid?</label><select id="finInsurancePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finInsuranceNotes" placeholder="Policy notes, escrow, reminders..."></textarea></div>
+        <div class="full" data-finance-section="insurance"><h4>Annual hazardous insurance</h4></div>
+        <div data-finance-section="insurance"><label>Hazardous Insurance company</label><input id="finInsuranceCompany" placeholder="Hazardous Insurance company"></div>
+        <div data-finance-section="insurance"><label>Policy number</label><input id="finInsurancePolicyNumber" placeholder="Policy number"></div>
+        <div data-finance-section="insurance"><label>Login page</label><input id="finInsuranceLogin" placeholder="https://..."></div>
+        <div data-finance-section="insurance"><label>Policy period start</label><input id="finInsuranceStart" type="date"></div>
+        <div data-finance-section="insurance"><label>Policy period end</label><input id="finInsuranceEnd" type="date"></div>
+        <div data-finance-section="insurance"><label>Amount per year</label><input id="finInsuranceAmount" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="insurance"><label>Due date</label><input id="finInsuranceDue" type="date"></div>
+        <div data-finance-section="insurance"><label>Paid?</label><select id="finInsurancePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full" data-finance-section="insurance"><label>Notes</label><textarea id="finInsuranceNotes" placeholder="Policy notes, escrow, reminders..."></textarea></div>
 
-        <div class="full"><h4>Annual property taxes</h4></div>
-        <div><label>County / agency</label><input id="finPropertyTaxAgency" placeholder="County property tax"></div>
-        <div><label>County tax page / login</label><input id="finPropertyTaxLogin" placeholder="https://..."></div>
-        <div><label>Property taxes per year</label><input id="finPropertyTaxAmount" type="number" step="0.01" min="0"></div>
-        <div><label>Due date</label><input id="finPropertyTaxDue" type="date"></div>
-        <div><label>Paid?</label><select id="finPropertyTaxPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finPropertyTaxNotes" placeholder="Parcel ID, reminders, confirmations..."></textarea></div>
+        <div class="full" data-finance-section="propertyTax"><h4>Annual property taxes</h4></div>
+        <div data-finance-section="propertyTax"><label>County / agency</label><input id="finPropertyTaxAgency" placeholder="County property tax"></div>
+        <div data-finance-section="propertyTax"><label>County tax page / login</label><input id="finPropertyTaxLogin" placeholder="https://..."></div>
+        <div data-finance-section="propertyTax"><label>Property taxes per year</label><input id="finPropertyTaxAmount" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="propertyTax"><label>Due date</label><input id="finPropertyTaxDue" type="date"></div>
+        <div data-finance-section="propertyTax"><label>Paid?</label><select id="finPropertyTaxPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div class="full" data-finance-section="propertyTax"><label>Notes</label><textarea id="finPropertyTaxNotes" placeholder="Parcel ID, reminders, confirmations..."></textarea></div>
 
-        <div class="full"><label>Notes</label><textarea id="finNotes" placeholder="Escrow, parcel ID, confirmation numbers, reminders..."></textarea></div>
+        <div class="full" data-finance-section="all"><label>Notes</label><textarea id="finNotes" placeholder="Escrow, parcel ID, confirmation numbers, reminders..."></textarea></div>
       </div>
       <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
         <button type="button" class="light" onclick="financeDialog.close()">Cancel</button>
@@ -1320,7 +1320,7 @@ function renderFinance() {
     const f = state.finance.find(x => x.houseId === house.id);
     if (!f) return;
 
-    const searchable = `${houseDisplayName(house)} mortgage hazardous insurance property taxes florida sales tax tourist tax ${f.mortgageCompany||''} ${f.mortgageNumber||''} ${f.salesAgency||''} ${f.touristAgency||''} ${f.insuranceCompany||''} ${f.insurancePolicyNumber||''} ${f.propertyTaxAgency||''} ${f.notes||''}`.toLowerCase();
+    const searchable = `${houseDisplayName(house)} mortgage hazardous insurance property taxes florida sales tax tourist tax ${f.mortgageCompany||''} ${f.mortgageNumber||''} ${f.mortgageNotes||''} ${f.salesAgency||''} ${f.salesNotes||''} ${f.touristAgency||''} ${f.touristNotes||''} ${f.insuranceCompany||''} ${f.insurancePolicyNumber||''} ${f.insuranceNotes||''} ${f.propertyTaxAgency||''} ${f.propertyTaxNotes||''} ${f.notes||''}`.toLowerCase();
     if (q && !searchable.includes(q)) return;
 
     const mortgageDue = dueDateForDay(f.mortgageDueDay);
@@ -1355,7 +1355,7 @@ function renderFinance() {
           <td>${money(f.mortgageAmount)}</td>
           <td>Due ${escapeHtml(f.mortgageDueDay || 1)} of month<br><span class="small">${mortgageDue}</span></td>
           <td class="status ${mortgageSt.key}">${mortgageSt.text}</td>
-          <td><div class="actions">${paymentButton("mortgage", f.mortgagePaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','mortgage')">Delete</button></div></td>
+          <td><div class="actions">${paymentButton("mortgage", f.mortgagePaid)}<button class="secondary" onclick="editFinance('${house.id}','mortgage')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','mortgage')">Delete</button></div></td>
         </tr>`);
     }
 
@@ -1369,7 +1369,7 @@ function renderFinance() {
           <td>${money(salesTaxAmount(f.salesTaxable))}<br><span class="small">Taxable: ${money(f.salesTaxable)}</span></td>
           <td>Due ${salesDue}<br><span class="small">For ${previousMonthForDueDate(salesDue)}</span><br><span class="small">${daysLeftText(salesDue)}</span></td>
           <td class="status ${salesSt.key}">${salesSt.text}</td>
-          <td><div class="actions">${paymentButton("salesTax", f.salesPaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','salesTax')">Delete</button></div></td>
+          <td><div class="actions">${paymentButton("salesTax", f.salesPaid)}<button class="secondary" onclick="editFinance('${house.id}','salesTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','salesTax')">Delete</button></div></td>
         </tr>`);
     }
 
@@ -1383,7 +1383,7 @@ function renderFinance() {
           <td>${money(touristTaxAmount(f.touristTaxable))}<br><span class="small">Taxable: ${money(f.touristTaxable)}</span></td>
           <td>Due ${touristDue}<br><span class="small">For ${previousMonthForDueDate(touristDue)}</span><br><span class="small">${daysLeftText(touristDue)}</span></td>
           <td class="status ${touristSt.key}">${touristSt.text}</td>
-          <td><div class="actions">${paymentButton("touristTax", f.touristPaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','touristTax')">Delete</button></div></td>
+          <td><div class="actions">${paymentButton("touristTax", f.touristPaid)}<button class="secondary" onclick="editFinance('${house.id}','touristTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','touristTax')">Delete</button></div></td>
         </tr>`);
     }
 
@@ -1397,7 +1397,7 @@ function renderFinance() {
           <td>${money(f.insuranceAmount)}</td>
           <td>Due ${escapeHtml(f.insuranceDue || "")}<br><span class="small">Period ${escapeHtml(f.insuranceStart || "")} to ${escapeHtml(f.insuranceEnd || "")}</span></td>
           <td class="status ${insuranceSt.key}">${insuranceSt.text}</td>
-          <td><div class="actions">${paymentButton("insurance", f.insurancePaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','insurance')">Delete</button></div></td>
+          <td><div class="actions">${paymentButton("insurance", f.insurancePaid)}<button class="secondary" onclick="editFinance('${house.id}','insurance')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','insurance')">Delete</button></div></td>
         </tr>`);
     }
 
@@ -1411,7 +1411,7 @@ function renderFinance() {
           <td>${money(f.propertyTaxAmount)}</td>
           <td>Due ${escapeHtml(f.propertyTaxDue || "")}</td>
           <td class="status ${propertyTaxSt.key}">${propertyTaxSt.text}</td>
-          <td><div class="actions">${paymentButton("propertyTax", f.propertyTaxPaid)}<button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
+          <td><div class="actions">${paymentButton("propertyTax", f.propertyTaxPaid)}<button class="secondary" onclick="editFinance('${house.id}','propertyTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
         </tr>`);
     }
   });
@@ -1569,13 +1569,34 @@ function deleteFinanceItem(id) {
 
 function openFinanceModal() {
   const houseId = financeHouseFilter.value !== "all" ? financeHouseFilter.value : state.houses[0].id;
-  editFinance(houseId);
+  editFinance(houseId, "all");
 }
 
-function editFinance(houseId) {
+function financeSectionTitle(section) {
+  const titles = {
+    all: "Edit mortgage / insurance / taxes",
+    mortgage: "Edit mortgage entry",
+    salesTax: "Edit Florida sales tax entry",
+    touristTax: "Edit tourist tax entry",
+    insurance: "Edit hazardous insurance entry",
+    propertyTax: "Edit property tax entry"
+  };
+  return titles[section] || titles.all;
+}
+
+function setFinanceSectionVisibility(section = "all") {
+  document.querySelectorAll("#financeDialog [data-finance-section]").forEach(el => {
+    const rowSection = el.dataset.financeSection;
+    el.style.display = section === "all" || rowSection === section ? "" : "none";
+  });
+}
+
+function editFinance(houseId, section = "all") {
   ensureFinanceRecords();
   const f = state.finance.find(x => x.houseId === houseId);
   if (!f) return;
+  financeModalTitle.textContent = financeSectionTitle(section);
+  setFinanceSectionVisibility(section);
   financeHouse.value = houseId;
   finMortgageCompany.value = f.mortgageCompany || "";
   finMortgageNumber.value = f.mortgageNumber || "";
@@ -1584,6 +1605,7 @@ function editFinance(houseId) {
   finMortgageDueDay.value = f.mortgageDueDay || 1;
   finMortgagePaid.value = f.mortgagePaid || "unpaid";
   finMortgagePaidDate.value = f.mortgagePaidDate || "";
+  finMortgageNotes.value = f.mortgageNotes || "";
   finSalesVisible.value = f.salesVisible || "yes";
   finSalesAgency.value = f.salesAgency || "Florida Sales Tax";
   finSalesLogin.value = f.salesLogin || "";
@@ -1591,6 +1613,7 @@ function editFinance(houseId) {
   finSalesTaxable.value = f.salesTaxable || "";
   finSalesPaid.value = f.salesPaid || "unpaid";
   finSalesDueDay.value = f.salesDueDay || 20;
+  finSalesNotes.value = f.salesNotes || "";
   finTouristVisible.value = f.touristVisible || "yes";
   finTouristAgency.value = f.touristAgency || `${countyNameForHouse(houseId)} - tourist county tax`;
   finTouristLogin.value = f.touristLogin || "";
@@ -1598,6 +1621,7 @@ function editFinance(houseId) {
   finTouristTaxable.value = f.touristTaxable || "";
   finTouristPaid.value = f.touristPaid || "unpaid";
   finTouristDueDay.value = f.touristDueDay || 20;
+  finTouristNotes.value = f.touristNotes || "";
   finInsuranceCompany.value = f.insuranceCompany || "";
   finInsurancePolicyNumber.value = f.insurancePolicyNumber || "";
   finInsuranceLogin.value = f.insuranceLogin || "";
@@ -1606,11 +1630,13 @@ function editFinance(houseId) {
   finInsuranceAmount.value = f.insuranceAmount || "";
   finInsuranceDue.value = f.insuranceDue || "";
   finInsurancePaid.value = f.insurancePaid || "unpaid";
+  finInsuranceNotes.value = f.insuranceNotes || "";
   finPropertyTaxAgency.value = f.propertyTaxAgency || `${countyNameForHouse(houseId)} property tax`;
   finPropertyTaxLogin.value = f.propertyTaxLogin || "";
   finPropertyTaxAmount.value = f.propertyTaxAmount || "";
   finPropertyTaxDue.value = f.propertyTaxDue || "";
   finPropertyTaxPaid.value = f.propertyTaxPaid || "unpaid";
+  finPropertyTaxNotes.value = f.propertyTaxNotes || "";
   finNotes.value = f.notes || "";
   financeDialog.showModal();
 }
@@ -1628,6 +1654,7 @@ function saveFinance(e) {
     mortgageDueDay: Number(finMortgageDueDay.value || 1),
     mortgagePaid: finMortgagePaid.value,
     mortgagePaidDate: finMortgagePaid.value === "paid" ? finMortgagePaidDate.value : "",
+    mortgageNotes: finMortgageNotes.value.trim(),
     salesVisible: finSalesVisible.value,
     salesAgency: finSalesAgency.value.trim() || "Florida Sales Tax",
     salesLogin: finSalesLogin.value.trim(),
@@ -1636,6 +1663,7 @@ function saveFinance(e) {
     salesPaid: finSalesPaid.value,
     salesPaidDate: finSalesPaid.value === "paid" ? (existing.salesPaidDate || "") : "",
     salesDueDay: Number(finSalesDueDay.value || 20),
+    salesNotes: finSalesNotes.value.trim(),
     touristVisible: finTouristVisible.value,
     touristAgency: finTouristAgency.value.trim() || `${countyNameForHouse(houseId)} - tourist county tax`,
     touristLogin: finTouristLogin.value.trim(),
@@ -1644,6 +1672,7 @@ function saveFinance(e) {
     touristPaid: finTouristPaid.value,
     touristPaidDate: finTouristPaid.value === "paid" ? (existing.touristPaidDate || "") : "",
     touristDueDay: Number(finTouristDueDay.value || 20),
+    touristNotes: finTouristNotes.value.trim(),
     insuranceCompany: finInsuranceCompany.value.trim(),
     insurancePolicyNumber: finInsurancePolicyNumber.value.trim(),
     insuranceLogin: finInsuranceLogin.value.trim(),
@@ -1653,12 +1682,14 @@ function saveFinance(e) {
     insuranceDue: finInsuranceDue.value,
     insurancePaid: finInsurancePaid.value,
     insurancePaidDate: finInsurancePaid.value === "paid" ? (existing.insurancePaidDate || "") : "",
+    insuranceNotes: finInsuranceNotes.value.trim(),
     propertyTaxAgency: finPropertyTaxAgency.value.trim() || `${countyNameForHouse(houseId)} property tax`,
     propertyTaxLogin: finPropertyTaxLogin.value.trim(),
     propertyTaxAmount: Number(finPropertyTaxAmount.value || 0),
     propertyTaxDue: finPropertyTaxDue.value,
     propertyTaxPaid: finPropertyTaxPaid.value,
     propertyTaxPaidDate: finPropertyTaxPaid.value === "paid" ? (existing.propertyTaxPaidDate || "") : "",
+    propertyTaxNotes: finPropertyTaxNotes.value.trim(),
     notes: finNotes.value.trim()
   };
   const idx = state.finance.findIndex(f => f.houseId === houseId);
