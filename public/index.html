@@ -141,7 +141,7 @@
       </section>
 
       <section class="toolbar" style="grid-template-columns:1fr;">
-        <span class="small"><b>Others:</b> Use “+ Add bill” and choose Auto Insurance, Car Payment, Mobile Phones, Math Class, Soccer Club, or Other from the bill type dropdown.</span>
+        <span class="small"><b>Others:</b> Use “+ Add bill” and choose Auto Insurance, Car Payment, Mobile Phones, Math Class, Soccer Club, or Custom bill type from the bill type dropdown.</span>
       </section>
       <div id="utilityApp" class="grid"></div>
     </section>
@@ -257,6 +257,7 @@
       <div class="form-grid">
         <div><label>House</label><select id="utilityHouse"></select></div>
         <div><label>Bill type</label><select id="utilityType"></select></div>
+        <div id="utilityCustomTypeWrap" style="display:none;"><label>Custom bill type</label><input id="utilityCustomType" placeholder="Gym, storage, music class..."></div>
         <div><label>Provider</label><input id="utilityProvider" required placeholder="TECO, county water..."></div>
         <div><label>Login page URL</label><input id="utilityUrl" placeholder="https://..."></div>
         <div><label>Account number</label><input id="utilityAccount" placeholder="Utility account number"></div>
@@ -1285,15 +1286,52 @@ function deleteItem(id) { if (confirm("Delete this item?")) { state.items = stat
 
 const HOUSE_UTILITY_TYPES = ["Electric", "Water", "Gas", "Trash", "Internet", "HOA", "Other"];
 const OTHER_BILL_TYPES = ["Auto Insurance", "Car Payment", "Mobile Phones", "Soccer Club", "Math Class"];
+const CUSTOM_UTILITY_TYPE_VALUE = "__custom__";
 
-function populateUtilityTypeOptions(destination = "") {
-  const current = utilityType.value;
+function utilityTypeOptionHtml(label, value = label) {
+  return `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;
+}
+
+function customUtilityTypeValue() {
+  return utilityCustomType.value.trim();
+}
+
+function populateUtilityTypeOptions(destination = "", selectedType = utilityType.value) {
   const types = destination === "other" ? OTHER_BILL_TYPES : HOUSE_UTILITY_TYPES;
-  utilityType.innerHTML = types.map(t => `<option>${t}</option>`).join("");
-  if (types.includes(current)) utilityType.value = current;
+  const customOptions = destination === "other" ? [utilityTypeOptionHtml("Custom bill type…", CUSTOM_UTILITY_TYPE_VALUE)] : [];
+  utilityType.innerHTML = [
+    ...types.map(t => utilityTypeOptionHtml(t)),
+    ...customOptions
+  ].join("");
+
+  if (types.includes(selectedType)) {
+    utilityType.value = selectedType;
+  } else if (destination === "other" && selectedType && selectedType !== CUSTOM_UTILITY_TYPE_VALUE) {
+    utilityType.value = CUSTOM_UTILITY_TYPE_VALUE;
+    utilityCustomType.value = selectedType;
+  } else if (destination === "other" && selectedType === CUSTOM_UTILITY_TYPE_VALUE) {
+    utilityType.value = CUSTOM_UTILITY_TYPE_VALUE;
+  }
+
+  updateUtilityCustomTypeVisibility();
+}
+
+function updateUtilityCustomTypeVisibility() {
+  const isCustom = utilityHouse.value === "other" && utilityType.value === CUSTOM_UTILITY_TYPE_VALUE;
+  utilityCustomTypeWrap.style.display = isCustom ? "" : "none";
+  utilityCustomType.required = isCustom;
+  if (!isCustom) utilityCustomType.value = "";
+}
+
+function selectedUtilityType() {
+  if (utilityHouse.value === "other" && utilityType.value === CUSTOM_UTILITY_TYPE_VALUE) {
+    return customUtilityTypeValue();
+  }
+  return utilityType.value;
 }
 
 function updateUtilityTypeOptionsFromHouse() {
+  utilityCustomType.value = "";
   populateUtilityTypeOptions(utilityHouse.value);
 }
 
@@ -1318,20 +1356,24 @@ function openUtilityModal(houseId) {
   utilityModalTitle.textContent = houseId === "other" ? "Add Other bill" : "Add utility bill";
   utilityEditId.value = "";
   utilityHouse.value = houseId || (utilityHouseFilter.value !== "all" ? utilityHouseFilter.value : state.houses[0].id);
-  populateUtilityTypeOptions(utilityHouse.value);
-  utilityType.value = utilityHouse.value === "other" ? "Auto Insurance" : "Electric";
+  populateUtilityTypeOptions(utilityHouse.value, utilityHouse.value === "other" ? "Auto Insurance" : "Electric");
   utilityProvider.value = ""; utilityUrl.value = ""; utilityAccount.value = ""; utilityStatementDate.value = ""; utilityAmount.value = ""; utilityFrequency.value = "monthly"; utilityDue.value = todayISO(); utilityPaid.value = "unpaid"; utilityAutopay.value = "off"; utilityPaidDate.value = ""; utilityNotes.value = ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
 }
 function editUtility(id) {
   const u = state.utilities.find(x => x.id === id); if (!u) return;
-  utilityModalTitle.textContent = "Edit utility bill"; utilityEditId.value = u.id; utilityHouse.value = isOtherBillType(u.type) ? "other" : u.houseId; populateUtilityTypeOptions(utilityHouse.value); utilityType.value = u.type; utilityProvider.value = u.provider; utilityUrl.value = u.url || ""; utilityAccount.value = u.account || ""; utilityStatementDate.value = u.statementDate || ""; utilityAmount.value = u.amount || ""; utilityFrequency.value = utilityBillingFrequency(u); utilityDue.value = u.due; utilityPaid.value = u.paid || "unpaid"; utilityAutopay.value = u.autopay || "off"; utilityPaidDate.value = u.paidDate || ""; utilityNotes.value = u.notes || ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
+  utilityModalTitle.textContent = "Edit utility bill"; utilityEditId.value = u.id; utilityHouse.value = (u.houseId === "other" || isOtherBillType(u.type)) ? "other" : u.houseId; utilityCustomType.value = ""; populateUtilityTypeOptions(utilityHouse.value, u.type); utilityProvider.value = u.provider; utilityUrl.value = u.url || ""; utilityAccount.value = u.account || ""; utilityStatementDate.value = u.statementDate || ""; utilityAmount.value = u.amount || ""; utilityFrequency.value = utilityBillingFrequency(u); utilityDue.value = u.due; utilityPaid.value = u.paid || "unpaid"; utilityAutopay.value = u.autopay || "off"; utilityPaidDate.value = u.paidDate || ""; utilityNotes.value = u.notes || ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
 }
 function saveUtility(e) {
   e.preventDefault();
   if (utilityPaid.value !== "paid") utilityPaidDate.value = "";
   const houseId = utilityHouse.value === "other" ? "other" : utilityHouse.value;
-  const frequency = isInsuranceType(utilityType.value) ? "annual" : (houseId === "other" ? utilityFrequency.value : "monthly");
-  const utility = { id: utilityEditId.value || uid(), houseId, type:utilityType.value, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), frequency, due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
+  const type = selectedUtilityType();
+  if (!type) {
+    alert("Enter a custom bill type.");
+    return;
+  }
+  const frequency = isInsuranceType(type) ? "annual" : (houseId === "other" ? utilityFrequency.value : "monthly");
+  const utility = { id: utilityEditId.value || uid(), houseId, type, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), frequency, due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
   state.utilities = utilityEditId.value ? state.utilities.map(u => u.id === utility.id ? utility : u) : [...state.utilities, utility];
   utilityDialog.close(); saveData();
 }
@@ -2322,6 +2364,7 @@ search.addEventListener("input", render);
 filterStatus.addEventListener("change", render);
 houseSelect.addEventListener("change", render);
 utilityHouse.addEventListener("change", updateUtilityTypeOptionsFromHouse);
+utilityType.addEventListener("change", updateUtilityCustomTypeVisibility);
 utilityPaid.addEventListener("change", updateUtilityPaidDateVisibility);
 utilitySearch.addEventListener("input", render);
 utilityStatusFilter.addEventListener("change", render);
