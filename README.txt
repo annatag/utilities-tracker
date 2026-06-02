@@ -1,8 +1,6 @@
 House Tracker Utilities
 
-This app can run in two ways:
-1. Local/offline mode: open public/index.html in your browser. Data saves in that browser's localStorage.
-2. Cloud mode: deploy to Cloudflare Pages. Data is shared across devices through Cloudflare KV.
+This app is intended to run in Cloudflare Pages cloud mode only. Data is loaded from and saved only to Cloudflare KV through the /api/items Pages Function.
 
 Important security note
 This tracker contains private property, account, and bill details. Do not publish it as an unprotected public website.
@@ -41,9 +39,8 @@ How cloud saving works
 - functions/api/items.js reads the shared state from the TRACKER_BACKUPS KV namespace.
 - If KV is empty, it seeds the namespace once from public/data.json.
 - Every save posts the full tracker state back to /api/items.
-- If the API is unavailable, the browser falls back to the local browser backup.
-- The page now shows a cloud-storage status banner. If it says cloud storage is not configured or unreachable, edits are only in the current browser and will not appear on another phone/computer until the Pages Function and TRACKER_BACKUPS KV binding are fixed.
-- Safari Private Browsing or restrictive site settings can block localStorage. The app treats localStorage as a backup only, so Safari local backup failures should not stop saves from posting to Cloudflare KV when cloud storage is connected.
+- If the API or KV binding is unavailable, the browser does not load a local backup and changes are not persisted.
+- The page shows a cloud-storage status banner. If it says cloud storage is not configured or unreachable, fix the Pages Function and TRACKER_BACKUPS KV binding before editing.
 
 
 Fixing "Cloud storage is not configured"
@@ -58,8 +55,7 @@ If the banner remains after redeploying, check that the deployed project uses th
 
 
 Local use
-1. Open public/index.html in your browser, or serve the folder with a small static server.
-2. Your data saves locally in that browser.
+Run the app with the Cloudflare Pages Function and a TRACKER_BACKUPS KV binding, for example with `npm run dev` after configuring Wrangler. Opening public/index.html directly is read-only/unpersisted because the app no longer saves to browser localStorage.
 
 Utilities now opens as the default tab.
 
