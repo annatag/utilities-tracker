@@ -45,6 +45,7 @@ How cloud saving works
 - The page now shows a cloud-storage status banner. If it says cloud storage is not configured or unreachable, edits are only in the current browser and will not appear on another phone/computer until the Pages Function and TRACKER_BACKUPS KV binding are fixed.
 - Safari Private Browsing or restrictive site settings can block localStorage. The app treats localStorage as a backup only, so Safari local backup failures should not stop saves from posting to Cloudflare KV when cloud storage is connected.
 
+
 Fixing "Cloud storage is not configured"
 That banner means the Pages Function is running, but Cloudflare did not provide the required TRACKER_BACKUPS KV binding to /api/items. To fix it:
 1. In Cloudflare, open Workers & Pages, select the utilities-tracker Pages project, then open Settings.
@@ -54,6 +55,7 @@ That banner means the Pages Function is running, but Cloudflare did not provide 
 5. Redeploy the Pages project, then refresh the app. The banner should change to "Shared cloud storage is connected."
 
 If the banner remains after redeploying, check that the deployed project uses this repository's `functions/` directory and that `/api/items` returns JSON rather than a 404.
+
 
 Local use
 1. Open public/index.html in your browser, or serve the folder with a small static server.
