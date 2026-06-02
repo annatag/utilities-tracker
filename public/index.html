@@ -265,6 +265,7 @@
         <div><label>Account number</label><input id="utilityAccount" placeholder="Utility account number"></div>
         <div><label>Statement date</label><input id="utilityStatementDate" type="date"></div>
         <div><label>Amount due</label><input id="utilityAmount" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label>Keep same amount next period?</label><select id="utilityKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div><label>Billing frequency</label><select id="utilityFrequency"><option value="monthly">Monthly</option><option value="annual">Annual</option></select></div>
         <div><label>Due date</label><input id="utilityDue" type="date" required></div>
         <div><label>Payment status</label><select id="utilityPaid"><option value="unpaid">NOT PAID</option><option value="paid">PAID</option><option value="inactive">INACTIVE</option></select></div>
@@ -291,6 +292,7 @@
         <div><label>Login page</label><input id="financeItemLogin" placeholder="https://..."></div>
         <div><label>Account / policy number</label><input id="financeItemAccount" placeholder="Account or policy number"></div>
         <div><label>Amount due</label><input id="financeItemAmount" type="number" step="0.01" min="0"></div>
+        <div><label>Keep same amount next period?</label><select id="financeItemKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div><label>Due date</label><input id="financeItemDue" type="date"></div>
         <div><label>Paid?</label><select id="financeItemPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
         <div><label>Paid date</label><input id="financeItemPaidDate" type="date"></div>
@@ -314,6 +316,7 @@
         <div data-finance-section="mortgage"><label>Mortgage number</label><input id="finMortgageNumber" placeholder="Mortgage/account number"></div>
         <div data-finance-section="mortgage"><label>Mortgage login page</label><input id="finMortgageLogin" placeholder="https://..."></div>
         <div data-finance-section="mortgage"><label>Monthly amount due</label><input id="finMortgageAmount" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="mortgage"><label>Keep same amount next month?</label><select id="finMortgageKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="mortgage"><label>Due on the 1-st</label><input id="finMortgageDueDay" type="number" min="1" max="28" value="1"></div>
         <div data-finance-section="mortgage"><label>Paid?</label><select id="finMortgagePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
         <div class="full" data-finance-section="mortgage"><label>Notes</label><textarea id="finMortgageNotes" placeholder="Mortgage notes..."></textarea></div>
@@ -325,6 +328,7 @@
         <div data-finance-section="salesTax"><label>Login page</label><input id="finSalesLogin" placeholder="https://..."></div>
         <div data-finance-section="salesTax"><label>Return filed?</label><select id="finSalesFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
         <div data-finance-section="salesTax"><label>Taxable amount</label><input id="finSalesTaxable" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="salesTax"><label>Keep same amount next month?</label><select id="finSalesKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="salesTax"><label>Paid?</label><select id="finSalesPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
         <div class="full" data-finance-section="salesTax"><label>Notes</label><textarea id="finSalesNotes" placeholder="Sales tax notes..."></textarea></div>
         <div data-finance-section="salesTax"><label>Due on the 1-st</label><input id="finSalesDueDay" type="number" min="1" max="28" value="20"></div>
@@ -335,6 +339,7 @@
         <div data-finance-section="touristTax"><label>Login page</label><input id="finTouristLogin" placeholder="https://..."></div>
         <div data-finance-section="touristTax"><label>Return filed?</label><select id="finTouristFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
         <div data-finance-section="touristTax"><label>Taxable amount</label><input id="finTouristTaxable" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="touristTax"><label>Keep same amount next month?</label><select id="finTouristKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="touristTax"><label>Paid?</label><select id="finTouristPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
         <div class="full" data-finance-section="touristTax"><label>Notes</label><textarea id="finTouristNotes" placeholder="Tourist tax notes..."></textarea></div>
         <div data-finance-section="touristTax"><label>Due on the 1-st</label><input id="finTouristDueDay" type="number" min="1" max="28" value="20"></div>
@@ -346,6 +351,7 @@
         <div data-finance-section="insurance"><label>Policy period start</label><input id="finInsuranceStart" type="date"></div>
         <div data-finance-section="insurance"><label>Policy period end</label><input id="finInsuranceEnd" type="date"></div>
         <div data-finance-section="insurance"><label>Amount per year</label><input id="finInsuranceAmount" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="insurance"><label>Keep same amount next year?</label><select id="finInsuranceKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="insurance"><label>Due date</label><input id="finInsuranceDue" type="date"></div>
         <div data-finance-section="insurance"><label>Paid?</label><select id="finInsurancePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
         <div class="full" data-finance-section="insurance"><label>Notes</label><textarea id="finInsuranceNotes" placeholder="Policy notes, escrow, reminders..."></textarea></div>
@@ -354,6 +360,7 @@
         <div data-finance-section="propertyTax"><label>County / agency</label><input id="finPropertyTaxAgency" placeholder="County property tax"></div>
         <div data-finance-section="propertyTax"><label>County tax page / login</label><input id="finPropertyTaxLogin" placeholder="https://..."></div>
         <div data-finance-section="propertyTax"><label>Property taxes per year</label><input id="finPropertyTaxAmount" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="propertyTax"><label>Keep same amount next year?</label><select id="finPropertyTaxKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="propertyTax"><label>Due date</label><input id="finPropertyTaxDue" type="date"></div>
         <div data-finance-section="propertyTax"><label>Paid?</label><select id="finPropertyTaxPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
         <div class="full" data-finance-section="propertyTax"><label>Notes</label><textarea id="finPropertyTaxNotes" placeholder="Parcel ID, reminders, confirmations..."></textarea></div>
@@ -574,8 +581,12 @@ function latestUtilityByType(houseId, type) {
   return matches[0] || null;
 }
 
+function shouldCarryAmountForward(value) {
+  return value === "yes";
+}
+
 function shouldCarryUtilityAmountForward(source) {
-  return String(source && source.type || "").toLowerCase().includes("internet");
+  return shouldCarryAmountForward(source && source.keepSameAmountNextPeriod);
 }
 
 function buildNextUtilityFrom(source) {
@@ -755,6 +766,7 @@ function makeFinanceRecord(houseId) {
     mortgageNumber: "",
     mortgageLogin: "",
     mortgageAmount: 0,
+    mortgageKeepSameAmountNextPeriod: "no",
     mortgageDueDay: 1,
     mortgagePaid: "unpaid",
     mortgagePaidDate: "",
@@ -764,6 +776,7 @@ function makeFinanceRecord(houseId) {
     salesLogin: "",
     salesFiled: "not filed",
     salesTaxable: 0,
+    salesKeepSameAmountNextPeriod: "no",
     salesPaid: "unpaid",
     salesPaidDate: "",
     salesDueDay: 20,
@@ -773,6 +786,7 @@ function makeFinanceRecord(houseId) {
     touristLogin: "",
     touristFiled: "not filed",
     touristTaxable: 0,
+    touristKeepSameAmountNextPeriod: "no",
     touristPaid: "unpaid",
     touristPaidDate: "",
     touristDueDay: 20,
@@ -783,6 +797,7 @@ function makeFinanceRecord(houseId) {
     insuranceStart: "",
     insuranceEnd: "",
     insuranceAmount: 0,
+    insuranceKeepSameAmountNextPeriod: "no",
     insuranceDue: "",
     insurancePaid: "unpaid",
     insurancePaidDate: "",
@@ -790,6 +805,7 @@ function makeFinanceRecord(houseId) {
     propertyTaxAgency: `${countyNameForHouse(houseId)} property tax`,
     propertyTaxLogin: "",
     propertyTaxAmount: 0,
+    propertyTaxKeepSameAmountNextPeriod: "no",
     propertyTaxDue: "",
     propertyTaxPaid: "unpaid",
     propertyTaxPaidDate: "",
@@ -809,12 +825,18 @@ function normalizeFinanceRecord(record) {
   record.touristFrequency = "monthly";
   record.insuranceFrequency = "annual";
   record.propertyTaxFrequency = "annual";
+  record.mortgageKeepSameAmountNextPeriod = record.mortgageKeepSameAmountNextPeriod || "no";
+  record.salesKeepSameAmountNextPeriod = record.salesKeepSameAmountNextPeriod || "no";
+  record.touristKeepSameAmountNextPeriod = record.touristKeepSameAmountNextPeriod || "no";
+  record.insuranceKeepSameAmountNextPeriod = record.insuranceKeepSameAmountNextPeriod || "no";
+  record.propertyTaxKeepSameAmountNextPeriod = record.propertyTaxKeepSameAmountNextPeriod || "no";
   return record;
 }
 
 function normalizeFinanceItemRecord(item) {
   if (!item || typeof item !== "object") return item;
   item.frequency = financeItemFrequency(item);
+  item.keepSameAmountNextPeriod = item.keepSameAmountNextPeriod || "no";
   return item;
 }
 
@@ -822,6 +844,7 @@ function normalizeFrequencies(data) {
   (data.utilities || []).forEach(u => {
     if (!u || typeof u !== "object") return;
     if (!("autopay" in u)) u.autopay = "off";
+    if (!("keepSameAmountNextPeriod" in u)) u.keepSameAmountNextPeriod = "no";
     u.frequency = utilityBillingFrequency(u);
   });
 
@@ -1376,11 +1399,11 @@ function openUtilityModal(houseId) {
   utilityEditId.value = "";
   utilityHouse.value = houseId || (utilityHouseFilter.value !== "all" ? utilityHouseFilter.value : state.houses[0].id);
   populateUtilityTypeOptions(utilityHouse.value, utilityHouse.value === "other" ? "Auto Insurance" : "Electric");
-  utilityProvider.value = ""; utilityUrl.value = ""; utilityAccount.value = ""; utilityStatementDate.value = ""; utilityAmount.value = ""; utilityFrequency.value = "monthly"; utilityDue.value = todayISO(); utilityPaid.value = "unpaid"; utilityAutopay.value = "off"; utilityPaidDate.value = ""; utilityNotes.value = ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
+  utilityProvider.value = ""; utilityUrl.value = ""; utilityAccount.value = ""; utilityStatementDate.value = ""; utilityAmount.value = ""; utilityKeepSameAmount.value = "no"; utilityFrequency.value = "monthly"; utilityDue.value = todayISO(); utilityPaid.value = "unpaid"; utilityAutopay.value = "off"; utilityPaidDate.value = ""; utilityNotes.value = ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
 }
 function editUtility(id) {
   const u = state.utilities.find(x => x.id === id); if (!u) return;
-  utilityModalTitle.textContent = "Edit utility bill"; utilityEditId.value = u.id; utilityHouse.value = (u.houseId === "other" || isOtherBillType(u.type)) ? "other" : u.houseId; utilityCustomType.value = ""; populateUtilityTypeOptions(utilityHouse.value, u.type); utilityProvider.value = u.provider; utilityUrl.value = u.url || ""; utilityAccount.value = u.account || ""; utilityStatementDate.value = u.statementDate || ""; utilityAmount.value = u.amount || ""; utilityFrequency.value = utilityBillingFrequency(u); utilityDue.value = u.due; utilityPaid.value = u.paid || "unpaid"; utilityAutopay.value = u.autopay || "off"; utilityPaidDate.value = u.paidDate || ""; utilityNotes.value = u.notes || ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
+  utilityModalTitle.textContent = "Edit utility bill"; utilityEditId.value = u.id; utilityHouse.value = (u.houseId === "other" || isOtherBillType(u.type)) ? "other" : u.houseId; utilityCustomType.value = ""; populateUtilityTypeOptions(utilityHouse.value, u.type); utilityProvider.value = u.provider; utilityUrl.value = u.url || ""; utilityAccount.value = u.account || ""; utilityStatementDate.value = u.statementDate || ""; utilityAmount.value = u.amount || ""; utilityKeepSameAmount.value = u.keepSameAmountNextPeriod || "no"; utilityFrequency.value = utilityBillingFrequency(u); utilityDue.value = u.due; utilityPaid.value = u.paid || "unpaid"; utilityAutopay.value = u.autopay || "off"; utilityPaidDate.value = u.paidDate || ""; utilityNotes.value = u.notes || ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
 }
 function saveUtility(e) {
   e.preventDefault();
@@ -1392,7 +1415,7 @@ function saveUtility(e) {
     return;
   }
   const frequency = isInsuranceType(type) ? "annual" : (houseId === "other" ? utilityFrequency.value : "monthly");
-  const utility = { id: utilityEditId.value || uid(), houseId, type, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), frequency, due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
+  const utility = { id: utilityEditId.value || uid(), houseId, type, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), keepSameAmountNextPeriod:utilityKeepSameAmount.value, frequency, due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
   state.utilities = utilityEditId.value ? state.utilities.map(u => u.id === utility.id ? utility : u) : [...state.utilities, utility];
   utilityDialog.close(); saveData();
 }
@@ -1450,10 +1473,26 @@ function buildNextFinanceItemFrom(item) {
     ...item,
     id: uid(),
     frequency,
+    amount: shouldCarryAmountForward(item.keepSameAmountNextPeriod) ? Number(item.amount || 0) : 0,
     due: nextRecurringDate(item.due, frequency),
     paid: "unpaid",
     paidDate: ""
   };
+}
+
+function financeRowKeepSameAmount(f, rowType) {
+  const fields = {
+    mortgage: "mortgageKeepSameAmountNextPeriod",
+    salesTax: "salesKeepSameAmountNextPeriod",
+    touristTax: "touristKeepSameAmountNextPeriod",
+    insurance: "insuranceKeepSameAmountNextPeriod",
+    propertyTax: "propertyTaxKeepSameAmountNextPeriod"
+  };
+  return shouldCarryAmountForward(f && f[fields[rowType]]);
+}
+
+function financeRowAmountForNextPeriod(amount, f, rowType) {
+  return financeRowKeepSameAmount(f, rowType) ? Number(amount || 0) : 0;
 }
 
 function buildNextFinanceItemFromRow(houseId, rowType, f) {
@@ -1465,7 +1504,8 @@ function buildNextFinanceItemFromRow(houseId, rowType, f) {
       company: f.mortgageCompany || "",
       login: f.mortgageLogin || "",
       account: f.mortgageNumber || "",
-      amount: Number(f.mortgageAmount || 0),
+      amount: financeRowAmountForNextPeriod(f.mortgageAmount, f, rowType),
+      keepSameAmountNextPeriod: f.mortgageKeepSameAmountNextPeriod || "no",
       notes: f.mortgageNotes || f.notes || ""
     },
     salesTax: {
@@ -1473,7 +1513,8 @@ function buildNextFinanceItemFromRow(houseId, rowType, f) {
       company: f.salesAgency || "Florida Sales Tax",
       login: f.salesLogin || "",
       account: "",
-      amount: salesTaxAmount(f.salesTaxable),
+      amount: financeRowAmountForNextPeriod(salesTaxAmount(f.salesTaxable), f, rowType),
+      keepSameAmountNextPeriod: f.salesKeepSameAmountNextPeriod || "no",
       notes: f.salesNotes || ""
     },
     touristTax: {
@@ -1481,7 +1522,8 @@ function buildNextFinanceItemFromRow(houseId, rowType, f) {
       company: f.touristAgency || "",
       login: f.touristLogin || "",
       account: "",
-      amount: touristTaxAmount(f.touristTaxable),
+      amount: financeRowAmountForNextPeriod(touristTaxAmount(f.touristTaxable), f, rowType),
+      keepSameAmountNextPeriod: f.touristKeepSameAmountNextPeriod || "no",
       notes: f.touristNotes || ""
     },
     insurance: {
@@ -1489,7 +1531,8 @@ function buildNextFinanceItemFromRow(houseId, rowType, f) {
       company: f.insuranceCompany || "",
       login: f.insuranceLogin || "",
       account: f.insurancePolicyNumber || "",
-      amount: Number(f.insuranceAmount || 0),
+      amount: financeRowAmountForNextPeriod(f.insuranceAmount, f, rowType),
+      keepSameAmountNextPeriod: f.insuranceKeepSameAmountNextPeriod || "no",
       notes: f.insuranceNotes || ""
     },
     propertyTax: {
@@ -1497,7 +1540,8 @@ function buildNextFinanceItemFromRow(houseId, rowType, f) {
       company: f.propertyTaxAgency || "",
       login: f.propertyTaxLogin || "",
       account: "",
-      amount: Number(f.propertyTaxAmount || 0),
+      amount: financeRowAmountForNextPeriod(f.propertyTaxAmount, f, rowType),
+      keepSameAmountNextPeriod: f.propertyTaxKeepSameAmountNextPeriod || "no",
       notes: f.propertyTaxNotes || ""
     }
   };
@@ -1808,6 +1852,7 @@ function openFinanceItemModal() {
   financeItemLogin.value = "";
   financeItemAccount.value = "";
   financeItemAmount.value = "";
+  financeItemKeepSameAmount.value = "no";
   financeItemDue.value = "";
   financeItemPaid.value = "unpaid";
   financeItemPaidDate.value = "";
@@ -1827,6 +1872,7 @@ function editFinanceItem(id) {
   financeItemLogin.value = item.login || "";
   financeItemAccount.value = item.account || "";
   financeItemAmount.value = item.amount || "";
+  financeItemKeepSameAmount.value = item.keepSameAmountNextPeriod || "no";
   financeItemDue.value = item.due || "";
   financeItemPaid.value = item.paid || "unpaid";
   financeItemPaidDate.value = item.paidDate || "";
@@ -1846,6 +1892,7 @@ function saveFinanceItem(e) {
     login: financeItemLogin.value.trim(),
     account: financeItemAccount.value.trim(),
     amount: Number(financeItemAmount.value || 0),
+    keepSameAmountNextPeriod: financeItemKeepSameAmount.value,
     due: financeItemDue.value,
     paid: financeItemPaid.value,
     paidDate: financeItemPaid.value === "paid" ? financeItemPaidDate.value : "",
@@ -1902,6 +1949,7 @@ function editFinance(houseId, section = "all") {
   finMortgageNumber.value = f.mortgageNumber || "";
   finMortgageLogin.value = f.mortgageLogin || "";
   finMortgageAmount.value = f.mortgageAmount || "";
+  finMortgageKeepSameAmount.value = f.mortgageKeepSameAmountNextPeriod || "no";
   finMortgageDueDay.value = f.mortgageDueDay || 1;
   finMortgagePaid.value = f.mortgagePaid || "unpaid";
   finMortgagePaidDate.value = f.mortgagePaidDate || "";
@@ -1911,6 +1959,7 @@ function editFinance(houseId, section = "all") {
   finSalesLogin.value = f.salesLogin || "";
   finSalesFiled.value = f.salesFiled || "not filed";
   finSalesTaxable.value = f.salesTaxable || "";
+  finSalesKeepSameAmount.value = f.salesKeepSameAmountNextPeriod || "no";
   finSalesPaid.value = f.salesPaid || "unpaid";
   finSalesDueDay.value = f.salesDueDay || 20;
   finSalesNotes.value = f.salesNotes || "";
@@ -1919,6 +1968,7 @@ function editFinance(houseId, section = "all") {
   finTouristLogin.value = f.touristLogin || "";
   finTouristFiled.value = f.touristFiled || "not filed";
   finTouristTaxable.value = f.touristTaxable || "";
+  finTouristKeepSameAmount.value = f.touristKeepSameAmountNextPeriod || "no";
   finTouristPaid.value = f.touristPaid || "unpaid";
   finTouristDueDay.value = f.touristDueDay || 20;
   finTouristNotes.value = f.touristNotes || "";
@@ -1928,12 +1978,14 @@ function editFinance(houseId, section = "all") {
   finInsuranceStart.value = f.insuranceStart || "";
   finInsuranceEnd.value = f.insuranceEnd || "";
   finInsuranceAmount.value = f.insuranceAmount || "";
+  finInsuranceKeepSameAmount.value = f.insuranceKeepSameAmountNextPeriod || "no";
   finInsuranceDue.value = f.insuranceDue || "";
   finInsurancePaid.value = f.insurancePaid || "unpaid";
   finInsuranceNotes.value = f.insuranceNotes || "";
   finPropertyTaxAgency.value = f.propertyTaxAgency || `${countyNameForHouse(houseId)} property tax`;
   finPropertyTaxLogin.value = f.propertyTaxLogin || "";
   finPropertyTaxAmount.value = f.propertyTaxAmount || "";
+  finPropertyTaxKeepSameAmount.value = f.propertyTaxKeepSameAmountNextPeriod || "no";
   finPropertyTaxDue.value = f.propertyTaxDue || "";
   finPropertyTaxPaid.value = f.propertyTaxPaid || "unpaid";
   finPropertyTaxNotes.value = f.propertyTaxNotes || "";
@@ -1951,6 +2003,7 @@ function saveFinance(e) {
     mortgageNumber: finMortgageNumber.value.trim(),
     mortgageLogin: finMortgageLogin.value.trim(),
     mortgageAmount: Number(finMortgageAmount.value || 0),
+    mortgageKeepSameAmountNextPeriod: finMortgageKeepSameAmount.value,
     mortgageDueDay: Number(finMortgageDueDay.value || 1),
     mortgagePaid: finMortgagePaid.value,
     mortgagePaidDate: finMortgagePaid.value === "paid" ? finMortgagePaidDate.value : "",
@@ -1961,6 +2014,7 @@ function saveFinance(e) {
     salesLogin: finSalesLogin.value.trim(),
     salesFiled: finSalesFiled.value,
     salesTaxable: Number(finSalesTaxable.value || 0),
+    salesKeepSameAmountNextPeriod: finSalesKeepSameAmount.value,
     salesPaid: finSalesPaid.value,
     salesPaidDate: finSalesPaid.value === "paid" ? (existing.salesPaidDate || "") : "",
     salesDueDay: Number(finSalesDueDay.value || 20),
@@ -1971,6 +2025,7 @@ function saveFinance(e) {
     touristLogin: finTouristLogin.value.trim(),
     touristFiled: finTouristFiled.value,
     touristTaxable: Number(finTouristTaxable.value || 0),
+    touristKeepSameAmountNextPeriod: finTouristKeepSameAmount.value,
     touristPaid: finTouristPaid.value,
     touristPaidDate: finTouristPaid.value === "paid" ? (existing.touristPaidDate || "") : "",
     touristDueDay: Number(finTouristDueDay.value || 20),
@@ -1982,6 +2037,7 @@ function saveFinance(e) {
     insuranceStart: finInsuranceStart.value,
     insuranceEnd: finInsuranceEnd.value,
     insuranceAmount: Number(finInsuranceAmount.value || 0),
+    insuranceKeepSameAmountNextPeriod: finInsuranceKeepSameAmount.value,
     insuranceDue: finInsuranceDue.value,
     insurancePaid: finInsurancePaid.value,
     insurancePaidDate: finInsurancePaid.value === "paid" ? (existing.insurancePaidDate || "") : "",
@@ -1990,6 +2046,7 @@ function saveFinance(e) {
     propertyTaxAgency: finPropertyTaxAgency.value.trim() || `${countyNameForHouse(houseId)} property tax`,
     propertyTaxLogin: finPropertyTaxLogin.value.trim(),
     propertyTaxAmount: Number(finPropertyTaxAmount.value || 0),
+    propertyTaxKeepSameAmountNextPeriod: finPropertyTaxKeepSameAmount.value,
     propertyTaxDue: finPropertyTaxDue.value,
     propertyTaxPaid: finPropertyTaxPaid.value,
     propertyTaxPaidDate: finPropertyTaxPaid.value === "paid" ? (existing.propertyTaxPaidDate || "") : "",
