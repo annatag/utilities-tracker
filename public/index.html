@@ -128,7 +128,8 @@
         <div>
           <label for="utilityStatusFilter">Payment status</label>
           <select id="utilityStatusFilter">
-            <option value="all">All</option>
+            <option value="allDue">ALL DUE</option>
+            <option value="all">ALL</option>
             <option value="unpaid">NOT PAID</option>
             <option value="paid">PAID</option>
             <option value="inactive">INACTIVE</option>
@@ -1147,13 +1148,14 @@ function renderUtilities() {
     const visibleBills = allBillsForHouse.filter(u => {
       const s = utilityStatus(u).key;
       const text = `${houseDisplayName(house)} ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
-      const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid";
+      const showingAllStatuses = statusFilter === "all";
+      const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid" || showingAllStatuses;
 
-      // Hide paid bills in the normal property view, but keep INACTIVE bills visible
-      // under ALL so inactive records remain easy to find.
+      // Hide paid bills in the ALL DUE property view, but keep INACTIVE bills visible
+      // so inactive records remain easy to find. The ALL filter shows every status.
       if (u.paid === "paid" && !searchingOrPaidFilter) return false;
 
-      const statusMatch = statusFilter === "all" ||
+      const statusMatch = showingAllStatuses || statusFilter === "allDue" ||
         (statusFilter === "overdue" && s === "unpaid-overdue") ||
         (statusFilter === "unpaid" && u.paid === "unpaid") ||
         (statusFilter === "paid" && u.paid === "paid") ||
@@ -1169,8 +1171,8 @@ function renderUtilities() {
     const card = document.createElement("section");
     card.className = "card";
     card.style.width = "100%";
-    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${visibleBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount ? `<span class="pill">${oldPaidCount} paid hidden</span>` : ""}</div></div>
-      <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account number</th><th>Amount due</th><th>Frequency</th><th>Statement date</th><th>Due date</th><th>Autopay</th><th>Paid status</th><th>Actions</th></tr></thead><tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid bills are hidden unless you search or select the PAID filter.</td></tr>`}</tbody></table></div>
+    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${visibleBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount && statusFilter !== "all" ? `<span class="pill">${oldPaidCount} paid hidden</span>` : ""}</div></div>
+      <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account number</th><th>Amount due</th><th>Frequency</th><th>Statement date</th><th>Due date</th><th>Autopay</th><th>Paid status</th><th>Actions</th></tr></thead><tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.</td></tr>`}</tbody></table></div>
       <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <button class="light" onclick="openUtilityModal('${house.id}')">+ Add bill for this house</button>
         <select id="newMonthType-${house.id}" style="max-width:180px;">
@@ -1189,9 +1191,10 @@ function renderUtilities() {
   const visibleOtherBills = allOtherBills.filter(u => {
     const s = utilityStatus(u).key;
     const text = `other ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
-    const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid";
+    const showingAllStatuses = statusFilter === "all";
+    const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid" || showingAllStatuses;
     if (u.paid === "paid" && !searchingOrPaidFilter) return false;
-    const statusMatch = statusFilter === "all" ||
+    const statusMatch = showingAllStatuses || statusFilter === "allDue" ||
       (statusFilter === "overdue" && s === "unpaid-overdue") ||
       (statusFilter === "unpaid" && u.paid === "unpaid") ||
       (statusFilter === "paid" && u.paid === "paid") ||
@@ -1207,7 +1210,7 @@ function renderUtilities() {
   otherCard.innerHTML = `
     <div class="house-title">
       <h2>Other</h2>
-      <div class="summary"><span class="pill">${visibleOtherBills.length} visible bill(s)</span>${hiddenOtherPaidCount ? `<span class="pill">${hiddenOtherPaidCount} paid hidden</span>` : ""}</div>
+      <div class="summary"><span class="pill">${visibleOtherBills.length} visible bill(s)</span>${hiddenOtherPaidCount && statusFilter !== "all" ? `<span class="pill">${hiddenOtherPaidCount} paid hidden</span>` : ""}</div>
     </div>
 
     <div class="table-wrap">
@@ -1229,7 +1232,7 @@ function renderUtilities() {
         <tbody>
           ${visibleOtherBills.length
             ? visibleOtherBills.map(utilityRowHtml).join("")
-            : `<tr><td colspan="10" class="small">No Other bills match this view. Paid bills are hidden unless you search or select the PAID filter.</td></tr>`}
+            : `<tr><td colspan="10" class="small">No Other bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.</td></tr>`}
         </tbody>
       </table>
     </div>
@@ -1437,7 +1440,7 @@ function markUtilityUnpaid(id) {
   const u = state.utilities.find(x => x.id === id); if (!u) return;
   u.paid = "unpaid";
   u.paidDate = "";
-  utilityStatusFilter.value = "all";
+  utilityStatusFilter.value = "allDue";
   saveData();
 }
 function deleteUtility(id) { if (confirm("Delete this utility bill?")) { state.utilities = state.utilities.filter(u => u.id !== id); saveData(); } }
