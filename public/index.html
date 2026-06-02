@@ -1699,8 +1699,11 @@ function renderFinance() {
     const propertyTaxSt = (f.propertyTaxPaid === "inactive" || f.propertyTaxDue) ? financeStatus(f.propertyTaxPaid, f.propertyTaxDue, f.propertyTaxPaidDate) : {key:"", text:""};
 
     const allowedByStatus = (paid, st) => {
-      const showingAllStatuses = statusFilter === "all" || statusFilter === "allDue";
+      const showingAllStatuses = statusFilter === "allDue";
+      const showingDueOrInactive = statusFilter === "all";
+      if (paid === "paid" && !q && !showingAllStatuses && statusFilter !== "paid") return false;
       return showingAllStatuses ||
+        (showingDueOrInactive && paid !== "paid") ||
         (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
         (statusFilter === "unpaid" && paid === "unpaid") ||
         (statusFilter === "paid" && paid === "paid") ||
@@ -1792,8 +1795,11 @@ function renderFinance() {
     if (q && !searchable.includes(q)) return;
 
     const st = (item.paid === "inactive" || item.due) ? financeStatus(item.paid, item.due, item.paidDate) : {key:"", text:""};
-    const showingAllStatuses = statusFilter === "all" || statusFilter === "allDue";
+    const showingAllStatuses = statusFilter === "allDue";
+    const showingDueOrInactive = statusFilter === "all";
+    if (item.paid === "paid" && !q && !showingAllStatuses && statusFilter !== "paid") return;
     const statusMatch = showingAllStatuses ||
+      (showingDueOrInactive && item.paid !== "paid") ||
       (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
       (statusFilter === "unpaid" && item.paid === "unpaid") ||
       (statusFilter === "paid" && item.paid === "paid") ||
