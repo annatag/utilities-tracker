@@ -44,8 +44,16 @@
     .utility-table th:nth-child(7), .utility-table td:nth-child(7) { min-width:135px; }
     .utility-table th:nth-child(8), .utility-table td:nth-child(8) { min-width:130px; }
     .utility-table th:nth-child(9), .utility-table td:nth-child(9) { min-width:150px; }
+    .utility-table th:nth-child(10), .utility-table td:nth-child(10) { min-width:210px; }
     th, td { text-align:left; padding:10px 8px; border-top:1px solid var(--border); vertical-align:top; font-size:14px; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .utility-table th { vertical-align:bottom; }
+    .table-header-control { display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .sort-header { display:flex; justify-content:space-between; align-items:center; gap:6px; width:100%; padding:0; border:0; border-radius:0; background:transparent; color:var(--muted); cursor:pointer; font-size:12px; font-weight:800; text-align:left; text-transform:uppercase; letter-spacing:.04em; }
+    .sort-header:hover, .sort-header:focus { color:var(--accent); outline:none; }
+    .sort-indicator { color:var(--accent); font-size:11px; min-width:12px; text-align:right; }
+    .column-filter { width:100%; min-width:90px; padding:6px 7px; border-radius:8px; font-size:12px; font-weight:500; text-transform:none; letter-spacing:normal; }
+    .column-filter::placeholder { color:#9ca3af; }
     .status { font-weight:700; }
     .overdue, .unpaid-overdue { color:var(--danger); }
     .soon { color:var(--warn); }
@@ -575,6 +583,138 @@ function shouldCreateNextUtility(source) {
 function isMonthlyUtilityType(type) {
   const t = String(type || "").toLowerCase();
   return t.includes("water") || t.includes("electric") || t.includes("internet");
+}
+
+const UTILITY_TABLE_COLUMNS = [
+  { key: "type", label: "Bill type", filter: "text" },
+  { key: "provider", label: "Provider / login", filter: "text" },
+  { key: "account", label: "Account number", filter: "text" },
+  { key: "amount", label: "Amount due", filter: "text" },
+  { key: "frequency", label: "Frequency", filter: "select", options: ["Monthly", "Annual"] },
+  { key: "statementDate", label: "Statement date", filter: "text" },
+  { key: "due", label: "Due date", filter: "text" },
+  { key: "autopay", label: "Autopay", filter: "select", options: ["On", "Off"] },
+  { key: "paidStatus", label: "Paid status", filter: "select", options: ["Paid", "Not paid", "Inactive", "Overdue"] },
+  { key: "actions", label: "Actions", filter: "text" }
+];
+
+const utilityTableSort = { key: "due", dir: "asc" };
+const utilityTableFilters = Object.fromEntries(UTILITY_TABLE_COLUMNS.map(column => [column.key, ""]));
+
+function utilityActionText(u) {
+  return `${u && u.paid === "paid" ? "mark not paid" : "mark paid"} new period edit delete`;
+}
+
+function utilityColumnValue(u, key) {
+  if (!u) return "";
+  const status = utilityStatus(u);
+  const values = {
+    type: u.type || "",
+    provider: `${u.provider || ""} ${u.url || ""}`,
+    account: u.account || "",
+    amount: `${Number(u.amount || 0)} ${money(u.amount)}`,
+    frequency: utilityBillingFrequency(u) === "annual" ? "Annual" : "Monthly",
+    statementDate: u.statementDate || "",
+    due: u.due || "",
+    autopay: u.autopay === "on" ? "On" : "Off",
+    paidStatus: `${status.text} ${u.paid || ""} ${u.paidDate || ""}`,
+    actions: utilityActionText(u)
+  };
+  return values[key] ?? "";
+}
+
+function utilityColumnFilterMatches(u, key, filterValue) {
+  if (!filterValue) return true;
+  const value = String(utilityColumnValue(u, key)).toLowerCase();
+  const filter = filterValue.toLowerCase();
+
+  if (key === "paidStatus") {
+    const status = utilityStatus(u).key;
+    if (filter === "overdue") return status === "unpaid-overdue";
+    if (filter === "not paid") return u.paid === "unpaid";
+    return value.includes(filter);
+  }
+
+  return value.includes(filter);
+}
+
+function filterUtilityTableRows(bills) {
+  return bills.filter(u => UTILITY_TABLE_COLUMNS.every(column =>
+    utilityColumnFilterMatches(u, column.key, utilityTableFilters[column.key])
+  ));
+}
+
+function compareUtilityRows(a, b) {
+  const key = utilityTableSort.key;
+  const dir = utilityTableSort.dir === "desc" ? -1 : 1;
+  const aValue = utilityColumnValue(a, key);
+  const bValue = utilityColumnValue(b, key);
+  let result;
+
+  if (["amount"].includes(key)) {
+    result = Number(a.amount || 0) - Number(b.amount || 0);
+  } else if (["statementDate", "due"].includes(key)) {
+    result = parseDate(aValue || "9999-12-31") - parseDate(bValue || "9999-12-31");
+  } else {
+    result = String(aValue || "").localeCompare(String(bValue || ""), undefined, { numeric: true, sensitivity: "base" });
+  }
+
+  if (result === 0 && key !== "due") {
+    result = parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31");
+  }
+
+  return result * dir;
+}
+
+function sortUtilityTableRows(bills) {
+  return [...bills].sort(compareUtilityRows);
+}
+
+function prepareUtilityTableRows(bills) {
+  return sortUtilityTableRows(filterUtilityTableRows(bills));
+}
+
+function setUtilityTableSort(key) {
+  if (utilityTableSort.key === key) {
+    utilityTableSort.dir = utilityTableSort.dir === "asc" ? "desc" : "asc";
+  } else {
+    utilityTableSort.key = key;
+    utilityTableSort.dir = "asc";
+  }
+  render();
+}
+
+function setUtilityColumnFilter(key, value) {
+  utilityTableFilters[key] = value;
+  render();
+  requestAnimationFrame(() => {
+    const filter = document.querySelector(`.column-filter[data-filter-key="${key}"]`);
+    if (!filter) return;
+    filter.focus();
+    if (filter instanceof HTMLInputElement) {
+      const end = filter.value.length;
+      filter.setSelectionRange(end, end);
+    }
+  });
+}
+
+function utilityHeaderFilterHtml(column) {
+  const value = escapeHtml(utilityTableFilters[column.key] || "");
+  if (column.filter === "select") {
+    const options = ["", ...column.options].map(option =>
+      `<option value="${escapeHtml(option)}"${(utilityTableFilters[column.key] || "") === option ? " selected" : ""}>${option ? escapeHtml(option) : "All"}</option>`
+    ).join("");
+    return `<select class="column-filter" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}" onchange="setUtilityColumnFilter('${column.key}', this.value)" onclick="event.stopPropagation()">${options}</select>`;
+  }
+  return `<input class="column-filter" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}" placeholder="Filter" value="${value}" oninput="setUtilityColumnFilter('${column.key}', this.value)" onclick="event.stopPropagation()" />`;
+}
+
+function utilityTableHeaderHtml() {
+  return `<thead><tr>${UTILITY_TABLE_COLUMNS.map(column => {
+    const isSorted = utilityTableSort.key === column.key;
+    const indicator = isSorted ? (utilityTableSort.dir === "asc" ? "▲" : "▼") : "↕";
+    return `<th><div class="table-header-control"><button type="button" class="sort-header" onclick="setUtilityTableSort('${column.key}')" aria-label="Sort by ${escapeHtml(column.label)}"><span>${escapeHtml(column.label)}</span><span class="sort-indicator" aria-hidden="true">${indicator}</span></button>${utilityHeaderFilterHtml(column)}</div></th>`;
+  }).join("")}</tr></thead>`;
 }
 
 function latestUtilityByType(houseId, type) {
@@ -1143,8 +1283,7 @@ function renderUtilities() {
 
   state.houses.forEach(house => {
     if (houseFilter !== "all" && houseFilter !== house.id) return;
-    let allBillsForHouse = state.utilities.filter(u => u.houseId === house.id && !isOtherBillType(u.type))
-      .sort((a,b) => parseDate(a.due) - parseDate(b.due));
+    let allBillsForHouse = state.utilities.filter(u => u.houseId === house.id && !isOtherBillType(u.type));
 
     const oldPaidCount = allBillsForHouse.filter(u => u.paid === "paid").length;
 
@@ -1166,16 +1305,15 @@ function renderUtilities() {
       return (!q || text.includes(q)) && statusMatch;
     });
 
-    const houseUtilityBills = visibleBills.filter(u => !isOtherBillType(u.type)).sort((a,b) => parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31"));
-    const otherBills = visibleBills.filter(u => isOtherBillType(u.type));
+    const houseUtilityBills = prepareUtilityTableRows(visibleBills.filter(u => !isOtherBillType(u.type)));
 
     const totalUnpaid = allBillsForHouse.filter(u => u.paid === "unpaid").reduce((sum,u) => sum + Number(u.amount || 0), 0);
     const overdue = allBillsForHouse.filter(u => utilityStatus(u).key === "unpaid-overdue").length;
     const card = document.createElement("section");
     card.className = "card";
     card.style.width = "100%";
-    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${visibleBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount && statusFilter !== "all" ? `<span class="pill">${oldPaidCount} paid hidden</span>` : ""}</div></div>
-      <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account number</th><th>Amount due</th><th>Frequency</th><th>Statement date</th><th>Due date</th><th>Autopay</th><th>Paid status</th><th>Actions</th></tr></thead><tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.</td></tr>`}</tbody></table></div>
+    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${houseUtilityBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount && statusFilter !== "all" ? `<span class="pill">${oldPaidCount} paid hidden</span>` : ""}</div></div>
+      <div class="table-wrap"><table class="utility-table">${utilityTableHeaderHtml()}<tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.</td></tr>`}</tbody></table></div>
       <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <button class="light" onclick="openUtilityModal('${house.id}')">+ Add bill for this house</button>
         <select id="newMonthType-${house.id}" style="max-width:180px;">
@@ -1190,8 +1328,8 @@ function renderUtilities() {
   });
 
   // Standalone Other section
-  const allOtherBills = (state.utilities || []).filter(u => u.houseId === "other" || isOtherBillType(u.type)).sort((a,b) => parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31"));
-  const visibleOtherBills = allOtherBills.filter(u => {
+  const allOtherBills = (state.utilities || []).filter(u => u.houseId === "other" || isOtherBillType(u.type));
+  const visibleOtherBills = prepareUtilityTableRows(allOtherBills.filter(u => {
     const s = utilityStatus(u).key;
     const text = `other ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
     const showingAllStatuses = statusFilter === "all";
@@ -1203,7 +1341,7 @@ function renderUtilities() {
       (statusFilter === "paid" && u.paid === "paid") ||
       (statusFilter === "inactive" && u.paid === "inactive");
     return (!q || text.includes(q)) && statusMatch;
-  });
+  }));
   const hiddenOtherPaidCount = allOtherBills.filter(u => u.paid === "paid").length;
 
   const otherCard = document.createElement("section");
@@ -1218,20 +1356,7 @@ function renderUtilities() {
 
     <div class="table-wrap">
       <table class="utility-table">
-        <thead>
-          <tr>
-            <th>Bill type</th>
-            <th>Provider / login</th>
-            <th>Account number</th>
-            <th>Amount due</th>
-            <th>Frequency</th>
-            <th>Statement date</th>
-            <th>Due date</th>
-            <th>Autopay</th>
-            <th>Paid status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+        ${utilityTableHeaderHtml()}
         <tbody>
           ${visibleOtherBills.length
             ? visibleOtherBills.map(utilityRowHtml).join("")
