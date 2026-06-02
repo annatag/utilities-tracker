@@ -262,6 +262,7 @@
         <div><label>Account number</label><input id="utilityAccount" placeholder="Utility account number"></div>
         <div><label>Statement date</label><input id="utilityStatementDate" type="date"></div>
         <div><label>Amount due</label><input id="utilityAmount" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label>Billing frequency</label><select id="utilityFrequency"><option value="monthly">Monthly</option><option value="annual">Annual</option></select></div>
         <div><label>Due date</label><input id="utilityDue" type="date" required></div>
         <div><label>Payment status</label><select id="utilityPaid"><option value="unpaid">Unpaid</option><option value="paid">Paid</option></select></div>
         <div><label>Autopay</label><select id="utilityAutopay"><option value="off">Off</option><option value="on">On</option></select></div>
@@ -514,6 +515,22 @@ function addMonthsISO(dateStr, months = 1) {
   return d.toISOString().slice(0,10);
 }
 
+function nextRecurringDate(dateStr, frequency = "monthly") {
+  return addMonthsISO(dateStr, frequency === "annual" ? 12 : 1);
+}
+
+function utilityBillingFrequency(u) {
+  return u && u.frequency === "annual" ? "annual" : "monthly";
+}
+
+function financeItemFrequency(item) {
+  return item && item.frequency === "annual" ? "annual" : "monthly";
+}
+
+function isPaidInNormalView(paid) {
+  return paid === "paid";
+}
+
 function isMonthlyUtilityType(type) {
   const t = String(type || "").toLowerCase();
   return t.includes("water") || t.includes("electric") || t.includes("internet");
@@ -530,20 +547,45 @@ function latestUtilityByType(houseId, type) {
   return matches[0] || null;
 }
 
-function createNextMonthUtilityFrom(id) {
-  const source = state.utilities.find(u => u.id === id);
-  if (!source) return;
-  const newItem = {
+function buildNextUtilityFrom(source) {
+  if (!source) return null;
+  const frequency = utilityBillingFrequency(source);
+  return {
     ...source,
     id: uid(),
-    statementDate: addMonthsISO(source.statementDate || source.due, 1),
-    due: addMonthsISO(source.due || source.statementDate, 1),
+    frequency,
+    statementDate: nextRecurringDate(source.statementDate || source.due, frequency),
+    due: nextRecurringDate(source.due || source.statementDate, frequency),
     amount: 0,
     paid: "unpaid",
     paidDate: "",
     notes: source.notes || ""
   };
+}
+
+function hasMatchingUnpaidUtility(source, due) {
+  return state.utilities.some(u =>
+    u.id !== source.id &&
+    u.houseId === source.houseId &&
+    u.type === source.type &&
+    u.provider === source.provider &&
+    u.account === source.account &&
+    u.due === due &&
+    u.paid !== "paid"
+  );
+}
+
+function addNextUtilityFrom(source) {
+  const newItem = buildNextUtilityFrom(source);
+  if (!newItem || hasMatchingUnpaidUtility(source, newItem.due)) return false;
   state.utilities.push(newItem);
+  return true;
+}
+
+function createNextMonthUtilityFrom(id) {
+  const source = state.utilities.find(u => u.id === id);
+  if (!source) return;
+  addNextUtilityFrom(source);
   saveData();
 }
 
@@ -637,9 +679,7 @@ function addInterval(dateStr, every, unit) {
 function dueDateForDay(day) {
   day = Math.min(Math.max(Number(day || 1), 1), 28);
   const now = new Date();
-  let due = new Date(now.getFullYear(), now.getMonth(), day);
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (due < today) due = new Date(now.getFullYear(), now.getMonth() + 1, day);
+  const due = new Date(now.getFullYear(), now.getMonth(), day);
   return due.toISOString().slice(0,10);
 }
 
@@ -783,7 +823,10 @@ function normalizeLoadedData(source) {
   if (!Array.isArray(data.utilities)) data.utilities = [];
   if (!Array.isArray(data.contacts)) data.contacts = [];
   if (!Array.isArray(data.finance)) data.finance = [];
-  data.utilities.forEach(u => { if (!("autopay" in u)) u.autopay = "off"; });
+  data.utilities.forEach(u => {
+    if (!("autopay" in u)) u.autopay = "off";
+    if (!("frequency" in u)) u.frequency = "monthly";
+  });
   return data;
 }
 
@@ -951,6 +994,7 @@ function applyUtilityAutopay() {
       } else {
         u.notes = "Autopay marked paid on due date " + u.due;
       }
+      addNextUtilityFrom(u);
       changed = true;
     }
   });
@@ -1006,16 +1050,16 @@ function renderUtilities() {
     let allBillsForHouse = state.utilities.filter(u => u.houseId === house.id && !isOtherBillType(u.type))
       .sort((a,b) => parseDate(a.due) - parseDate(b.due));
 
-    const oldPaidCount = allBillsForHouse.filter(u => isPaidBeforeCurrentMonth(u)).length;
+    const oldPaidCount = allBillsForHouse.filter(u => isPaidInNormalView(u.paid)).length;
 
     const visibleBills = allBillsForHouse.filter(u => {
       const s = utilityStatus(u).key;
       const text = `${houseDisplayName(house)} ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
       const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid";
 
-      // Hide bills paid last month or older in the normal property view,
-      // but allow them to appear when searching or when the Paid filter is selected.
-      if (isPaidBeforeCurrentMonth(u) && !searchingOrPaidFilter) return false;
+      // Hide paid bills in the normal property view, but allow them to appear
+      // when searching or when the Paid filter is selected.
+      if (isPaidInNormalView(u.paid) && !searchingOrPaidFilter) return false;
 
       const statusMatch = statusFilter === "all" ||
         (statusFilter === "overdue" && s === "unpaid-overdue") ||
@@ -1032,8 +1076,8 @@ function renderUtilities() {
     const card = document.createElement("section");
     card.className = "card";
     card.style.width = "100%";
-    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${visibleBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount ? `<span class="pill">${oldPaidCount} old paid hidden</span>` : ""}</div></div>
-      <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account number</th><th>Amount due</th><th>Statement date</th><th>Due date</th><th>Autopay</th><th>Paid status</th><th>Actions</th></tr></thead><tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="9" class="small">No utility bills match this view. Old paid bills are hidden unless you search or select the Paid filter.</td></tr>`}</tbody></table></div>
+    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${visibleBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount ? `<span class="pill">${oldPaidCount} paid hidden</span>` : ""}</div></div>
+      <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account number</th><th>Amount due</th><th>Frequency</th><th>Statement date</th><th>Due date</th><th>Autopay</th><th>Paid status</th><th>Actions</th></tr></thead><tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid bills are hidden unless you search or select the Paid filter.</td></tr>`}</tbody></table></div>
       <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <button class="light" onclick="openUtilityModal('${house.id}')">+ Add bill for this house</button>
         <select id="newMonthType-${house.id}" style="max-width:180px;">
@@ -1049,6 +1093,18 @@ function renderUtilities() {
 
   // Standalone Other section
   const allOtherBills = (state.utilities || []).filter(u => u.houseId === "other" || isOtherBillType(u.type)).sort((a,b) => parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31"));
+  const visibleOtherBills = allOtherBills.filter(u => {
+    const s = utilityStatus(u).key;
+    const text = `other ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
+    const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid";
+    if (isPaidInNormalView(u.paid) && !searchingOrPaidFilter) return false;
+    const statusMatch = statusFilter === "all" ||
+      (statusFilter === "overdue" && s === "unpaid-overdue") ||
+      (statusFilter === "unpaid" && u.paid === "unpaid") ||
+      (statusFilter === "paid" && u.paid === "paid");
+    return (!q || text.includes(q)) && statusMatch;
+  });
+  const hiddenOtherPaidCount = allOtherBills.filter(u => isPaidInNormalView(u.paid)).length;
 
   const otherCard = document.createElement("section");
   otherCard.className = "card";
@@ -1057,7 +1113,7 @@ function renderUtilities() {
   otherCard.innerHTML = `
     <div class="house-title">
       <h2>Other</h2>
-      <div class="summary"><span class="pill">${allOtherBills.length} bill(s)</span></div>
+      <div class="summary"><span class="pill">${visibleOtherBills.length} visible bill(s)</span>${hiddenOtherPaidCount ? `<span class="pill">${hiddenOtherPaidCount} paid hidden</span>` : ""}</div>
     </div>
 
     <div class="table-wrap">
@@ -1068,6 +1124,7 @@ function renderUtilities() {
             <th>Provider / login</th>
             <th>Account number</th>
             <th>Amount due</th>
+            <th>Frequency</th>
             <th>Statement date</th>
             <th>Due date</th>
             <th>Autopay</th>
@@ -1076,9 +1133,9 @@ function renderUtilities() {
           </tr>
         </thead>
         <tbody>
-          ${allOtherBills.length
-            ? allOtherBills.map(utilityRowHtml).join("")
-            : `<tr><td colspan="9" class="small">No Other bills yet.</td></tr>`}
+          ${visibleOtherBills.length
+            ? visibleOtherBills.map(utilityRowHtml).join("")
+            : `<tr><td colspan="10" class="small">No Other bills match this view. Paid bills are hidden unless you search or select the Paid filter.</td></tr>`}
         </tbody>
       </table>
     </div>
@@ -1103,11 +1160,12 @@ function utilityRowHtml(u) {
     <td><b>${escapeHtml(u.provider || "")}</b><br><span class="small">${link}</span></td>
     <td>${escapeHtml(u.account || "")}</td>
     <td><b>${money(u.amount)}</b></td>
+    <td>${utilityBillingFrequency(u) === "annual" ? "Annual" : "Monthly"}</td>
     <td>${escapeHtml(u.statementDate || "")}</td>
     <td>${escapeHtml(u.due || "")}</td>
     <td>${u.autopay === "on" ? "On" : "Off"}</td>
     <td class="status ${s.key}">${u.paid === "paid" ? "Paid" : "Not paid"}${u.paidDate ? `<br><span class="small">${escapeHtml(u.paidDate)}</span>` : ""}</td>
-    <td><div class="actions"><button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button>${isMonthlyUtilityType(u.type) ? `<button class="light" onclick="createNextMonthUtilityFrom('${u.id}')">New month</button>` : ""}<button class="secondary" onclick="editUtility('${u.id}')">Edit</button><button class="danger" onclick="deleteUtility('${u.id}')">Delete</button></div></td>
+    <td><div class="actions"><button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button><button class="light" onclick="createNextMonthUtilityFrom('${u.id}')">New period</button><button class="secondary" onclick="editUtility('${u.id}')">Edit</button><button class="danger" onclick="deleteUtility('${u.id}')">Delete</button></div></td>
   </tr>`;
 }
 
@@ -1211,22 +1269,25 @@ function openUtilityModal(houseId) {
   utilityHouse.value = houseId || (utilityHouseFilter.value !== "all" ? utilityHouseFilter.value : state.houses[0].id);
   populateUtilityTypeOptions(utilityHouse.value);
   utilityType.value = utilityHouse.value === "other" ? "Auto Insurance" : "Electric";
-  utilityProvider.value = ""; utilityUrl.value = ""; utilityAccount.value = ""; utilityStatementDate.value = ""; utilityAmount.value = ""; utilityDue.value = todayISO(); utilityPaid.value = "unpaid"; utilityAutopay.value = "off"; utilityPaidDate.value = ""; utilityNotes.value = ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
+  utilityProvider.value = ""; utilityUrl.value = ""; utilityAccount.value = ""; utilityStatementDate.value = ""; utilityAmount.value = ""; utilityFrequency.value = "monthly"; utilityDue.value = todayISO(); utilityPaid.value = "unpaid"; utilityAutopay.value = "off"; utilityPaidDate.value = ""; utilityNotes.value = ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
 }
 function editUtility(id) {
   const u = state.utilities.find(x => x.id === id); if (!u) return;
-  utilityModalTitle.textContent = "Edit utility bill"; utilityEditId.value = u.id; utilityHouse.value = isOtherBillType(u.type) ? "other" : u.houseId; populateUtilityTypeOptions(utilityHouse.value); utilityType.value = u.type; utilityProvider.value = u.provider; utilityUrl.value = u.url || ""; utilityAccount.value = u.account || ""; utilityStatementDate.value = u.statementDate || ""; utilityAmount.value = u.amount || ""; utilityDue.value = u.due; utilityPaid.value = u.paid || "unpaid"; utilityAutopay.value = u.autopay || "off"; utilityPaidDate.value = u.paidDate || ""; utilityNotes.value = u.notes || ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
+  utilityModalTitle.textContent = "Edit utility bill"; utilityEditId.value = u.id; utilityHouse.value = isOtherBillType(u.type) ? "other" : u.houseId; populateUtilityTypeOptions(utilityHouse.value); utilityType.value = u.type; utilityProvider.value = u.provider; utilityUrl.value = u.url || ""; utilityAccount.value = u.account || ""; utilityStatementDate.value = u.statementDate || ""; utilityAmount.value = u.amount || ""; utilityFrequency.value = utilityBillingFrequency(u); utilityDue.value = u.due; utilityPaid.value = u.paid || "unpaid"; utilityAutopay.value = u.autopay || "off"; utilityPaidDate.value = u.paidDate || ""; utilityNotes.value = u.notes || ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
 }
 function saveUtility(e) {
   e.preventDefault();
   if (utilityPaid.value !== "paid") utilityPaidDate.value = "";
-  const utility = { id: utilityEditId.value || uid(), houseId:utilityHouse.value === "other" ? "other" : utilityHouse.value, type:utilityType.value, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
+  const utility = { id: utilityEditId.value || uid(), houseId:utilityHouse.value === "other" ? "other" : utilityHouse.value, type:utilityType.value, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), frequency:utilityFrequency.value, due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
   state.utilities = utilityEditId.value ? state.utilities.map(u => u.id === utility.id ? utility : u) : [...state.utilities, utility];
   utilityDialog.close(); saveData();
 }
 function markUtilityPaid(id) {
   const u = state.utilities.find(x => x.id === id); if (!u) return;
-  u.paid = "paid"; u.paidDate = todayISO(); saveData();
+  u.paid = "paid";
+  u.paidDate = todayISO();
+  addNextUtilityFrom(u);
+  saveData();
 }
 function deleteUtility(id) { if (confirm("Delete this utility bill?")) { state.utilities = state.utilities.filter(u => u.id !== id); saveData(); } }
 
@@ -1243,6 +1304,114 @@ function financeRowPaymentFields(rowType) {
   };
   return fields[rowType] || [];
 }
+function financeRowFrequency(rowType) {
+  return ["insurance", "propertyTax"].includes(rowType) ? "annual" : "monthly";
+}
+
+function financeRowDueDate(f, rowType) {
+  if (rowType === "mortgage") return dueDateForDay(f.mortgageDueDay);
+  if (rowType === "salesTax") return dueDateForDay(f.salesDueDay);
+  if (rowType === "touristTax") return dueDateForDay(f.touristDueDay);
+  if (rowType === "insurance") return f.insuranceDue || todayISO();
+  if (rowType === "propertyTax") return f.propertyTaxDue || todayISO();
+  return todayISO();
+}
+
+function buildNextFinanceItemFrom(item) {
+  if (!item) return null;
+  const frequency = financeItemFrequency(item);
+  return {
+    ...item,
+    id: uid(),
+    frequency,
+    due: nextRecurringDate(item.due, frequency),
+    paid: "unpaid",
+    paidDate: ""
+  };
+}
+
+function buildNextFinanceItemFromRow(houseId, rowType, f) {
+  const frequency = financeRowFrequency(rowType);
+  const due = financeRowDueDate(f, rowType);
+  const templates = {
+    mortgage: {
+      name: "Mortgage",
+      company: f.mortgageCompany || "",
+      login: f.mortgageLogin || "",
+      account: f.mortgageNumber || "",
+      amount: Number(f.mortgageAmount || 0),
+      notes: f.mortgageNotes || f.notes || ""
+    },
+    salesTax: {
+      name: "Florida Sales Tax",
+      company: f.salesAgency || "Florida Sales Tax",
+      login: f.salesLogin || "",
+      account: "",
+      amount: salesTaxAmount(f.salesTaxable),
+      notes: f.salesNotes || ""
+    },
+    touristTax: {
+      name: "Tourist Tax",
+      company: f.touristAgency || "",
+      login: f.touristLogin || "",
+      account: "",
+      amount: touristTaxAmount(f.touristTaxable),
+      notes: f.touristNotes || ""
+    },
+    insurance: {
+      name: "Hazardous Insurance",
+      company: f.insuranceCompany || "",
+      login: f.insuranceLogin || "",
+      account: f.insurancePolicyNumber || "",
+      amount: Number(f.insuranceAmount || 0),
+      notes: f.insuranceNotes || ""
+    },
+    propertyTax: {
+      name: "Property Taxes",
+      company: f.propertyTaxAgency || "",
+      login: f.propertyTaxLogin || "",
+      account: "",
+      amount: Number(f.propertyTaxAmount || 0),
+      notes: f.propertyTaxNotes || ""
+    }
+  };
+  return {
+    id: uid(),
+    houseId,
+    sourceRowType: rowType,
+    frequency,
+    ...templates[rowType],
+    due: nextRecurringDate(due, frequency),
+    paid: "unpaid",
+    paidDate: ""
+  };
+}
+
+function hasMatchingUnpaidFinanceItem(item) {
+  if (!item) return false;
+  return (state.financeItems || []).some(existing =>
+    existing.id !== item.id &&
+    existing.houseId === item.houseId &&
+    (existing.sourceRowType || "") === (item.sourceRowType || "") &&
+    existing.name === item.name &&
+    existing.company === item.company &&
+    existing.account === item.account &&
+    existing.due === item.due &&
+    existing.paid !== "paid"
+  );
+}
+
+function addNextFinanceItem(item) {
+  if (!state.financeItems) state.financeItems = [];
+  if (!item || hasMatchingUnpaidFinanceItem(item)) return false;
+  state.financeItems.push(item);
+  return true;
+}
+
+function addNextFinanceItemFromPaidItem(item) {
+  addNextFinanceItem(buildNextFinanceItemFrom(item));
+}
+
 
 function markFinanceRowPaid(houseId, rowType) {
   const f = state.finance.find(x => x.houseId === houseId);
@@ -1250,6 +1419,7 @@ function markFinanceRowPaid(houseId, rowType) {
   if (!f || !paidField || !paidDateField) return;
   f[paidField] = "paid";
   f[paidDateField] = todayISO();
+  addNextFinanceItem(buildNextFinanceItemFromRow(houseId, rowType, f));
   saveData();
 }
 
@@ -1267,6 +1437,7 @@ function markFinanceItemPaid(id) {
   if (!item) return;
   item.paid = "paid";
   item.paidDate = todayISO();
+  addNextFinanceItemFromPaidItem(item);
   saveData();
 }
 
@@ -1334,6 +1505,7 @@ function renderFinance() {
     const propertyTaxSt = f.propertyTaxDue ? financeStatus(f.propertyTaxPaid, f.propertyTaxDue, f.propertyTaxPaidDate) : {key:"", text:""};
 
     const allowedByStatus = (paid, st) => {
+      if (isPaidInNormalView(paid) && !q && statusFilter !== "paid") return false;
       return statusFilter === "all" ||
         (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
         (statusFilter === "unpaid" && paid === "unpaid") ||
@@ -1425,6 +1597,7 @@ function renderFinance() {
     if (q && !searchable.includes(q)) return;
 
     const st = item.due ? financeStatus(item.paid, item.due, item.paidDate) : {key:"", text:""};
+    if (isPaidInNormalView(item.paid) && !q && statusFilter !== "paid") return;
     const statusMatch = statusFilter === "all" ||
       (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
       (statusFilter === "unpaid" && item.paid === "unpaid") ||
