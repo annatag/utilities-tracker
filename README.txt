@@ -9,6 +9,8 @@ This tracker contains private property, account, and bill details. Do not publis
 For Cloudflare Pages, protect the whole site with Cloudflare Access or another authentication layer before sharing the URL.
 
 Cloudflare Pages deployment
+This repository is a Cloudflare Pages app with Pages Functions. It is not a standalone Cloudflare Worker project. If a separate Worker deployment fails but the Pages deployment succeeds, use the Pages deployment; `/api/items` is served from `functions/api/items.js` by Pages Functions.
+
 1. Create a Cloudflare account and install Wrangler if you want to deploy from the command line:
    npm install -g wrangler
 2. Log in:
@@ -28,8 +30,11 @@ Cloudflare Pages deployment
 8. Deploy. The first visit seeds KV from public/data.json. Later changes are saved to KV and loaded from any browser/device.
 
 Optional command-line deployment
-If the KV binding has already been configured for the Pages project in Cloudflare, deploy with:
-wrangler pages deploy public --project-name utilities-tracker
+If the KV binding has already been configured for the Pages project in Cloudflare, deploy with one of these Pages commands:
+- npm run deploy
+- wrangler pages deploy public --project-name utilities-tracker
+
+Do not use `wrangler deploy` for this repository. That command deploys a standalone Worker and can fail because the API is intentionally written as a Pages Function under `functions/`.
 
 How cloud saving works
 - The browser loads /api/items.
@@ -37,6 +42,8 @@ How cloud saving works
 - If KV is empty, it seeds the namespace once from public/data.json.
 - Every save posts the full tracker state back to /api/items.
 - If the API is unavailable, the browser falls back to the local browser backup.
+- The page now shows a cloud-storage status banner. If it says cloud storage is not configured or unreachable, edits are only in the current browser and will not appear on another phone/computer until the Pages Function and TRACKER_BACKUPS KV binding are fixed.
+- Safari Private Browsing or restrictive site settings can block localStorage. The app treats localStorage as a backup only, so Safari local backup failures should not stop saves from posting to Cloudflare KV when cloud storage is connected.
 
 Local use
 1. Open public/index.html in your browser, or serve the folder with a small static server.
