@@ -717,6 +717,145 @@ function utilityTableHeaderHtml() {
   }).join("")}</tr></thead>`;
 }
 
+
+const MAINTENANCE_TABLE_COLUMNS = [
+  { key: "task", label: "Task", filter: "text" },
+  { key: "due", label: "Due", filter: "text", type: "date" },
+  { key: "status", label: "Status", filter: "select", options: ["Overdue", "Due soon", "Ok"] }
+];
+const FINANCE_TABLE_COLUMNS = [
+  { key: "house", label: "House", filter: "text" },
+  { key: "item", label: "Item", filter: "text" },
+  { key: "company", label: "Company / agency", filter: "text" },
+  { key: "login", label: "Login", filter: "text" },
+  { key: "amount", label: "Amount", filter: "text", type: "number" },
+  { key: "due", label: "Due", filter: "text", type: "date" },
+  { key: "status", label: "Status", filter: "select", options: ["Paid", "Not paid", "Inactive", "Overdue"] }
+];
+const CONTACT_TABLE_COLUMNS = [
+  { key: "name", label: "Name", filter: "text" },
+  { key: "service", label: "Service", filter: "text" },
+  { key: "emailPhone", label: "Email / phone", filter: "text" },
+  { key: "address", label: "Address", filter: "text" }
+];
+
+const maintenanceTableSort = { key: "due", dir: "asc" };
+const financeTableSort = { key: "due", dir: "asc" };
+const contactTableSort = { key: "service", dir: "asc" };
+const maintenanceTableFilters = Object.fromEntries(MAINTENANCE_TABLE_COLUMNS.map(column => [column.key, ""]));
+const financeTableFilters = Object.fromEntries(FINANCE_TABLE_COLUMNS.map(column => [column.key, ""]));
+const contactTableFilters = Object.fromEntries(CONTACT_TABLE_COLUMNS.map(column => [column.key, ""]));
+
+const TABLE_CONFIGS = {
+  maintenance: { columns: MAINTENANCE_TABLE_COLUMNS, sort: maintenanceTableSort, filters: maintenanceTableFilters, sortFn: "setMaintenanceTableSort", filterFn: "setMaintenanceColumnFilter" },
+  finance: { columns: FINANCE_TABLE_COLUMNS, sort: financeTableSort, filters: financeTableFilters, sortFn: "setFinanceTableSort", filterFn: "setFinanceColumnFilter" },
+  contacts: { columns: CONTACT_TABLE_COLUMNS, sort: contactTableSort, filters: contactTableFilters, sortFn: "setContactTableSort", filterFn: "setContactColumnFilter" }
+};
+
+function tableColumnFilterMatches(row, column, filterValue) {
+  if (!filterValue) return true;
+  const filter = filterValue.toLowerCase();
+  const rawValue = String(row.values[column.key] ?? "").toLowerCase();
+  const displayValue = String(row.displayValues && row.displayValues[column.key] !== undefined ? row.displayValues[column.key] : "").toLowerCase();
+  const value = `${rawValue} ${displayValue}`;
+
+  if (column.key === "status") {
+    if (filter === "overdue") return row.statusKey === "overdue" || row.statusKey === "unpaid-overdue";
+    if (filter === "not paid") return value.includes("not paid") || row.statusKey === "unpaid" || row.statusKey === "unpaid-overdue";
+    if (filter === "due soon") return row.statusKey === "soon";
+    if (filter === "ok") return row.statusKey === "ok";
+  }
+
+  return value.includes(filter);
+}
+
+function filterTableRows(rows, columns, filters) {
+  return rows.filter(row => columns.every(column => tableColumnFilterMatches(row, column, filters[column.key])));
+}
+
+function compareTableRows(a, b, columns, sortState) {
+  const key = sortState.key;
+  const dir = sortState.dir === "desc" ? -1 : 1;
+  const column = columns.find(c => c.key === key) || columns[0];
+  const aValue = a.sortValues && a.sortValues[key] !== undefined ? a.sortValues[key] : a.values[key];
+  const bValue = b.sortValues && b.sortValues[key] !== undefined ? b.sortValues[key] : b.values[key];
+  let result;
+
+  if (column.type === "number") {
+    result = Number(aValue || 0) - Number(bValue || 0);
+  } else if (column.type === "date") {
+    result = parseDate(aValue || "9999-12-31") - parseDate(bValue || "9999-12-31");
+  } else {
+    result = String(aValue || "").localeCompare(String(bValue || ""), undefined, { numeric: true, sensitivity: "base" });
+  }
+
+  if (result === 0 && key !== "due" && (a.sortValues && b.sortValues) && (a.sortValues.due || b.sortValues.due)) {
+    result = parseDate(a.sortValues.due || "9999-12-31") - parseDate(b.sortValues.due || "9999-12-31");
+  }
+
+  return result * dir;
+}
+
+function prepareTableRows(rows, configName) {
+  const config = TABLE_CONFIGS[configName];
+  return filterTableRows(rows, config.columns, config.filters).sort((a,b) => compareTableRows(a, b, config.columns, config.sort));
+}
+
+function setConfiguredTableSort(configName, key) {
+  const sortState = TABLE_CONFIGS[configName].sort;
+  if (sortState.key === key) {
+    sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+  } else {
+    sortState.key = key;
+    sortState.dir = "asc";
+  }
+  render();
+}
+
+function setConfiguredColumnFilter(configName, key, value) {
+  TABLE_CONFIGS[configName].filters[key] = value;
+  render();
+  requestAnimationFrame(() => {
+    const filter = document.querySelector(`.column-filter[data-table="${configName}"][data-filter-key="${key}"]`);
+    if (!filter) return;
+    filter.focus();
+    if (filter instanceof HTMLInputElement) {
+      const end = filter.value.length;
+      filter.setSelectionRange(end, end);
+    }
+  });
+}
+
+function setMaintenanceTableSort(key) { setConfiguredTableSort("maintenance", key); }
+function setFinanceTableSort(key) { setConfiguredTableSort("finance", key); }
+function setContactTableSort(key) { setConfiguredTableSort("contacts", key); }
+function setMaintenanceColumnFilter(key, value) { setConfiguredColumnFilter("maintenance", key, value); }
+function setFinanceColumnFilter(key, value) { setConfiguredColumnFilter("finance", key, value); }
+function setContactColumnFilter(key, value) { setConfiguredColumnFilter("contacts", key, value); }
+
+function configuredHeaderFilterHtml(configName, column) {
+  const config = TABLE_CONFIGS[configName];
+  const value = escapeHtml(config.filters[column.key] || "");
+  if (column.filter === "select") {
+    const options = ["", ...column.options].map(option =>
+      `<option value="${escapeHtml(option)}"${(config.filters[column.key] || "") === option ? " selected" : ""}>${option ? escapeHtml(option) : "All"}</option>`
+    ).join("");
+    return `<select class="column-filter" data-table="${configName}" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}" onchange="${config.filterFn}('${column.key}', this.value)" onclick="event.stopPropagation()">${options}</select>`;
+  }
+  return `<input class="column-filter" data-table="${configName}" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}" placeholder="Filter" value="${value}" oninput="${config.filterFn}('${column.key}', this.value)" onclick="event.stopPropagation()" />`;
+}
+
+function configuredTableHeaderHtml(configName, includeActions = true) {
+  const config = TABLE_CONFIGS[configName];
+  const headerCells = config.columns.map(column => {
+    const isSorted = config.sort.key === column.key;
+    const indicator = isSorted ? (config.sort.dir === "asc" ? "▲" : "▼") : "↕";
+    return `<th><div class="table-header-control"><button type="button" class="sort-header" onclick="${config.sortFn}('${column.key}')" aria-label="Sort by ${escapeHtml(column.label)}"><span>${escapeHtml(column.label)}</span><span class="sort-indicator" aria-hidden="true">${indicator}</span></button>${configuredHeaderFilterHtml(configName, column)}</div></th>`;
+  });
+  if (includeActions) headerCells.push("<th>Actions</th>");
+  return `<thead><tr>${headerCells.join("")}</tr></thead>`;
+}
+
 function latestUtilityByType(houseId, type) {
   const matches = state.utilities
     .filter(u => u.houseId === houseId && u.type === type)
@@ -1263,14 +1402,15 @@ function renderMaintenance() {
       const status = statusFor(i).key;
       const text = `${houseDisplayName(house)} ${i.category} ${i.name} ${i.notes}`.toLowerCase();
       return (!q || text.includes(q)) && (statusFilter === "all" || statusFilter === status);
-    }).sort((a,b) => parseDate(a.due) - parseDate(b.due));
+    });
+    const maintenanceRows = prepareTableRows(items.map(item => maintenanceTableRow(item, house)), "maintenance");
     const overdue = items.filter(i => statusFor(i).key === "overdue").length;
     const soon = items.filter(i => statusFor(i).key === "soon").length;
     const card = document.createElement("section");
     card.className = "card";
     card.style.width = "100%";
-    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${items.length} item(s)</span><span class="pill">${overdue} overdue</span><span class="pill">${soon} due soon</span></div></div>
-      <table><thead><tr><th>Task</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead><tbody>${items.length ? items.map(rowHtml).join("") : `<tr><td colspan="4" class="small">No items match this filter.</td></tr>`}</tbody></table>`;
+    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${maintenanceRows.length} visible item(s)</span><span class="pill">${overdue} overdue</span><span class="pill">${soon} due soon</span></div></div>
+      <table>${configuredTableHeaderHtml("maintenance")}<tbody>${maintenanceRows.length ? maintenanceRows.map(row => row.html).join("") : `<tr><td colspan="4" class="small">No items match this filter.</td></tr>`}</tbody></table>`;
     app.appendChild(card);
   });
 }
@@ -1370,6 +1510,20 @@ function renderUtilities() {
   `;
 
   utilityApp.appendChild(otherCard);
+}
+
+function maintenanceTableRow(item, house) {
+  const s = statusFor(item);
+  return {
+    values: {
+      task: `${item.name || ""} ${item.category || ""} ${item.notes || ""} ${houseDisplayName(house)}`,
+      due: item.due || "",
+      status: s.text
+    },
+    sortValues: { due: item.due || "" },
+    statusKey: s.key,
+    html: rowHtml(item)
+  };
 }
 
 function rowHtml(i) {
@@ -1793,6 +1947,18 @@ function deleteFinanceRow(houseId,rowType){
   }
   saveData();
 }
+function financeTableRow(values, html) {
+  return {
+    values,
+    sortValues: {
+      amount: values.amount,
+      due: values.due
+    },
+    statusKey: values.statusKey,
+    html
+  };
+}
+
 function renderFinance() {
   ensureFinanceRecords();
 
@@ -1841,7 +2007,9 @@ function renderFinance() {
       : `<button class="light" onclick="markFinanceRowPaid('${house.id}','${rowType}')">Mark paid</button>`;
 
     if (allowedByStatus(f.mortgagePaid, mortgageSt)) {
-      monthlyRows.push(`
+      monthlyRows.push(financeTableRow({
+        house: houseDisplayName(house), item: "Mortgage", company: `${f.mortgageCompany || ""} ${f.mortgageNumber || ""}`, login: f.mortgageLogin ? "Login" : "", amount: Number(f.mortgageAmount || 0), due: mortgageDue, status: mortgageSt.text, statusKey: mortgageSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Mortgage</b></td>
@@ -1851,11 +2019,13 @@ function renderFinance() {
           <td>Due ${escapeHtml(f.mortgageDueDay || 1)} of month<br><span class="small">${mortgageDue}</span></td>
           <td class="status ${mortgageSt.key}">${mortgageSt.text}</td>
           <td><div class="actions">${paymentButton("mortgage", f.mortgagePaid)}<button class="secondary" onclick="editFinance('${house.id}','mortgage')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','mortgage')">Delete</button></div></td>
-        </tr>`);
+        </tr>`));
     }
 
     if (f.salesVisible !== "no" && allowedByStatus(f.salesPaid, salesSt)) {
-      monthlyRows.push(`
+      monthlyRows.push(financeTableRow({
+        house: houseDisplayName(house), item: `Florida Sales Tax ${f.salesFiled || ""}`, company: f.salesAgency || "Florida Sales Tax", login: f.salesLogin ? "Login" : "", amount: salesTaxAmount(f.salesTaxable), due: salesDue, status: salesSt.text, statusKey: salesSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Florida Sales Tax</b><br><span class="small">Return: ${escapeHtml(f.salesFiled || "not filed")}</span></td>
@@ -1865,11 +2035,13 @@ function renderFinance() {
           <td>Due ${salesDue}<br><span class="small">For ${previousMonthForDueDate(salesDue)}</span><br><span class="small">${daysLeftText(salesDue)}</span></td>
           <td class="status ${salesSt.key}">${salesSt.text}</td>
           <td><div class="actions">${paymentButton("salesTax", f.salesPaid)}<button class="secondary" onclick="editFinance('${house.id}','salesTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','salesTax')">Delete</button></div></td>
-        </tr>`);
+        </tr>`));
     }
 
     if (f.touristVisible !== "no" && allowedByStatus(f.touristPaid, touristSt)) {
-      monthlyRows.push(`
+      monthlyRows.push(financeTableRow({
+        house: houseDisplayName(house), item: `Tourist Tax ${f.touristFiled || ""}`, company: f.touristAgency || "", login: f.touristLogin ? "Login" : "", amount: touristTaxAmount(f.touristTaxable), due: touristDue, status: touristSt.text, statusKey: touristSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Tourist Tax</b><br><span class="small">Return: ${escapeHtml(f.touristFiled || "not filed")}</span></td>
@@ -1879,11 +2051,13 @@ function renderFinance() {
           <td>Due ${touristDue}<br><span class="small">For ${previousMonthForDueDate(touristDue)}</span><br><span class="small">${daysLeftText(touristDue)}</span></td>
           <td class="status ${touristSt.key}">${touristSt.text}</td>
           <td><div class="actions">${paymentButton("touristTax", f.touristPaid)}<button class="secondary" onclick="editFinance('${house.id}','touristTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','touristTax')">Delete</button></div></td>
-        </tr>`);
+        </tr>`));
     }
 
     if (allowedByStatus(f.insurancePaid, insuranceSt)) {
-      annualRows.push(`
+      annualRows.push(financeTableRow({
+        house: houseDisplayName(house), item: "Hazardous Insurance", company: `${f.insuranceCompany || ""} ${f.insurancePolicyNumber || ""}`, login: f.insuranceLogin ? "Login" : "", amount: Number(f.insuranceAmount || 0), due: f.insuranceDue || "", status: insuranceSt.text, statusKey: insuranceSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Hazardous Insurance</b></td>
@@ -1893,11 +2067,13 @@ function renderFinance() {
           <td>Due ${escapeHtml(f.insuranceDue || "")}<br><span class="small">Period ${escapeHtml(f.insuranceStart || "")} to ${escapeHtml(f.insuranceEnd || "")}</span></td>
           <td class="status ${insuranceSt.key}">${insuranceSt.text}</td>
           <td><div class="actions">${paymentButton("insurance", f.insurancePaid)}<button class="secondary" onclick="editFinance('${house.id}','insurance')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','insurance')">Delete</button></div></td>
-        </tr>`);
+        </tr>`));
     }
 
     if (allowedByStatus(f.propertyTaxPaid, propertyTaxSt)) {
-      annualRows.push(`
+      annualRows.push(financeTableRow({
+        house: houseDisplayName(house), item: "Property Taxes", company: f.propertyTaxAgency || "", login: f.propertyTaxLogin ? "County tax page" : "", amount: Number(f.propertyTaxAmount || 0), due: f.propertyTaxDue || "", status: propertyTaxSt.text, statusKey: propertyTaxSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Property Taxes</b></td>
@@ -1907,7 +2083,7 @@ function renderFinance() {
           <td>Due ${escapeHtml(f.propertyTaxDue || "")}</td>
           <td class="status ${propertyTaxSt.key}">${propertyTaxSt.text}</td>
           <td><div class="actions">${paymentButton("propertyTax", f.propertyTaxPaid)}<button class="secondary" onclick="editFinance('${house.id}','propertyTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
-        </tr>`);
+        </tr>`));
     }
   });
 
@@ -1944,31 +2120,34 @@ function renderFinance() {
         <td><div class="actions">${item.paid === "paid" ? `<button class="light" onclick="markFinanceItemUnpaid('${item.id}')">Mark not paid</button>` : `<button class="light" onclick="markFinanceItemPaid('${item.id}')">Mark paid</button>`}<button class="secondary" onclick="editFinanceItem('${item.id}')">Edit</button>${String(item.name||'').toLowerCase().includes('flood insurance') ? '' : `<button class="danger" onclick="deleteFinanceItem('${item.id}')">Delete</button>`}</div></td>
       </tr>`;
 
-    if (item.frequency === "annual") annualRows.push(row);
-    else monthlyRows.push(row);
+    const financeRow = financeTableRow({
+      house: houseDisplayName(house),
+      item: item.name || "Custom item",
+      company: `${item.company || ""} ${item.account || ""}`,
+      login: item.login ? "Login" : "",
+      amount: Number(item.amount || 0),
+      due: item.due || "",
+      status: st.text,
+      statusKey: st.key
+    }, row);
+
+    if (item.frequency === "annual") annualRows.push(financeRow);
+    else monthlyRows.push(financeRow);
   });
+
+  const visibleMonthlyRows = prepareTableRows(monthlyRows, "finance");
+  const visibleAnnualRows = prepareTableRows(annualRows, "finance");
 
   financeApp.innerHTML = `
     <section class="card" style="margin-bottom:16px;">
       <div class="house-title">
         <h2>Monthly Dues — All Houses</h2>
-        <div class="summary"><span class="pill">${monthlyRows.length} item(s)</span></div>
+        <div class="summary"><span class="pill">${visibleMonthlyRows.length} visible item(s)</span></div>
       </div>
       <div class="table-wrap">
         <table class="utility-table">
-          <thead>
-            <tr>
-              <th>House</th>
-              <th>Item</th>
-              <th>Company / agency</th>
-              <th>Login</th>
-              <th>Amount</th>
-              <th>Due</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>${monthlyRows.length ? monthlyRows.join("") : `<tr><td colspan="8" class="small">No monthly dues match this filter.</td></tr>`}</tbody>
+          ${configuredTableHeaderHtml("finance")}
+          <tbody>${visibleMonthlyRows.length ? visibleMonthlyRows.map(row => row.html).join("") : `<tr><td colspan="8" class="small">No monthly dues match this filter.</td></tr>`}</tbody>
         </table>
       </div>
     </section>
@@ -1976,23 +2155,12 @@ function renderFinance() {
     <section class="card">
       <div class="house-title">
         <h2>Annual Dues — All Houses</h2>
-        <div class="summary"><span class="pill">${annualRows.length} item(s)</span></div>
+        <div class="summary"><span class="pill">${visibleAnnualRows.length} visible item(s)</span></div>
       </div>
       <div class="table-wrap">
         <table class="utility-table">
-          <thead>
-            <tr>
-              <th>House</th>
-              <th>Item</th>
-              <th>Company / agency</th>
-              <th>Login</th>
-              <th>Amount</th>
-              <th>Due</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>${annualRows.length ? annualRows.join("") : `<tr><td colspan="8" class="small">No annual dues match this filter.</td></tr>`}</tbody>
+          ${configuredTableHeaderHtml("finance")}
+          <tbody>${visibleAnnualRows.length ? visibleAnnualRows.map(row => row.html).join("") : `<tr><td colspan="8" class="small">No annual dues match this filter.</td></tr>`}</tbody>
         </table>
       </div>
     </section>`;
@@ -2298,7 +2466,8 @@ function renderContacts() {
       const text = `${c.name} ${c.email} ${c.phone} ${c.type} ${c.address} ${c.website} ${c.notes} ${house.name}`.toLowerCase();
       const serviceMatch = serviceFilter === "all" || c.type === serviceFilter;
       return (!q || text.includes(q)) && serviceMatch;
-    }).sort((a,b) => (a.type || "").localeCompare(b.type || "") || (a.name || "").localeCompare(b.name || ""));
+    });
+    const contactRows = prepareTableRows(contacts.map(contact => contactTableRow(contact, house)), "contacts");
 
     const card = document.createElement("section");
     card.className = "card";
@@ -2306,14 +2475,30 @@ function renderContacts() {
     card.innerHTML = `
       <div class="house-title">
         <h2>${escapeHtml(houseDisplayName(house))}</h2>
-        <div class="summary"><span class="pill">${contacts.length} contact(s)</span></div>
+        <div class="summary"><span class="pill">${contactRows.length} visible contact(s)</span></div>
       </div>
       <table>
-        <thead><tr><th>Name</th><th>Service</th><th>Email / phone</th><th>Address</th><th>Actions</th></tr></thead>
-        <tbody>${contacts.length ? contacts.map(contactRowHtml).join("") : `<tr><td colspan="5" class="small">No contacts for this property yet.</td></tr>`}</tbody>
+        ${configuredTableHeaderHtml("contacts")}
+        <tbody>${contactRows.length ? contactRows.map(row => row.html).join("") : `<tr><td colspan="5" class="small">No contacts for this property yet.</td></tr>`}</tbody>
       </table>`;
     contactsApp.appendChild(card);
   });
+}
+
+function contactTableRow(contact, house) {
+  return {
+    values: {
+      name: `${contact.name || ""} ${contact.website || ""} ${contact.notes || ""} ${houseDisplayName(house)}`,
+      service: contact.type || "",
+      emailPhone: `${contact.email || ""} ${contact.phone || ""}`,
+      address: contact.address || ""
+    },
+    sortValues: {
+      service: contact.type || "",
+      name: contact.name || ""
+    },
+    html: contactRowHtml(contact)
+  };
 }
 
 function contactRowHtml(c) {
