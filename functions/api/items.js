@@ -23,7 +23,26 @@ export async function onRequest(context) {
     return new Response("Not found", { status: 404 });
   }
 
+  async function loadSeedData() {
+    const seedResponse = await fetch(`${url.origin}/data.json`, { cache: "no-store" });
+
+    if (!seedResponse.ok) {
+      throw new Error("Could not load seed data.json");
+    }
+
+    return seedResponse.json();
+  }
+
   if (!kv) {
+    if (request.method === "GET") {
+      const data = await loadSeedData();
+      return jsonResponse({
+        ...data,
+        cloudStorageConfigured: false,
+        warning: "Cloud storage is not configured. Showing public/data.json without shared saving."
+      });
+    }
+
     return jsonResponse(
       {
         error: "Cloud storage is not configured. Add a TRACKER_BACKUPS KV binding to this Cloudflare Pages project."
@@ -37,13 +56,7 @@ export async function onRequest(context) {
 
     // Seed from data.json only once, when the KV namespace is empty.
     if (!data) {
-      const seedResponse = await fetch(`${url.origin}/data.json`, { cache: "no-store" });
-
-      if (!seedResponse.ok) {
-        throw new Error("Could not load seed data.json");
-      }
-
-      data = await seedResponse.json();
+      data = await loadSeedData();
       await kv.put(DATA_KEY, JSON.stringify(data));
     }
 

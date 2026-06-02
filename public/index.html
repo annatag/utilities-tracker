@@ -406,17 +406,17 @@ let state = null;
 
 async function initializeApp() {
   try {
-    const res = await fetch("/api/items");
+    const res = await fetch("/api/items", { cache: "no-store" });
 
     if (!res.ok) {
-      throw new Error("Failed loading API");
+      throw new Error(`Failed loading API (${res.status})`);
     }
 
     const cloudData = await res.json();
 
     console.log("Loaded cloud data:", cloudData);
 
-    state = cloudData.data || cloudData;
+    state = normalizeLoadedData(cloudData);
 
     // Keep a local browser backup for offline fallback.
     localStorage.setItem(
@@ -425,9 +425,9 @@ async function initializeApp() {
     );
 
   } catch (err) {
-    console.error("API failed, using local backup", err);
+    console.error("API failed, loading local/public backup", err);
 
-    state = loadData();
+    state = await loadData();
   }
 
   ensureFinanceRecords();
@@ -703,33 +703,77 @@ function makeDefaultOtherBills() {
   }));
 }
 
-function loadData() {
-  const old = localStorage.getItem("house-maintenance-tracker-v1");
-  const saved = localStorage.getItem(STORAGE_KEY);
-  let data = saved ? JSON.parse(saved) : (old ? JSON.parse(old) : null);
-  if (!data) {
-    const today = todayISO();
-    data = {
-      houses: [
-{id:"h1",name:"116 Runaway Field Ave, Nokomis, FL 34275"},
-{id:"h2",name:"1008 Pine Forest Ct, Venice, FL 34293"},
-{id:"h3",name:"13680 Drysdale Ave, Port Charlotte, FL 33981"},
-{id:"h4",name:"310 SW 29th Street, Cape Coral, FL 33914"}
-],
-      items: [
-        {id:uid(),houseId:"h1",category:"Air filter",name:"Replace AC air filter",due:today,every:3,unit:"months",notes:"Add filter size in notes."},
-        {id:uid(),houseId:"h1",category:"Water filter",name:"Replace refrigerator water filter",due:today,every:6,unit:"months",notes:""},
-        {id:uid(),houseId:"h2",category:"Air filter",name:"Replace AC air filter",due:today,every:3,unit:"months",notes:""},
-        {id:uid(),houseId:"h3",category:"Water filter",name:"Whole-house water filter",due:today,every:6,unit:"months",notes:""},
-        {id:uid(),houseId:"h4",category:"AC / HVAC",name:"Schedule AC maintenance",due:today,every:1,unit:"years",notes:""}
-      ],
-      utilities: []
-    };
+function defaultData() {
+  const today = todayISO();
+  return {
+    houses: [
+      {id:"h1",name:"116 Runaway Field Ave, Nokomis, FL 34275"},
+      {id:"h2",name:"1008 Pine Forest Ct, Venice, FL 34293"},
+      {id:"h3",name:"13680 Drysdale Ave, Port Charlotte, FL 33981"},
+      {id:"h4",name:"310 SW 29th Street, Cape Coral, FL 33914"}
+    ],
+    items: [
+      {id:uid(),houseId:"h1",category:"Air filter",name:"Replace AC air filter",due:today,every:3,unit:"months",notes:"Add filter size in notes."},
+      {id:uid(),houseId:"h1",category:"Water filter",name:"Replace refrigerator water filter",due:today,every:6,unit:"months",notes:""},
+      {id:uid(),houseId:"h2",category:"Air filter",name:"Replace AC air filter",due:today,every:3,unit:"months",notes:""},
+      {id:uid(),houseId:"h3",category:"Water filter",name:"Whole-house water filter",due:today,every:6,unit:"months",notes:""},
+      {id:uid(),houseId:"h4",category:"AC / HVAC",name:"Schedule AC maintenance",due:today,every:1,unit:"years",notes:""}
+    ],
+    utilities: []
+  };
+}
+
+function unwrapTrackerData(source) {
+  return source && typeof source === "object" && source.data && typeof source.data === "object" ? source.data : source;
+}
+
+function normalizeLoadedData(source) {
+  const data = unwrapTrackerData(source);
+
+  if (!data || typeof data !== "object" || !Array.isArray(data.houses)) {
+    throw new Error("Tracker data is missing a houses array.");
   }
+
   data.houses.forEach(normalizeHouseRecord);
-  if (!data.utilities) data.utilities = [];
+  if (!Array.isArray(data.items)) data.items = [];
+  if (!Array.isArray(data.utilities)) data.utilities = [];
+  if (!Array.isArray(data.contacts)) data.contacts = [];
+  if (!Array.isArray(data.finance)) data.finance = [];
   data.utilities.forEach(u => { if (!("autopay" in u)) u.autopay = "off"; });
   return data;
+}
+
+async function loadPublicDataJson() {
+  const response = await fetch("data.json", { cache: "no-store" });
+
+  if (!response.ok) {
+    throw new Error(`Could not load public/data.json (${response.status})`);
+  }
+
+  return normalizeLoadedData(await response.json());
+}
+
+async function loadData() {
+  const old = localStorage.getItem("house-maintenance-tracker-v1");
+  const saved = localStorage.getItem(STORAGE_KEY);
+
+  if (saved || old) {
+    try {
+      return normalizeLoadedData(JSON.parse(saved || old));
+    } catch (err) {
+      console.warn("Stored browser backup is invalid; trying public/data.json", err);
+    }
+  }
+
+  try {
+    const publicData = await loadPublicDataJson();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(publicData, null, 2));
+    return publicData;
+  } catch (err) {
+    console.warn("public/data.json is unavailable or invalid; using built-in sample data", err);
+  }
+
+  return normalizeLoadedData(defaultData());
 }
 
 async function saveData(options = {}) {
@@ -1845,6 +1889,52 @@ async function downloadIndexHtml() {
   URL.revokeObjectURL(a.href);
 }
 
+
+const AUTO_BACKUP_KEY = `${STORAGE_KEY}-auto-backup`;
+let autoBackupTimer = null;
+
+function initializeAutoBackupSetting() {
+  if (!window.autoBackupToggle) return;
+  const saved = localStorage.getItem(AUTO_BACKUP_KEY);
+  autoBackupToggle.checked = saved === null ? true : saved === "true";
+}
+
+function setAutoBackup(enabled) {
+  localStorage.setItem(AUTO_BACKUP_KEY, enabled ? "true" : "false");
+}
+
+function backupFilename(prefix) {
+  return `${prefix}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+}
+
+function downloadJsonBackup(filename) {
+  const backup = {
+    app: "House Maintenance Utilities Contacts Finance Tracker",
+    exportedAt: new Date().toISOString(),
+    storageKey: STORAGE_KEY,
+    data: state
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function scheduleAutoBackup() {
+  initializeAutoBackupSetting();
+  if (!window.autoBackupToggle || !autoBackupToggle.checked) return;
+  clearTimeout(autoBackupTimer);
+  autoBackupTimer = setTimeout(() => {
+    downloadJsonBackup(backupFilename("house-tracker-auto-backup"));
+  }, 500);
+}
+
+function normalizeImportedData(source) {
+  return normalizeLoadedData(source);
+}
+
 function exportData() {
   downloadJsonBackup(backupFilename("house-tracker-full-export"));
 }
@@ -1892,7 +1982,14 @@ function restoreBackup(event) {
   reader.readAsText(file);
 }
 
-function resetData() { if (confirm("Reset to sample data? This will erase current tracker data in this browser.")) { localStorage.removeItem(STORAGE_KEY); state = loadData(); saveData(); } }
+async function resetData() {
+  if (confirm("Reset local browser data and reload public/data.json? This will erase current tracker data in this browser.")) {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem("house-maintenance-tracker-v1");
+    state = await loadData();
+    saveData();
+  }
+}
 
 search.addEventListener("input", render);
 filterStatus.addEventListener("change", render);
