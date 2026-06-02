@@ -775,11 +775,18 @@ async function saveData(options = {}) {
   financeView.style.display = view === "finance" ? "" : "none";
   contactsView.style.display = view === "contacts" ? "" : "none";
   otherBillsView.style.display = view === "otherBills" ? "" : "none";
-  maintTab.classList.toggle("active", view === "maintenance");
-  utilTab.classList.toggle("active", view === "utilities");
-  financeTab.classList.toggle("active", view === "finance");
-  contactsTab.classList.toggle("active", view === "contacts");
-  otherBillsTab.classList.toggle("active", view === "otherBills");
+  const tabStates = [
+    [maintTab, view === "maintenance"],
+    [utilTab, view === "utilities"],
+    [financeTab, view === "finance"],
+    [contactsTab, view === "contacts"],
+    [document.getElementById("otherBillsTab"), view === "otherBills"]
+  ];
+
+  tabStates.forEach(([tab, active]) => {
+    if (tab) tab.classList.toggle("active", active);
+  });
+
   render();
 }
 
