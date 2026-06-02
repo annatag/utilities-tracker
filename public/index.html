@@ -70,7 +70,7 @@
 <body>
   <header>
     <h1>House Maintenance, Utilities, Contacts & Finance Tracker</h1>
-    <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data is saved locally in this browser.</div>
+    <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data syncs to Cloudflare KV when deployed and falls back to this browser when offline.</div>
   </header>
 
 
@@ -85,7 +85,7 @@
     <section class="toolbar">
       <button class="light" onclick="openHouseModal()">View/edit/delete houses</button>
       <button class="secondary" onclick="exportData()">Export all data</button>
-      <button class="secondary" onclick="downloadIndexHtml()">Download corrected index.html</button>
+      <button class="secondary" onclick="downloadIndexHtml()">Download current app HTML</button>
       <button class="secondary" onclick="document.getElementById('importFile').click()">Import previous backup</button>
       <button class="secondary" onclick="document.getElementById('restoreFile').click()">Restore backup</button>
       <label style="display:flex; gap:8px; align-items:center; margin:0;">
@@ -233,7 +233,7 @@
     </section>
 
     <footer>
-      Tip: auto-backup downloads a JSON backup when data changes. Keep the newest backup file somewhere safe.
+      Tip: in cloud mode, data is shared through Cloudflare KV. Auto-backup still downloads a JSON safety copy when data changes.
     </footer>
   </main>
 
@@ -416,11 +416,10 @@ async function initializeApp() {
 
     console.log("Loaded cloud data:", cloudData);
 
-    // IMPORTANT
-    state = cloudData.data;
+    state = cloudData.data || cloudData;
 
-    // local browser backup
-      localStorage.setItem(
+    // Keep a local browser backup for offline fallback.
+    localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify(state, null, 2)
     );
@@ -432,7 +431,7 @@ async function initializeApp() {
   }
 
   ensureFinanceRecords();
-  render();
+  showView("utilities");
 }
 let pendingHouseDeletes = new Set();
 let editableHouses = new Set();
@@ -741,23 +740,25 @@ async function saveData(options = {}) {
     JSON.stringify(state, null, 2)
   );
 
-  // save to Cloudflare KV
+  // Save to Cloudflare KV when deployed. Local file/offline usage safely falls back to localStorage.
   try {
-  await fetch("/api/items", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
+    const res = await fetch("/api/items", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        app: "House Maintenance Utilities Contacts Finance Tracker",
+        updatedAt: new Date().toISOString(),
+        data: state
+      })
+    });
 
-  body: JSON.stringify({
-    app: "House Maintenance Utilities Contacts Finance Tracker",
-    createdAt: new Date().toISOString(),
-    data: state
-  })
-});
-
+    if (!res.ok) {
+      throw new Error(`Cloud save failed with ${res.status}`);
+    }
   } catch (err) {
-    console.error("Failed saving to KV", err);
+    console.error("Failed saving to cloud storage; local backup was kept", err);
   }
 
   initializeAutoBackupSetting();
@@ -1903,7 +1904,6 @@ contactSearch.addEventListener("input", render);
 contactServiceFilter.addEventListener("change", render);
 contactHouseFilter.addEventListener("change", render);
 initializeApp();
-showView("utilities");
 </script>
 </body>
 </html>
