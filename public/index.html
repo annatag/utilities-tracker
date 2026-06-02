@@ -519,12 +519,32 @@ function nextRecurringDate(dateStr, frequency = "monthly") {
   return addMonthsISO(dateStr, frequency === "annual" ? 12 : 1);
 }
 
+function isOtherBillType(type) {
+  return ["Auto Insurance", "Car Payment", "Mobile Phones", "Soccer Club", "Math Class"].includes(String(type || ""));
+}
+
+function isInsuranceType(type) {
+  return String(type || "").toLowerCase().includes("insurance");
+}
+
 function utilityBillingFrequency(u) {
-  return u && u.frequency === "annual" ? "annual" : "monthly";
+  if (!u) return "monthly";
+  if (isInsuranceType(u.type)) return "annual";
+  return u.houseId === "other" && u.frequency === "annual" ? "annual" : "monthly";
+}
+
+function normalizedFinanceFrequency(value, fallback = "monthly") {
+  return value === "annual" ? "annual" : fallback;
 }
 
 function financeItemFrequency(item) {
-  return item && item.frequency === "annual" ? "annual" : "monthly";
+  if (!item) return "monthly";
+  const text = `${item.name || ""} ${item.sourceRowType || ""}`.toLowerCase();
+
+  if (text.includes("insurance") || text.includes("property tax")) return "annual";
+  if (text.includes("mortgage") || text.includes("sales tax") || text.includes("tourist tax")) return "monthly";
+
+  return item.frequency === "annual" ? "annual" : "monthly";
 }
 
 function isPaidInNormalView(paid) {
@@ -534,10 +554,6 @@ function isPaidInNormalView(paid) {
 function isMonthlyUtilityType(type) {
   const t = String(type || "").toLowerCase();
   return t.includes("water") || t.includes("electric") || t.includes("internet");
-}
-
-function isOtherBillType(type) {
-  return ["Auto Insurance", "Car Payment", "Mobile Phones", "Soccer Club", "Math Class"].includes(String(type || ""));
 }
 
 function latestUtilityByType(houseId, type) {
@@ -607,6 +623,7 @@ function createNextMonthUtilityForHouseType(houseId, selectedType) {
   state.utilities.push({
     ...source,
     id: uid(),
+    frequency: "monthly",
     statementDate: addMonthsISO(source.statementDate || source.due, 1),
     due: addMonthsISO(source.due || source.statementDate, 1),
     amount: 0,
@@ -633,6 +650,7 @@ function createNextMonthUtilitiesForHouse(houseId) {
     state.utilities.push({
       ...source,
       id: uid(),
+      frequency: "monthly",
       statementDate: addMonthsISO(source.statementDate || source.due, 1),
       due: addMonthsISO(source.due || source.statementDate, 1),
       amount: 0,
@@ -723,6 +741,7 @@ function makeFinanceRecord(houseId) {
     mortgageDueDay: 1,
     mortgagePaid: "unpaid",
     mortgagePaidDate: "",
+    mortgageFrequency: "monthly",
     salesVisible: "yes",
     salesAgency: "Florida Sales Tax",
     salesLogin: "",
@@ -731,6 +750,7 @@ function makeFinanceRecord(houseId) {
     salesPaid: "unpaid",
     salesPaidDate: "",
     salesDueDay: 20,
+    salesFrequency: "monthly",
     touristVisible: "yes",
     touristAgency: `${countyNameForHouse(houseId)} - tourist county tax`,
     touristLogin: "",
@@ -739,6 +759,7 @@ function makeFinanceRecord(houseId) {
     touristPaid: "unpaid",
     touristPaidDate: "",
     touristDueDay: 20,
+    touristFrequency: "monthly",
     insuranceCompany: "",
     insurancePolicyNumber: "",
     insuranceLogin: "",
@@ -748,12 +769,14 @@ function makeFinanceRecord(houseId) {
     insuranceDue: "",
     insurancePaid: "unpaid",
     insurancePaidDate: "",
+    insuranceFrequency: "annual",
     propertyTaxAgency: `${countyNameForHouse(houseId)} property tax`,
     propertyTaxLogin: "",
     propertyTaxAmount: 0,
     propertyTaxDue: "",
     propertyTaxPaid: "unpaid",
     propertyTaxPaidDate: "",
+    propertyTaxFrequency: "annual",
     notes: ""
   };
 }
@@ -762,12 +785,42 @@ function makeDefaultFinanceRecords() {
   return ["h1","h2","h3","h4"].map(makeFinanceRecord);
 }
 
+function normalizeFinanceRecord(record) {
+  if (!record || typeof record !== "object") return record;
+  record.mortgageFrequency = "monthly";
+  record.salesFrequency = "monthly";
+  record.touristFrequency = "monthly";
+  record.insuranceFrequency = "annual";
+  record.propertyTaxFrequency = "annual";
+  return record;
+}
+
+function normalizeFinanceItemRecord(item) {
+  if (!item || typeof item !== "object") return item;
+  item.frequency = financeItemFrequency(item);
+  return item;
+}
+
+function normalizeFrequencies(data) {
+  (data.utilities || []).forEach(u => {
+    if (!u || typeof u !== "object") return;
+    if (!("autopay" in u)) u.autopay = "off";
+    u.frequency = utilityBillingFrequency(u);
+  });
+
+  (data.finance || []).forEach(normalizeFinanceRecord);
+  (data.financeItems || []).forEach(normalizeFinanceItemRecord);
+  return data;
+}
+
 function ensureFinanceRecords() {
   if (!state.finance) state.finance = [];
   state.houses.forEach(h => {
     if (!state.finance.some(f => f.houseId === h.id)) state.finance.push(makeFinanceRecord(h.id));
   });
   state.finance = state.finance.filter(f => state.houses.some(h => h.id === f.houseId));
+  state.finance.forEach(normalizeFinanceRecord);
+  if (state.financeItems) state.financeItems.forEach(normalizeFinanceItemRecord);
 }
 
 function salesTaxAmount(amount) {
@@ -783,7 +836,7 @@ function touristTaxAmount(amount) {
 function makeDefaultOtherBills() {
   return ["Auto Insurance", "Car Payment", "Mobile Phones", "Math Class", "Soccer Club"].map(type => ({
     id: uid(), type, provider: "", login: "", account: "", statementDate: "",
-    amount: 0, due: todayISO(), paid: "unpaid", paidDate: "", notes: ""
+    amount: 0, frequency: isInsuranceType(type) ? "annual" : "monthly", due: todayISO(), paid: "unpaid", paidDate: "", notes: ""
   }));
 }
 
@@ -823,10 +876,8 @@ function normalizeLoadedData(source) {
   if (!Array.isArray(data.utilities)) data.utilities = [];
   if (!Array.isArray(data.contacts)) data.contacts = [];
   if (!Array.isArray(data.finance)) data.finance = [];
-  data.utilities.forEach(u => {
-    if (!("autopay" in u)) u.autopay = "off";
-    if (!("frequency" in u)) u.frequency = "monthly";
-  });
+  if (!Array.isArray(data.financeItems)) data.financeItems = [];
+  normalizeFrequencies(data);
   return data;
 }
 
@@ -1278,7 +1329,9 @@ function editUtility(id) {
 function saveUtility(e) {
   e.preventDefault();
   if (utilityPaid.value !== "paid") utilityPaidDate.value = "";
-  const utility = { id: utilityEditId.value || uid(), houseId:utilityHouse.value === "other" ? "other" : utilityHouse.value, type:utilityType.value, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), frequency:utilityFrequency.value, due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
+  const houseId = utilityHouse.value === "other" ? "other" : utilityHouse.value;
+  const frequency = isInsuranceType(utilityType.value) ? "annual" : (houseId === "other" ? utilityFrequency.value : "monthly");
+  const utility = { id: utilityEditId.value || uid(), houseId, type:utilityType.value, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), frequency, due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
   state.utilities = utilityEditId.value ? state.utilities.map(u => u.id === utility.id ? utility : u) : [...state.utilities, utility];
   utilityDialog.close(); saveData();
 }
@@ -1304,8 +1357,16 @@ function financeRowPaymentFields(rowType) {
   };
   return fields[rowType] || [];
 }
-function financeRowFrequency(rowType) {
-  return ["insurance", "propertyTax"].includes(rowType) ? "annual" : "monthly";
+function financeRowFrequency(rowType, f = {}) {
+  const fields = {
+    mortgage: "mortgageFrequency",
+    salesTax: "salesFrequency",
+    touristTax: "touristFrequency",
+    insurance: "insuranceFrequency",
+    propertyTax: "propertyTaxFrequency"
+  };
+  const fallback = ["insurance", "propertyTax"].includes(rowType) ? "annual" : "monthly";
+  return normalizedFinanceFrequency(f[fields[rowType]], fallback);
 }
 
 function financeRowDueDate(f, rowType) {
@@ -1331,7 +1392,7 @@ function buildNextFinanceItemFrom(item) {
 }
 
 function buildNextFinanceItemFromRow(houseId, rowType, f) {
-  const frequency = financeRowFrequency(rowType);
+  const frequency = financeRowFrequency(rowType, f);
   const due = financeRowDueDate(f, rowType);
   const templates = {
     mortgage: {
@@ -1725,6 +1786,7 @@ function saveFinanceItem(e) {
     paidDate: financeItemPaid.value === "paid" ? financeItemPaidDate.value : "",
     notes: financeItemNotes.value.trim()
   };
+  normalizeFinanceItemRecord(item);
   const idx = state.financeItems.findIndex(x => x.id === item.id);
   if (idx >= 0) state.financeItems[idx] = item;
   else state.financeItems.push(item);
@@ -1827,6 +1889,7 @@ function saveFinance(e) {
     mortgageDueDay: Number(finMortgageDueDay.value || 1),
     mortgagePaid: finMortgagePaid.value,
     mortgagePaidDate: finMortgagePaid.value === "paid" ? finMortgagePaidDate.value : "",
+    mortgageFrequency: "monthly",
     mortgageNotes: finMortgageNotes.value.trim(),
     salesVisible: finSalesVisible.value,
     salesAgency: finSalesAgency.value.trim() || "Florida Sales Tax",
@@ -1836,6 +1899,7 @@ function saveFinance(e) {
     salesPaid: finSalesPaid.value,
     salesPaidDate: finSalesPaid.value === "paid" ? (existing.salesPaidDate || "") : "",
     salesDueDay: Number(finSalesDueDay.value || 20),
+    salesFrequency: "monthly",
     salesNotes: finSalesNotes.value.trim(),
     touristVisible: finTouristVisible.value,
     touristAgency: finTouristAgency.value.trim() || `${countyNameForHouse(houseId)} - tourist county tax`,
@@ -1845,6 +1909,7 @@ function saveFinance(e) {
     touristPaid: finTouristPaid.value,
     touristPaidDate: finTouristPaid.value === "paid" ? (existing.touristPaidDate || "") : "",
     touristDueDay: Number(finTouristDueDay.value || 20),
+    touristFrequency: "monthly",
     touristNotes: finTouristNotes.value.trim(),
     insuranceCompany: finInsuranceCompany.value.trim(),
     insurancePolicyNumber: finInsurancePolicyNumber.value.trim(),
@@ -1855,6 +1920,7 @@ function saveFinance(e) {
     insuranceDue: finInsuranceDue.value,
     insurancePaid: finInsurancePaid.value,
     insurancePaidDate: finInsurancePaid.value === "paid" ? (existing.insurancePaidDate || "") : "",
+    insuranceFrequency: "annual",
     insuranceNotes: finInsuranceNotes.value.trim(),
     propertyTaxAgency: finPropertyTaxAgency.value.trim() || `${countyNameForHouse(houseId)} property tax`,
     propertyTaxLogin: finPropertyTaxLogin.value.trim(),
@@ -1862,9 +1928,11 @@ function saveFinance(e) {
     propertyTaxDue: finPropertyTaxDue.value,
     propertyTaxPaid: finPropertyTaxPaid.value,
     propertyTaxPaidDate: finPropertyTaxPaid.value === "paid" ? (existing.propertyTaxPaidDate || "") : "",
+    propertyTaxFrequency: "annual",
     propertyTaxNotes: finPropertyTaxNotes.value.trim(),
     notes: finNotes.value.trim()
   };
+  normalizeFinanceRecord(record);
   const idx = state.finance.findIndex(f => f.houseId === houseId);
   if (idx >= 0) state.finance[idx] = record;
   else state.finance.push(record);
