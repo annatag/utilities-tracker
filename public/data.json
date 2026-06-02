@@ -86,7 +86,8 @@
         "due": "2026-06-16",
         "paid": "unpaid",
         "paidDate": "",
-        "notes": ""
+        "notes": "",
+        "frequency": "monthly"
       },
       {
         "id": "3aedd040-0edd-42c2-bfe9-44ccdd5308e2",
@@ -100,7 +101,8 @@
         "due": "2026-05-26",
         "paid": "paid",
         "paidDate": "2026-05-29",
-        "notes": ""
+        "notes": "",
+        "frequency": "monthly"
       },
       {
         "id": "b9626c28-edd9-4068-b4c8-1b88ece6ce2b",
@@ -114,7 +116,8 @@
         "due": "2026-06-05",
         "paid": "paid",
         "paidDate": "2026-05-29",
-        "notes": ""
+        "notes": "",
+        "frequency": "monthly"
       },
       {
         "id": "1778b97d-41bb-4f1c-9721-5fc3a519659f",
@@ -128,7 +131,8 @@
         "due": "2026-06-04",
         "paid": "paid",
         "paidDate": "2026-05-28",
-        "notes": ""
+        "notes": "",
+        "frequency": "monthly"
       },
       {
         "id": "21597f85-be51-4c1c-b66b-cc003b59792e",
@@ -142,7 +146,8 @@
         "due": "2026-06-05",
         "paid": "unpaid",
         "paidDate": "2026-06-05",
-        "notes": "drysdaleavenue@gmail.com Cancelled on June 1st 2026\n This is unlimited data plan, with Xfinity modem rented. Need to cancel the rental before the end of the contract - Dec 8 2026"
+        "notes": "drysdaleavenue@gmail.com Cancelled on June 1st 2026\n This is unlimited data plan, with Xfinity modem rented. Need to cancel the rental before the end of the contract - Dec 8 2026",
+        "frequency": "monthly"
       },
       {
         "id": "0bfddc64-37b2-4a2b-ad42-6ec52bb88b98",
@@ -156,7 +161,8 @@
         "due": "2026-05-29",
         "paid": "paid",
         "paidDate": "2026-05-29",
-        "notes": "Transferred to tenant (Jeff in March 2026), annagoranova17@gmail.com"
+        "notes": "Transferred to tenant (Jeff in March 2026), annagoranova17@gmail.com",
+        "frequency": "monthly"
       },
       {
         "id": "c884e6d2-e837-40fc-a820-a6abec98ae2c",
@@ -170,7 +176,8 @@
         "due": "2026-06-04",
         "paid": "unpaid",
         "paidDate": "2026-05-29",
-        "notes": "Autopay enabled, contract end November 2026."
+        "notes": "Autopay enabled, contract end November 2026.",
+        "frequency": "monthly"
       },
       {
         "id": "e316f69a-128c-4734-9edd-8260022d7229",
@@ -184,7 +191,8 @@
         "due": "2026-06-29",
         "paid": "unpaid",
         "paidDate": "",
-        "notes": "Transferred to tenant (Jeff in March 2026), annagoranova17@gmail.com"
+        "notes": "Transferred to tenant (Jeff in March 2026), annagoranova17@gmail.com",
+        "frequency": "monthly"
       }
     ],
     "finance": [
@@ -224,7 +232,12 @@
         "propertyTaxAmount": 9074,
         "propertyTaxDue": "2025-11-30",
         "propertyTaxPaid": "paid",
-        "notes": ""
+        "notes": "",
+        "mortgageFrequency": "monthly",
+        "salesFrequency": "monthly",
+        "touristFrequency": "monthly",
+        "insuranceFrequency": "annual",
+        "propertyTaxFrequency": "annual"
       },
       {
         "houseId": "h2",
@@ -260,7 +273,12 @@
         "propertyTaxAmount": 0,
         "propertyTaxDue": "",
         "propertyTaxPaid": "unpaid",
-        "notes": ""
+        "notes": "",
+        "mortgageFrequency": "monthly",
+        "salesFrequency": "monthly",
+        "touristFrequency": "monthly",
+        "insuranceFrequency": "annual",
+        "propertyTaxFrequency": "annual"
       },
       {
         "houseId": "h3",
@@ -296,7 +314,12 @@
         "propertyTaxAmount": 0,
         "propertyTaxDue": "",
         "propertyTaxPaid": "unpaid",
-        "notes": ""
+        "notes": "",
+        "mortgageFrequency": "monthly",
+        "salesFrequency": "monthly",
+        "touristFrequency": "monthly",
+        "insuranceFrequency": "annual",
+        "propertyTaxFrequency": "annual"
       },
       {
         "houseId": "h4",
@@ -332,7 +355,12 @@
         "propertyTaxAmount": 0,
         "propertyTaxDue": "",
         "propertyTaxPaid": "unpaid",
-        "notes": ""
+        "notes": "",
+        "mortgageFrequency": "monthly",
+        "salesFrequency": "monthly",
+        "touristFrequency": "monthly",
+        "insuranceFrequency": "annual",
+        "propertyTaxFrequency": "annual"
       }
     ],
     "contacts": [
