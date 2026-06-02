@@ -1,0 +1,7 @@
+name = "utilities-tracker"
+compatibility_date = "2026-06-01"
+pages_build_output_dir = "public"
+
+# Configure the TRACKER_BACKUPS KV binding in the Cloudflare Pages dashboard.
+# This keeps namespace IDs out of the repository and lets production/preview
+# deployments use different namespaces if needed.

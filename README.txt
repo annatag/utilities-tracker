@@ -1,8 +1,46 @@
 House Tracker Utilities
-How to use:
-1. Extract this ZIP folder anywhere on your computer.
-2. Open index.html in your browser.
-3. Your data saves locally in the browser.
+
+This app can run in two ways:
+1. Local/offline mode: open public/index.html in your browser. Data saves in that browser's localStorage.
+2. Cloud mode: deploy to Cloudflare Pages. Data is shared across devices through Cloudflare KV.
+
+Important security note
+This tracker contains private property, account, and bill details. Do not publish it as an unprotected public website.
+For Cloudflare Pages, protect the whole site with Cloudflare Access or another authentication layer before sharing the URL.
+
+Cloudflare Pages deployment
+1. Create a Cloudflare account and install Wrangler if you want to deploy from the command line:
+   npm install -g wrangler
+2. Log in:
+   wrangler login
+3. Create a KV namespace for the shared tracker data:
+   wrangler kv namespace create TRACKER_BACKUPS
+4. In the Cloudflare dashboard, create a Pages project from this repository.
+5. Use these Pages settings:
+   - Framework preset: None
+   - Build command: leave blank
+   - Build output directory: public
+   - Functions directory: functions
+6. Add a KV namespace binding in the Pages project settings:
+   - Variable name / binding: TRACKER_BACKUPS
+   - KV namespace: the namespace created in step 3
+7. Add Cloudflare Access protection for the Pages application so only approved users can open the app.
+8. Deploy. The first visit seeds KV from public/data.json. Later changes are saved to KV and loaded from any browser/device.
+
+Optional command-line deployment
+If the KV binding has already been configured for the Pages project in Cloudflare, deploy with:
+wrangler pages deploy public --project-name utilities-tracker
+
+How cloud saving works
+- The browser loads /api/items.
+- functions/api/items.js reads the shared state from the TRACKER_BACKUPS KV namespace.
+- If KV is empty, it seeds the namespace once from public/data.json.
+- Every save posts the full tracker state back to /api/items.
+- If the API is unavailable, the browser falls back to the local browser backup.
+
+Local use
+1. Open public/index.html in your browser, or serve the folder with a small static server.
+2. Your data saves locally in that browser.
 
 Utilities now opens as the default tab.
 

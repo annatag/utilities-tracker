@@ -1,81 +1,74 @@
+const DATA_KEY = "data";
+
+function jsonResponse(body, init = {}) {
+  return Response.json(body, {
+    headers: {
+      "Cache-Control": "no-store",
+      ...(init.headers || {})
+    },
+    ...init
+  });
+}
+
+function getKvNamespace(env) {
+  return env && env.TRACKER_BACKUPS;
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
-  const kv = env.TRACKER_BACKUPS;
+  const kv = getKvNamespace(env);
   const url = new URL(request.url);
 
+  if (url.pathname !== "/api/items" || !["GET", "POST"].includes(request.method)) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  if (!kv) {
+    return jsonResponse(
+      {
+        error: "Cloud storage is not configured. Add a TRACKER_BACKUPS KV binding to this Cloudflare Pages project."
+      },
+      { status: 503 }
+    );
+  }
+
   async function getData() {
-    let data = await kv.get("data", "json");
+    let data = await kv.get(DATA_KEY, "json");
 
-    // Seed from data.json ONLY ONCE
+    // Seed from data.json only once, when the KV namespace is empty.
     if (!data) {
-      const seedResponse = await fetch(`${url.origin}/data.json`);
-      data = await seedResponse.json();
+      const seedResponse = await fetch(`${url.origin}/data.json`, { cache: "no-store" });
 
-      await kv.put("data", JSON.stringify(data));
+      if (!seedResponse.ok) {
+        throw new Error("Could not load seed data.json");
+      }
+
+      data = await seedResponse.json();
+      await kv.put(DATA_KEY, JSON.stringify(data));
     }
 
     return data;
   }
 
   async function saveData(data) {
-    await kv.put("data", JSON.stringify(data));
+    await kv.put(DATA_KEY, JSON.stringify(data));
   }
 
-  // ================= GET =================
-  if (url.pathname === "/api/items" && request.method === "GET") {
-    return Response.json(await getData());
+  if (request.method === "GET") {
+    return jsonResponse(await getData());
   }
-
-  if (url.pathname === "/api/items" && request.method === "POST") {
 
   const body = await request.json();
 
-  // overwrite full app state
-  await saveData(body);
+  if (!body || typeof body !== "object" || !body.data || typeof body.data !== "object") {
+    return jsonResponse({ error: "Expected a full tracker state wrapper with a data object." }, { status: 400 });
+  }
 
-  return Response.json({
-    success: true
+  await saveData({
+    ...body,
+    app: body.app || "House Maintenance Utilities Contacts Finance Tracker",
+    updatedAt: new Date().toISOString()
   });
-}
 
-  // ================= UPDATE =================
-  if (url.pathname.startsWith("/api/items/") && request.method === "PUT") {
-    const id = url.pathname.split("/").pop();
-
-    const body = await request.json();
-    const data = await getData();
-
-    const items = data.data.items;
-
-    const index = items.findIndex(i => i.id === id);
-
-    if (index === -1) {
-      return new Response("Not found", { status: 404 });
-    }
-
-    items[index] = {
-      ...items[index],
-      ...body
-    };
-
-    await saveData(data);
-
-    return Response.json(items[index]);
-  }
-
-  // ================= DELETE =================
-  if (url.pathname.startsWith("/api/items/") && request.method === "DELETE") {
-    const id = url.pathname.split("/").pop();
-
-    const data = await getData();
-
-    data.data.items =
-      data.data.items.filter(i => i.id !== id);
-
-    await saveData(data);
-
-    return Response.json({ success: true });
-  }
-
-  return new Response("Not found", { status: 404 });
+  return jsonResponse({ success: true });
 }
