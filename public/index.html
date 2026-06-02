@@ -1249,6 +1249,9 @@ function rowHtml(i) {
 function utilityRowHtml(u) {
   const s = utilityStatus(u);
   const link = u.url ? `<a href="${escapeHtml(u.url)}" target="_blank" rel="noopener">Open login</a>` : "";
+  const paymentButton = u.paid === "paid"
+    ? `<button class="light" onclick="markUtilityUnpaid('${u.id}')">Mark not paid</button>`
+    : `<button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button>`;
   return `<tr>
     <td><b>${escapeHtml(u.type || "")}</b></td>
     <td><b>${escapeHtml(u.provider || "")}</b><br><span class="small">${link}</span></td>
@@ -1259,7 +1262,7 @@ function utilityRowHtml(u) {
     <td>${escapeHtml(u.due || "")}</td>
     <td>${u.autopay === "on" ? "On" : "Off"}</td>
     <td class="status ${s.key}">${s.text}${u.paidDate && u.paid !== "paid" ? `<br><span class="small">${escapeHtml(u.paidDate)}</span>` : ""}</td>
-    <td><div class="actions"><button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button><button class="light" onclick="createNextMonthUtilityFrom('${u.id}')">New period</button><button class="secondary" onclick="editUtility('${u.id}')">Edit</button><button class="danger" onclick="deleteUtility('${u.id}')">Delete</button></div></td>
+    <td><div class="actions">${paymentButton}<button class="light" onclick="createNextMonthUtilityFrom('${u.id}')">New period</button><button class="secondary" onclick="editUtility('${u.id}')">Edit</button><button class="danger" onclick="deleteUtility('${u.id}')">Delete</button></div></td>
   </tr>`;
 }
 
@@ -1428,6 +1431,13 @@ function markUtilityPaid(id) {
   u.paid = "paid";
   u.paidDate = todayISO();
   addNextUtilityFrom(u);
+  saveData();
+}
+function markUtilityUnpaid(id) {
+  const u = state.utilities.find(x => x.id === id); if (!u) return;
+  u.paid = "unpaid";
+  u.paidDate = "";
+  utilityStatusFilter.value = "all";
   saveData();
 }
 function deleteUtility(id) { if (confirm("Delete this utility bill?")) { state.utilities = state.utilities.filter(u => u.id !== id); saveData(); } }
