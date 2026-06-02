@@ -63,6 +63,9 @@
     .house-card.pending-delete { opacity:.55; background:#f3f4f6; border-style:dashed; }
     .house-card.pending-delete input { background:#f9fafb; color:#6b7280; }
     .warning { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:12px; border-radius:12px; margin-bottom:16px; font-size:14px; }
+    .cloud-status { border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:16px; font-size:14px; background:#eff6ff; color:#1e40af; }
+    .cloud-status.ok { background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
+    .cloud-status.warn { background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
     footer { color:var(--muted); font-size:12px; margin-top:16px; }
     @media (max-width:900px) { .toolbar, .grid, .form-grid { grid-template-columns:1fr; } }
   </style>
@@ -70,11 +73,12 @@
 <body>
   <header>
     <h1>House Maintenance, Utilities, Contacts & Finance Tracker</h1>
-    <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data syncs to Cloudflare KV when deployed and falls back to this browser when offline.</div>
+    <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data syncs to Cloudflare KV when cloud storage is connected and falls back to this browser when offline.</div>
   </header>
 
 
   <main>
+    <div id="cloudStatus" class="cloud-status warn">Checking shared cloud storage…</div>
     <div class="tabs">
       <button id="maintTab" class="tab" onclick="showView('maintenance')">Maintenance</button>
       <button id="utilTab" class="tab active" onclick="showView('utilities')">Utility bills</button>
@@ -403,6 +407,15 @@
 <script>
 const STORAGE_KEY = "house-maintenance-tracker-v2";
 let state = null;
+let cloudStorageAvailable = false;
+let cloudSaveWarningShown = false;
+
+function setCloudStatus(message, kind = "warn") {
+  const status = document.getElementById("cloudStatus");
+  if (!status) return;
+  status.textContent = message;
+  status.className = `cloud-status ${kind}`;
+}
 
 async function initializeApp() {
   try {
@@ -417,6 +430,12 @@ async function initializeApp() {
     console.log("Loaded cloud data:", cloudData);
 
     state = normalizeLoadedData(cloudData);
+    cloudStorageAvailable = cloudData.cloudStorageConfigured !== false;
+    if (cloudStorageAvailable) {
+      setCloudStatus("Shared cloud storage is connected. Changes saved here should appear on your other devices.", "ok");
+    } else {
+      setCloudStatus(cloudData.warning || "Cloud storage is not configured. Changes are saved only in this browser.", "warn");
+    }
 
     // Keep a local browser backup for offline fallback.
     localStorage.setItem(
@@ -426,6 +445,8 @@ async function initializeApp() {
 
   } catch (err) {
     console.error("API failed, loading local/public backup", err);
+    cloudStorageAvailable = false;
+    setCloudStatus("Cloud storage is unreachable. Changes are saved only in this browser until /api/items is available.", "warn");
 
     state = await loadData();
   }
@@ -799,10 +820,26 @@ async function saveData(options = {}) {
     });
 
     if (!res.ok) {
-      throw new Error(`Cloud save failed with ${res.status}`);
+      let detail = "";
+      try {
+        const errorBody = await res.json();
+        detail = errorBody && errorBody.error ? ` ${errorBody.error}` : "";
+      } catch (_) {
+        detail = "";
+      }
+      throw new Error(`Cloud save failed with ${res.status}.${detail}`);
     }
+    cloudStorageAvailable = true;
+    setCloudStatus("Shared cloud storage is connected. Last change was saved to Cloudflare KV.", "ok");
   } catch (err) {
+    cloudStorageAvailable = false;
+    const message = `Cloud save failed. Your change was saved only in this browser and will not appear on another device until Cloudflare Pages Functions and the TRACKER_BACKUPS KV binding are working. ${err.message || err}`;
     console.error("Failed saving to cloud storage; local backup was kept", err);
+    setCloudStatus(message, "warn");
+    if (!cloudSaveWarningShown) {
+      cloudSaveWarningShown = true;
+      alert(message);
+    }
   }
 
   initializeAutoBackupSetting();
