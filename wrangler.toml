@@ -2,11 +2,9 @@ name = "utilities-tracker"
 compatibility_date = "2026-06-01"
 pages_build_output_dir = "public"
 
-[{
-"binding": "TRACKER_BACKUPS",
-"id": "0979c60b1e69497988130f1cb71bdbf9"
- }]"
-
+[[kv_namespaces]]
+binding = "TRACKER_BACKUPS"
+id = "0979c60b1e69497988130f1cb71bdbf9"
 # This configuration is for Cloudflare Pages, not standalone Workers.
 # Deploy with `wrangler pages deploy public --project-name utilities-tracker` or `npm run deploy`.
 # Configure the TRACKER_BACKUPS KV binding in the Cloudflare Pages dashboard.
