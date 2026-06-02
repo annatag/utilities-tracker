@@ -594,11 +594,16 @@ const UTILITY_TABLE_COLUMNS = [
   { key: "statementDate", label: "Statement date", filter: "text" },
   { key: "due", label: "Due date", filter: "text" },
   { key: "autopay", label: "Autopay", filter: "select", options: ["On", "Off"] },
-  { key: "paidStatus", label: "Paid status", filter: "select", options: ["Paid", "Not paid", "Inactive", "Overdue"] }
+  { key: "paidStatus", label: "Paid status", filter: "select", options: ["Paid", "Not paid", "Inactive", "Overdue"] },
+  { key: "actions", label: "Actions", filter: "text" }
 ];
 
 const utilityTableSort = { key: "due", dir: "asc" };
 const utilityTableFilters = Object.fromEntries(UTILITY_TABLE_COLUMNS.map(column => [column.key, ""]));
+
+function utilityActionText(u) {
+  return `${u && u.paid === "paid" ? "mark not paid" : "mark paid"} new period edit delete`;
+}
 
 function utilityColumnValue(u, key) {
   if (!u) return "";
@@ -612,7 +617,8 @@ function utilityColumnValue(u, key) {
     statementDate: u.statementDate || "",
     due: u.due || "",
     autopay: u.autopay === "on" ? "On" : "Off",
-    paidStatus: `${status.text} ${u.paid || ""} ${u.paidDate || ""}`
+    paidStatus: `${status.text} ${u.paid || ""} ${u.paidDate || ""}`,
+    actions: utilityActionText(u)
   };
   return values[key] ?? "";
 }
@@ -704,13 +710,11 @@ function utilityHeaderFilterHtml(column) {
 }
 
 function utilityTableHeaderHtml() {
-  const sortableHeaders = UTILITY_TABLE_COLUMNS.map(column => {
+  return `<thead><tr>${UTILITY_TABLE_COLUMNS.map(column => {
     const isSorted = utilityTableSort.key === column.key;
     const indicator = isSorted ? (utilityTableSort.dir === "asc" ? "▲" : "▼") : "↕";
     return `<th><div class="table-header-control"><button type="button" class="sort-header" onclick="setUtilityTableSort('${column.key}')" aria-label="Sort by ${escapeHtml(column.label)}"><span>${escapeHtml(column.label)}</span><span class="sort-indicator" aria-hidden="true">${indicator}</span></button>${utilityHeaderFilterHtml(column)}</div></th>`;
-  }).join("");
-
-  return `<thead><tr>${sortableHeaders}<th>Actions</th></tr></thead>`;
+  }).join("")}</tr></thead>`;
 }
 
 function latestUtilityByType(houseId, type) {
