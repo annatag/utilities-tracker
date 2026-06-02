@@ -38,6 +38,15 @@ export async function onRequest(context) {
   }
 
   if (!kv) {
+    if (request.method === "GET") {
+      const data = await loadSeedData();
+      return jsonResponse({
+        ...data,
+        cloudStorageConfigured: false,
+        warning: `Cloud storage is not configured. Showing public/data.json without shared saving. ${KV_SETUP_HINT}`
+      });
+    }
+
     return jsonResponse(
       {
         error: `Cloud storage is not configured. ${KV_SETUP_HINT}`
