@@ -159,9 +159,11 @@
         <div>
           <label for="financeStatusFilter">Status</label>
           <select id="financeStatusFilter">
-            <option value="all">All</option>
+            <option value="allDue">ALL DUE</option>
+            <option value="all">ALL</option>
             <option value="unpaid">Not paid</option>
             <option value="paid">Paid</option>
+            <option value="inactive">Inactive</option>
             <option value="overdue">Not paid and overdue</option>
           </select>
         </div>
@@ -295,7 +297,7 @@
         <div><label>Amount due</label><input id="financeItemAmount" type="number" step="0.01" min="0"></div>
         <div><label>Keep same amount next period?</label><select id="financeItemKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div><label>Due date</label><input id="financeItemDue" type="date"></div>
-        <div><label>Paid?</label><select id="financeItemPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div><label>Paid?</label><select id="financeItemPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
         <div><label>Paid date</label><input id="financeItemPaidDate" type="date"></div>
         <div class="full"><label>Notes</label><textarea id="financeItemNotes" placeholder="Notes, confirmation number, policy details..."></textarea></div>
       </div>
@@ -319,7 +321,7 @@
         <div data-finance-section="mortgage"><label>Monthly amount due</label><input id="finMortgageAmount" type="number" step="0.01" min="0"></div>
         <div data-finance-section="mortgage"><label>Keep same amount next month?</label><select id="finMortgageKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="mortgage"><label>Due on the 1-st</label><input id="finMortgageDueDay" type="number" min="1" max="28" value="1"></div>
-        <div data-finance-section="mortgage"><label>Paid?</label><select id="finMortgagePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div data-finance-section="mortgage"><label>Paid?</label><select id="finMortgagePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
         <div class="full" data-finance-section="mortgage"><label>Notes</label><textarea id="finMortgageNotes" placeholder="Mortgage notes..."></textarea></div>
         <div data-finance-section="mortgage"><label>Paid date</label><input id="finMortgagePaidDate" type="date"></div>
 
@@ -330,7 +332,7 @@
         <div data-finance-section="salesTax"><label>Return filed?</label><select id="finSalesFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
         <div data-finance-section="salesTax"><label>Taxable amount</label><input id="finSalesTaxable" type="number" step="0.01" min="0"></div>
         <div data-finance-section="salesTax"><label>Keep same amount next month?</label><select id="finSalesKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
-        <div data-finance-section="salesTax"><label>Paid?</label><select id="finSalesPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div data-finance-section="salesTax"><label>Paid?</label><select id="finSalesPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
         <div class="full" data-finance-section="salesTax"><label>Notes</label><textarea id="finSalesNotes" placeholder="Sales tax notes..."></textarea></div>
         <div data-finance-section="salesTax"><label>Due on the 1-st</label><input id="finSalesDueDay" type="number" min="1" max="28" value="20"></div>
 
@@ -341,7 +343,7 @@
         <div data-finance-section="touristTax"><label>Return filed?</label><select id="finTouristFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
         <div data-finance-section="touristTax"><label>Taxable amount</label><input id="finTouristTaxable" type="number" step="0.01" min="0"></div>
         <div data-finance-section="touristTax"><label>Keep same amount next month?</label><select id="finTouristKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
-        <div data-finance-section="touristTax"><label>Paid?</label><select id="finTouristPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div data-finance-section="touristTax"><label>Paid?</label><select id="finTouristPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
         <div class="full" data-finance-section="touristTax"><label>Notes</label><textarea id="finTouristNotes" placeholder="Tourist tax notes..."></textarea></div>
         <div data-finance-section="touristTax"><label>Due on the 1-st</label><input id="finTouristDueDay" type="number" min="1" max="28" value="20"></div>
 
@@ -354,7 +356,7 @@
         <div data-finance-section="insurance"><label>Amount per year</label><input id="finInsuranceAmount" type="number" step="0.01" min="0"></div>
         <div data-finance-section="insurance"><label>Keep same amount next year?</label><select id="finInsuranceKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="insurance"><label>Due date</label><input id="finInsuranceDue" type="date"></div>
-        <div data-finance-section="insurance"><label>Paid?</label><select id="finInsurancePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div data-finance-section="insurance"><label>Paid?</label><select id="finInsurancePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
         <div class="full" data-finance-section="insurance"><label>Notes</label><textarea id="finInsuranceNotes" placeholder="Policy notes, escrow, reminders..."></textarea></div>
 
         <div class="full" data-finance-section="propertyTax"><h4>Annual property taxes</h4></div>
@@ -363,7 +365,7 @@
         <div data-finance-section="propertyTax"><label>Property taxes per year</label><input id="finPropertyTaxAmount" type="number" step="0.01" min="0"></div>
         <div data-finance-section="propertyTax"><label>Keep same amount next year?</label><select id="finPropertyTaxKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="propertyTax"><label>Due date</label><input id="finPropertyTaxDue" type="date"></div>
-        <div data-finance-section="propertyTax"><label>Paid?</label><select id="finPropertyTaxPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div data-finance-section="propertyTax"><label>Paid?</label><select id="finPropertyTaxPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
         <div class="full" data-finance-section="propertyTax"><label>Notes</label><textarea id="finPropertyTaxNotes" placeholder="Parcel ID, reminders, confirmations..."></textarea></div>
 
         <div class="full" data-finance-section="all"><label>Notes</label><textarea id="finNotes" placeholder="Escrow, parcel ID, confirmation numbers, reminders..."></textarea></div>
@@ -744,6 +746,7 @@ function daysLeftText(dateStr) {
 }
 
 function financeStatus(paid, dueDate, paidDate = "") {
+  if (paid === "inactive") return {key:"inactive", text:"INACTIVE"};
   const d = daysUntil(dueDate);
   if (paid === "paid") return {key:"paid", text: paidDate ? `Paid ${paidDate}` : "Paid"};
   if (d < 0) return {key:"unpaid-overdue", text:`Not paid, overdue ${Math.abs(d)} day(s)`};
@@ -1600,6 +1603,10 @@ function markFinanceRowPaid(houseId, rowType) {
   const f = state.finance.find(x => x.houseId === houseId);
   const [paidField, paidDateField] = financeRowPaymentFields(rowType);
   if (!f || !paidField || !paidDateField) return;
+  if (f[paidField] === "inactive") {
+    alert("INACTIVE finance records do not roll forward. Edit the item and set it to PAID if it should become active again.");
+    return;
+  }
   f[paidField] = "paid";
   f[paidDateField] = todayISO();
   addNextFinanceItem(buildNextFinanceItemFromRow(houseId, rowType, f));
@@ -1618,6 +1625,10 @@ function markFinanceRowUnpaid(houseId, rowType) {
 function markFinanceItemPaid(id) {
   const item = (state.financeItems || []).find(x => x.id === id);
   if (!item) return;
+  if (item.paid === "inactive") {
+    alert("INACTIVE finance records do not roll forward. Edit the item and set it to PAID if it should become active again.");
+    return;
+  }
   item.paid = "paid";
   item.paidDate = todayISO();
   addNextFinanceItemFromPaidItem(item);
@@ -1684,15 +1695,16 @@ function renderFinance() {
     const mortgageSt = financeStatus(f.mortgagePaid, mortgageDue, f.mortgagePaidDate);
     const salesSt = financeStatus(f.salesPaid, salesDue, f.salesPaidDate);
     const touristSt = financeStatus(f.touristPaid, touristDue, f.touristPaidDate);
-    const insuranceSt = f.insuranceDue ? financeStatus(f.insurancePaid, f.insuranceDue, f.insurancePaidDate) : {key:"", text:""};
-    const propertyTaxSt = f.propertyTaxDue ? financeStatus(f.propertyTaxPaid, f.propertyTaxDue, f.propertyTaxPaidDate) : {key:"", text:""};
+    const insuranceSt = (f.insurancePaid === "inactive" || f.insuranceDue) ? financeStatus(f.insurancePaid, f.insuranceDue, f.insurancePaidDate) : {key:"", text:""};
+    const propertyTaxSt = (f.propertyTaxPaid === "inactive" || f.propertyTaxDue) ? financeStatus(f.propertyTaxPaid, f.propertyTaxDue, f.propertyTaxPaidDate) : {key:"", text:""};
 
     const allowedByStatus = (paid, st) => {
-      if (isPaidInNormalView(paid) && !q && statusFilter !== "paid") return false;
-      return statusFilter === "all" ||
+      const showingAllStatuses = statusFilter === "all" || statusFilter === "allDue";
+      return showingAllStatuses ||
         (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
         (statusFilter === "unpaid" && paid === "unpaid") ||
-        (statusFilter === "paid" && paid === "paid");
+        (statusFilter === "paid" && paid === "paid") ||
+        (statusFilter === "inactive" && paid === "inactive");
     };
 
     const link = (url, text) => url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${text}</a>` : "";
@@ -1779,12 +1791,13 @@ function renderFinance() {
     const searchable = `${houseDisplayName(house)} ${item.name} ${item.company} ${item.account} ${item.notes}`.toLowerCase();
     if (q && !searchable.includes(q)) return;
 
-    const st = item.due ? financeStatus(item.paid, item.due, item.paidDate) : {key:"", text:""};
-    if (isPaidInNormalView(item.paid) && !q && statusFilter !== "paid") return;
-    const statusMatch = statusFilter === "all" ||
+    const st = (item.paid === "inactive" || item.due) ? financeStatus(item.paid, item.due, item.paidDate) : {key:"", text:""};
+    const showingAllStatuses = statusFilter === "all" || statusFilter === "allDue";
+    const statusMatch = showingAllStatuses ||
       (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
       (statusFilter === "unpaid" && item.paid === "unpaid") ||
-      (statusFilter === "paid" && item.paid === "paid");
+      (statusFilter === "paid" && item.paid === "paid") ||
+      (statusFilter === "inactive" && item.paid === "inactive");
     if (!statusMatch) return;
 
     const linkHtml = item.login ? `<a href="${escapeHtml(item.login)}" target="_blank" rel="noopener">Login</a>` : "";
