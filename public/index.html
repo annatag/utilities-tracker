@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>House Maintenance, Utilities, Contacts & Finance Tracker - v5 Contacts Fixed</title>
   <style>
-    :root { --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --accent:#2563eb; --danger:#dc2626; --warn:#d97706; --ok:#059669; }
+    :root { --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --accent:#2563eb; --danger:#dc2626; --warn:#d97706; --ok:#059669; --inactive:#6b7280; }
     * { box-sizing: border-box; }
     body { margin:0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
     header { background:var(--card); border-bottom:1px solid var(--border); padding:18px 20px; position:sticky; top:0; z-index:2; }
@@ -51,6 +51,7 @@
     .soon { color:var(--warn); }
     .ok, .paid { color:var(--ok); }
     .unpaid { color:var(--warn); }
+    .inactive { color:var(--inactive); }
     .actions { display:flex; gap:6px; flex-wrap:wrap; }
     .actions button { padding:6px 8px; font-size:12px; }
     dialog { border:0; border-radius:16px; padding:0; max-width:620px; width:92vw; box-shadow:0 20px 60px rgba(0,0,0,.22); }
@@ -117,7 +118,7 @@
 
     <section id="utilitiesView">
       <div class="warning">
-        Do not store passwords here. Use your browser or password manager for credentials. This app stores provider links, account notes, bill totals, due dates, autopay, and paid/unpaid status only.
+        Do not store passwords here. Use your browser or password manager for credentials. This app stores provider links, account notes, bill totals, due dates, autopay, and PAID, NOT PAID, or INACTIVE status only.
       </div>
       <section class="toolbar">
         <div>
@@ -128,9 +129,10 @@
           <label for="utilityStatusFilter">Payment status</label>
           <select id="utilityStatusFilter">
             <option value="all">All</option>
-            <option value="unpaid">Unpaid</option>
-            <option value="paid">Paid</option>
-            <option value="overdue">Unpaid and overdue</option>
+            <option value="unpaid">NOT PAID</option>
+            <option value="paid">PAID</option>
+            <option value="inactive">INACTIVE</option>
+            <option value="overdue">NOT PAID and overdue</option>
           </select>
         </div>
         <div>
@@ -265,7 +267,7 @@
         <div><label>Amount due</label><input id="utilityAmount" type="number" step="0.01" min="0" placeholder="0.00"></div>
         <div><label>Billing frequency</label><select id="utilityFrequency"><option value="monthly">Monthly</option><option value="annual">Annual</option></select></div>
         <div><label>Due date</label><input id="utilityDue" type="date" required></div>
-        <div><label>Payment status</label><select id="utilityPaid"><option value="unpaid">Unpaid</option><option value="paid">Paid</option></select></div>
+        <div><label>Payment status</label><select id="utilityPaid"><option value="unpaid">NOT PAID</option><option value="paid">PAID</option><option value="inactive">INACTIVE</option></select></div>
         <div><label>Autopay</label><select id="utilityAutopay"><option value="off">Off</option><option value="on">On</option></select></div>
         <div id="utilityPaidDateWrap"><label>Paid date</label><input id="utilityPaidDate" type="date"></div>
         <div class="full"><label>Notes, confirmation #, or autopay info</label><textarea id="utilityNotes" placeholder="Autopay enabled, confirmation number, meter notes. Do NOT store passwords."></textarea></div>
@@ -548,8 +550,16 @@ function financeItemFrequency(item) {
   return item.frequency === "annual" ? "annual" : "monthly";
 }
 
+function isInactiveUtility(u) {
+  return (u && u.paid === "inactive") || (typeof u === "string" && u === "inactive");
+}
+
 function isPaidInNormalView(paid) {
-  return paid === "paid";
+  return paid === "paid" || paid === "inactive";
+}
+
+function shouldCreateNextUtility(source) {
+  return source && source.paid === "paid" && !isInactiveUtility(source);
 }
 
 function isMonthlyUtilityType(type) {
@@ -593,6 +603,7 @@ function hasMatchingUnpaidUtility(source, due) {
 }
 
 function addNextUtilityFrom(source) {
+  if (!shouldCreateNextUtility(source)) return false;
   const newItem = buildNextUtilityFrom(source);
   if (!newItem || hasMatchingUnpaidUtility(source, newItem.due)) return false;
   state.utilities.push(newItem);
@@ -602,7 +613,10 @@ function addNextUtilityFrom(source) {
 function createNextMonthUtilityFrom(id) {
   const source = state.utilities.find(u => u.id === id);
   if (!source) return;
-  addNextUtilityFrom(source);
+  if (!addNextUtilityFrom(source)) {
+    alert("A new period is only created from PAID active utilities. INACTIVE utilities do not roll forward.");
+    return;
+  }
   saveData();
 }
 
@@ -621,17 +635,10 @@ function createNextMonthUtilityForHouseType(houseId, selectedType) {
     return;
   }
 
-  state.utilities.push({
-    ...source,
-    id: uid(),
-    frequency: "monthly",
-    statementDate: addMonthsISO(source.statementDate || source.due, 1),
-    due: addMonthsISO(source.due || source.statementDate, 1),
-    amount: 0,
-    paid: "unpaid",
-    paidDate: "",
-    notes: source.notes || ""
-  });
+  if (!addNextUtilityFrom(source)) {
+    alert("A new month is only created from a PAID active utility. INACTIVE utilities do not roll forward.");
+    return;
+  }
   saveData();
 }
 
@@ -645,21 +652,16 @@ function createNextMonthUtilitiesForHouse(houseId) {
     return;
   }
 
+  let changed = false;
   types.forEach(type => {
     const source = latestUtilityByType(houseId, type);
     if (!source) return;
-    state.utilities.push({
-      ...source,
-      id: uid(),
-      frequency: "monthly",
-      statementDate: addMonthsISO(source.statementDate || source.due, 1),
-      due: addMonthsISO(source.due || source.statementDate, 1),
-      amount: 0,
-      paid: "unpaid",
-      paidDate: "",
-      notes: source.notes || ""
-    });
+    changed = addNextUtilityFrom(source) || changed;
   });
+  if (!changed) {
+    alert("No new monthly utilities were created. New months are only created from PAID active utilities, and INACTIVE utilities do not roll forward.");
+    return;
+  }
   saveData();
 }
 
@@ -1022,10 +1024,11 @@ function statusFor(item) {
 
 function utilityStatus(u) {
   const d = daysUntil(u.due);
-  if (u.paid === "paid") return { key:"paid", text: u.paidDate ? `Paid ${u.paidDate}` : "Paid" };
-  if (d < 0) return { key:"unpaid-overdue", text:`<b>Unpaid, overdue ${Math.abs(d)} day(s)</b>` };
-  if (d === 0) return { key:"unpaid", text:"Unpaid, due today" };
-  return { key:"unpaid", text:`<b>Unpaid, due in ${d} day(s)</b>` };
+  if (u.paid === "inactive") return { key:"inactive", text:"INACTIVE" };
+  if (u.paid === "paid") return { key:"paid", text: u.paidDate ? `PAID ${u.paidDate}` : "PAID" };
+  if (d < 0) return { key:"unpaid-overdue", text:`<b>NOT PAID, overdue ${Math.abs(d)} day(s)</b>` };
+  if (d === 0) return { key:"unpaid", text:"NOT PAID, due today" };
+  return { key:"unpaid", text:`<b>NOT PAID, due in ${d} day(s)</b>` };
 }
 
 
@@ -1036,7 +1039,7 @@ function applyUtilityAutopay() {
   (state.utilities || []).forEach(u => {
     if (!("autopay" in u)) u.autopay = "off";
 
-    if (u.autopay === "on" && u.paid !== "paid" && u.due && daysUntil(u.due) <= 0) {
+    if (u.autopay === "on" && u.paid === "unpaid" && u.due && daysUntil(u.due) <= 0) {
       u.paid = "paid";
       u.paidDate = u.due;
       if (u.notes) {
@@ -1107,29 +1110,30 @@ function renderUtilities() {
     const visibleBills = allBillsForHouse.filter(u => {
       const s = utilityStatus(u).key;
       const text = `${houseDisplayName(house)} ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
-      const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid";
+      const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid" || statusFilter === "inactive";
 
-      // Hide paid bills in the normal property view, but allow them to appear
-      // when searching or when the Paid filter is selected.
+      // Hide paid and inactive bills in the normal property view, but allow them to appear
+      // when searching or when the PAID or INACTIVE filter is selected.
       if (isPaidInNormalView(u.paid) && !searchingOrPaidFilter) return false;
 
       const statusMatch = statusFilter === "all" ||
         (statusFilter === "overdue" && s === "unpaid-overdue") ||
         (statusFilter === "unpaid" && u.paid === "unpaid") ||
-        (statusFilter === "paid" && u.paid === "paid");
+        (statusFilter === "paid" && u.paid === "paid") ||
+        (statusFilter === "inactive" && u.paid === "inactive");
       return (!q || text.includes(q)) && statusMatch;
     });
 
     const houseUtilityBills = visibleBills.filter(u => !isOtherBillType(u.type)).sort((a,b) => parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31"));
     const otherBills = visibleBills.filter(u => isOtherBillType(u.type));
 
-    const totalUnpaid = allBillsForHouse.filter(u => u.paid !== "paid").reduce((sum,u) => sum + Number(u.amount || 0), 0);
+    const totalUnpaid = allBillsForHouse.filter(u => u.paid === "unpaid").reduce((sum,u) => sum + Number(u.amount || 0), 0);
     const overdue = allBillsForHouse.filter(u => utilityStatus(u).key === "unpaid-overdue").length;
     const card = document.createElement("section");
     card.className = "card";
     card.style.width = "100%";
-    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${visibleBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount ? `<span class="pill">${oldPaidCount} paid hidden</span>` : ""}</div></div>
-      <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account number</th><th>Amount due</th><th>Frequency</th><th>Statement date</th><th>Due date</th><th>Autopay</th><th>Paid status</th><th>Actions</th></tr></thead><tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid bills are hidden unless you search or select the Paid filter.</td></tr>`}</tbody></table></div>
+    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${visibleBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount ? `<span class="pill">${oldPaidCount} paid/inactive hidden</span>` : ""}</div></div>
+      <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account number</th><th>Amount due</th><th>Frequency</th><th>Statement date</th><th>Due date</th><th>Autopay</th><th>Paid status</th><th>Actions</th></tr></thead><tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid and inactive bills are hidden unless you search or select the PAID or INACTIVE filter.</td></tr>`}</tbody></table></div>
       <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <button class="light" onclick="openUtilityModal('${house.id}')">+ Add bill for this house</button>
         <select id="newMonthType-${house.id}" style="max-width:180px;">
@@ -1148,12 +1152,13 @@ function renderUtilities() {
   const visibleOtherBills = allOtherBills.filter(u => {
     const s = utilityStatus(u).key;
     const text = `other ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
-    const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid";
+    const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid" || statusFilter === "inactive";
     if (isPaidInNormalView(u.paid) && !searchingOrPaidFilter) return false;
     const statusMatch = statusFilter === "all" ||
       (statusFilter === "overdue" && s === "unpaid-overdue") ||
       (statusFilter === "unpaid" && u.paid === "unpaid") ||
-      (statusFilter === "paid" && u.paid === "paid");
+      (statusFilter === "paid" && u.paid === "paid") ||
+      (statusFilter === "inactive" && u.paid === "inactive");
     return (!q || text.includes(q)) && statusMatch;
   });
   const hiddenOtherPaidCount = allOtherBills.filter(u => isPaidInNormalView(u.paid)).length;
@@ -1165,7 +1170,7 @@ function renderUtilities() {
   otherCard.innerHTML = `
     <div class="house-title">
       <h2>Other</h2>
-      <div class="summary"><span class="pill">${visibleOtherBills.length} visible bill(s)</span>${hiddenOtherPaidCount ? `<span class="pill">${hiddenOtherPaidCount} paid hidden</span>` : ""}</div>
+      <div class="summary"><span class="pill">${visibleOtherBills.length} visible bill(s)</span>${hiddenOtherPaidCount ? `<span class="pill">${hiddenOtherPaidCount} paid/inactive hidden</span>` : ""}</div>
     </div>
 
     <div class="table-wrap">
@@ -1187,7 +1192,7 @@ function renderUtilities() {
         <tbody>
           ${visibleOtherBills.length
             ? visibleOtherBills.map(utilityRowHtml).join("")
-            : `<tr><td colspan="10" class="small">No Other bills match this view. Paid bills are hidden unless you search or select the Paid filter.</td></tr>`}
+            : `<tr><td colspan="10" class="small">No Other bills match this view. Paid and inactive bills are hidden unless you search or select the PAID or INACTIVE filter.</td></tr>`}
         </tbody>
       </table>
     </div>
@@ -1216,7 +1221,7 @@ function utilityRowHtml(u) {
     <td>${escapeHtml(u.statementDate || "")}</td>
     <td>${escapeHtml(u.due || "")}</td>
     <td>${u.autopay === "on" ? "On" : "Off"}</td>
-    <td class="status ${s.key}">${u.paid === "paid" ? "Paid" : "Not paid"}${u.paidDate ? `<br><span class="small">${escapeHtml(u.paidDate)}</span>` : ""}</td>
+    <td class="status ${s.key}">${s.text}${u.paidDate && u.paid !== "paid" ? `<br><span class="small">${escapeHtml(u.paidDate)}</span>` : ""}</td>
     <td><div class="actions"><button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button><button class="light" onclick="createNextMonthUtilityFrom('${u.id}')">New period</button><button class="secondary" onclick="editUtility('${u.id}')">Edit</button><button class="danger" onclick="deleteUtility('${u.id}')">Delete</button></div></td>
   </tr>`;
 }
@@ -1379,6 +1384,10 @@ function saveUtility(e) {
 }
 function markUtilityPaid(id) {
   const u = state.utilities.find(x => x.id === id); if (!u) return;
+  if (isInactiveUtility(u)) {
+    alert("INACTIVE utilities do not roll forward. Edit the bill and set it to PAID if it should become active again.");
+    return;
+  }
   u.paid = "paid";
   u.paidDate = todayISO();
   addNextUtilityFrom(u);
