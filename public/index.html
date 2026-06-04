@@ -60,6 +60,7 @@
     .ok, .paid { color:var(--ok); }
     .unpaid { color:var(--warn); }
     .inactive { color:var(--inactive); }
+    .autopay-on { color:var(--ok); font-weight:800; text-transform:uppercase; }
     .actions { display:flex; gap:6px; flex-wrap:wrap; }
     .actions button { padding:6px 8px; font-size:12px; }
     dialog { border:0; border-radius:16px; padding:0; max-width:620px; width:92vw; box-shadow:0 20px 60px rgba(0,0,0,.22); }
@@ -68,6 +69,7 @@
     .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .full { grid-column:1 / -1; }
     .small { font-size:12px; color:var(--muted); }
+    .due-date { color:var(--danger); font-weight:800; }
     .house-card { border:1px solid var(--border); border-radius:14px; padding:14px; background:#fff; }
     .house-card.pending-delete { opacity:.55; background:#f3f4f6; border-style:dashed; }
     .house-card.pending-delete input { background:#f9fafb; color:#6b7280; }
@@ -1533,7 +1535,7 @@ function maintenanceTableRow(item, house) {
 
 function rowHtml(i) {
   const s = statusFor(i);
-  return `<tr><td><b>${escapeHtml(i.name)}</b><br><span class="small">${escapeHtml(i.category)}${i.notes ? " · " + escapeHtml(i.notes) : ""}</span></td><td>${i.due}<br><span class="small">${i.unit === "none" ? "One-time" : `Every ${i.every} ${i.unit}`}</span></td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markDone('${i.id}')">Done</button><button class="light" onclick="viewItem('${i.id}')">View</button><button class="secondary" onclick="editItem('${i.id}')">Edit</button><button class="danger" onclick="deleteItem('${i.id}')">Delete</button></div></td></tr>`;
+  return `<tr><td><b>${escapeHtml(i.name)}</b><br><span class="small">${escapeHtml(i.category)}${i.notes ? " · " + escapeHtml(i.notes) : ""}</span></td><td><span class="due-date">${escapeHtml(i.due)}</span><br><span class="small">${i.unit === "none" ? "One-time" : `Every ${i.every} ${i.unit}`}</span></td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markDone('${i.id}')">Done</button><button class="light" onclick="viewItem('${i.id}')">View</button><button class="secondary" onclick="editItem('${i.id}')">Edit</button><button class="danger" onclick="deleteItem('${i.id}')">Delete</button></div></td></tr>`;
 }
 
 function utilityRowHtml(u) {
@@ -1549,8 +1551,8 @@ function utilityRowHtml(u) {
     <td><b>${money(u.amount)}</b></td>
     <td>${utilityBillingFrequency(u) === "annual" ? "Annual" : "Monthly"}</td>
     <td>${escapeHtml(u.statementDate || "")}</td>
-    <td>${escapeHtml(u.due || "")}</td>
-    <td>${u.autopay === "on" ? "On" : "Off"}</td>
+    <td><span class="due-date">${escapeHtml(u.due || "")}</span></td>
+    <td>${u.autopay === "on" ? `<span class="autopay-on">ON</span>` : "Off"}</td>
     <td class="status ${s.key}">${s.text}${u.paidDate && u.paid !== "paid" ? `<br><span class="small">${escapeHtml(u.paidDate)}</span>` : ""}</td>
     <td><div class="actions">${paymentButton}<button class="light" onclick="createNextMonthUtilityFrom('${u.id}')">New period</button><button class="secondary" onclick="editUtility('${u.id}')">Edit</button><button class="danger" onclick="deleteUtility('${u.id}')">Delete</button></div></td>
   </tr>`;
@@ -2025,7 +2027,7 @@ function renderFinance() {
           <td>${escapeHtml(f.mortgageCompany || "")}<br><span class="small">Mortgage #: ${escapeHtml(f.mortgageNumber || "")}</span></td>
           <td>${link(f.mortgageLogin, "Login")}</td>
           <td>${money(f.mortgageAmount)}</td>
-          <td>Due ${escapeHtml(f.mortgageDueDay || 1)} of month<br><span class="small">${mortgageDue}</span></td>
+          <td><span class="due-date">Due ${escapeHtml(f.mortgageDueDay || 1)} of month</span><br><span class="small due-date">${escapeHtml(mortgageDue)}</span></td>
           <td class="status ${mortgageSt.key}">${mortgageSt.text}</td>
           <td><div class="actions">${paymentButton("mortgage", f.mortgagePaid)}<button class="secondary" onclick="editFinance('${house.id}','mortgage')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','mortgage')">Delete</button></div></td>
         </tr>`));
@@ -2041,7 +2043,7 @@ function renderFinance() {
           <td>${escapeHtml(f.salesAgency || "Florida Sales Tax")}</td>
           <td>${link(f.salesLogin, "Login")}</td>
           <td>${money(salesTaxAmount(f.salesTaxable))}<br><span class="small">Taxable: ${money(f.salesTaxable)}</span></td>
-          <td>Due ${salesDue}<br><span class="small">For ${previousMonthForDueDate(salesDue)}</span><br><span class="small">${daysLeftText(salesDue)}</span></td>
+          <td><span class="due-date">Due ${escapeHtml(salesDue)}</span><br><span class="small">For ${previousMonthForDueDate(salesDue)}</span><br><span class="small">${daysLeftText(salesDue)}</span></td>
           <td class="status ${salesSt.key}">${salesSt.text}</td>
           <td><div class="actions">${paymentButton("salesTax", f.salesPaid)}<button class="secondary" onclick="editFinance('${house.id}','salesTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','salesTax')">Delete</button></div></td>
         </tr>`));
@@ -2057,7 +2059,7 @@ function renderFinance() {
           <td>${escapeHtml(f.touristAgency || "")}</td>
           <td>${link(f.touristLogin, "Login")}</td>
           <td>${money(touristTaxAmount(f.touristTaxable))}<br><span class="small">Taxable: ${money(f.touristTaxable)}</span></td>
-          <td>Due ${touristDue}<br><span class="small">For ${previousMonthForDueDate(touristDue)}</span><br><span class="small">${daysLeftText(touristDue)}</span></td>
+          <td><span class="due-date">Due ${escapeHtml(touristDue)}</span><br><span class="small">For ${previousMonthForDueDate(touristDue)}</span><br><span class="small">${daysLeftText(touristDue)}</span></td>
           <td class="status ${touristSt.key}">${touristSt.text}</td>
           <td><div class="actions">${paymentButton("touristTax", f.touristPaid)}<button class="secondary" onclick="editFinance('${house.id}','touristTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','touristTax')">Delete</button></div></td>
         </tr>`));
@@ -2073,7 +2075,7 @@ function renderFinance() {
           <td>${escapeHtml(f.insuranceCompany || "")}<br><span class="small">Policy #: ${escapeHtml(f.insurancePolicyNumber || "")}</span></td>
           <td>${link(f.insuranceLogin, "Login")}</td>
           <td>${money(f.insuranceAmount)}</td>
-          <td>Due ${escapeHtml(f.insuranceDue || "")}<br><span class="small">Period ${escapeHtml(f.insuranceStart || "")} to ${escapeHtml(f.insuranceEnd || "")}</span></td>
+          <td><span class="due-date">Due ${escapeHtml(f.insuranceDue || "")}</span><br><span class="small">Period ${escapeHtml(f.insuranceStart || "")} to ${escapeHtml(f.insuranceEnd || "")}</span></td>
           <td class="status ${insuranceSt.key}">${insuranceSt.text}</td>
           <td><div class="actions">${paymentButton("insurance", f.insurancePaid)}<button class="secondary" onclick="editFinance('${house.id}','insurance')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','insurance')">Delete</button></div></td>
         </tr>`));
@@ -2089,7 +2091,7 @@ function renderFinance() {
           <td>${escapeHtml(f.propertyTaxAgency || "")}</td>
           <td>${link(f.propertyTaxLogin, "County tax page")}</td>
           <td>${money(f.propertyTaxAmount)}</td>
-          <td>Due ${escapeHtml(f.propertyTaxDue || "")}</td>
+          <td><span class="due-date">Due ${escapeHtml(f.propertyTaxDue || "")}</span></td>
           <td class="status ${propertyTaxSt.key}">${propertyTaxSt.text}</td>
           <td><div class="actions">${paymentButton("propertyTax", f.propertyTaxPaid)}<button class="secondary" onclick="editFinance('${house.id}','propertyTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
         </tr>`));
@@ -2124,7 +2126,7 @@ function renderFinance() {
         <td>${escapeHtml(item.company || "")}<br><span class="small">Account/policy #: ${escapeHtml(item.account || "")}</span></td>
         <td>${linkHtml}</td>
         <td>${money(item.amount)}</td>
-        <td>Due ${escapeHtml(item.due || "")}</td>
+        <td><span class="due-date">Due ${escapeHtml(item.due || "")}</span></td>
         <td class="status ${st.key}">${st.text}</td>
         <td><div class="actions">${item.paid === "paid" ? `<button class="light" onclick="markFinanceItemUnpaid('${item.id}')">Mark not paid</button>` : `<button class="light" onclick="markFinanceItemPaid('${item.id}')">Mark paid</button>`}<button class="secondary" onclick="editFinanceItem('${item.id}')">Edit</button>${String(item.name||'').toLowerCase().includes('flood insurance') ? '' : `<button class="danger" onclick="deleteFinanceItem('${item.id}')">Delete</button>`}</div></td>
       </tr>`;
@@ -2425,7 +2427,7 @@ function renderOtherBills() {
 function otherBillRowHtml(b) {
   const s = otherBillStatus(b);
   const link = b.login ? `<a href="${escapeHtml(b.login)}" target="_blank" rel="noopener">Open login</a>` : "";
-  return `<tr><td><b>${escapeHtml(b.type || "")}</b></td><td><b>${escapeHtml(b.provider || "")}</b><br><span class="small">${link}</span></td><td>${escapeHtml(b.account || "")}</td><td>${escapeHtml(b.statementDate || "")}</td><td><b>${money(b.amount)}</b></td><td>${escapeHtml(b.due || "")}</td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markOtherBillPaid('${b.id}')">Mark paid</button><button class="secondary" onclick="editOtherBill('${b.id}')">Edit</button><button class="danger" onclick="deleteOtherBill('${b.id}')">Delete</button></div></td></tr>`;
+  return `<tr><td><b>${escapeHtml(b.type || "")}</b></td><td><b>${escapeHtml(b.provider || "")}</b><br><span class="small">${link}</span></td><td>${escapeHtml(b.account || "")}</td><td>${escapeHtml(b.statementDate || "")}</td><td><b>${money(b.amount)}</b></td><td><span class="due-date">${escapeHtml(b.due || "")}</span></td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markOtherBillPaid('${b.id}')">Mark paid</button><button class="secondary" onclick="editOtherBill('${b.id}')">Edit</button><button class="danger" onclick="deleteOtherBill('${b.id}')">Delete</button></div></td></tr>`;
 }
 
 function openOtherBillModal() {
