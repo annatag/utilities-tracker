@@ -1055,6 +1055,7 @@ function makeFinanceRecord(houseId) {
     mortgageCompany: "",
     mortgageNumber: "",
     mortgageLogin: "",
+    mortgageVisible: "yes",
     mortgageAmount: 0,
     mortgageKeepSameAmountNextPeriod: "no",
     mortgageDueDay: 1,
@@ -1084,6 +1085,7 @@ function makeFinanceRecord(houseId) {
     insuranceCompany: "",
     insurancePolicyNumber: "",
     insuranceLogin: "",
+    insuranceVisible: "yes",
     insuranceStart: "",
     insuranceEnd: "",
     insuranceAmount: 0,
@@ -1093,6 +1095,7 @@ function makeFinanceRecord(houseId) {
     insurancePaidDate: "",
     insuranceFrequency: "annual",
     propertyTaxAgency: `${countyNameForHouse(houseId)} property tax`,
+    propertyTaxVisible: "yes",
     propertyTaxLogin: "",
     propertyTaxAmount: 0,
     propertyTaxKeepSameAmountNextPeriod: "no",
@@ -1115,6 +1118,9 @@ function normalizeFinanceRecord(record) {
   record.touristFrequency = "monthly";
   record.insuranceFrequency = "annual";
   record.propertyTaxFrequency = "annual";
+  record.mortgageVisible = record.mortgageVisible || "yes";
+  record.insuranceVisible = record.insuranceVisible || "yes";
+  record.propertyTaxVisible = record.propertyTaxVisible || "yes";
   record.mortgageKeepSameAmountNextPeriod = record.mortgageKeepSameAmountNextPeriod || "no";
   record.salesKeepSameAmountNextPeriod = record.salesKeepSameAmountNextPeriod || "no";
   record.touristKeepSameAmountNextPeriod = record.touristKeepSameAmountNextPeriod || "no";
@@ -1889,6 +1895,17 @@ function addNextFinanceItemFromPaidItem(item) {
 }
 
 
+function isFinanceRowVisible(f, rowType) {
+  if (!f) return false;
+  if (rowType === "mortgage") return f.mortgageVisible !== "no";
+  if (rowType === "salesTax") return f.salesVisible !== "no";
+  if (rowType === "touristTax") return f.touristVisible !== "no";
+  if (rowType === "insurance") return f.insuranceVisible !== "no";
+  if (rowType === "propertyTax") return f.propertyTaxVisible !== "no";
+  return true;
+}
+
+
 function markFinanceRowPaid(houseId, rowType) {
   const f = state.finance.find(x => x.houseId === houseId);
   const [paidField, paidDateField] = financeRowPaymentFields(rowType);
@@ -1934,26 +1951,63 @@ function markFinanceItemUnpaid(id) {
 }
 
 
-function deleteFinanceRow(houseId,rowType){
-  if(!confirm('Delete this item?')) return;
-  const f = state.finance.find(x=>x.houseId===houseId);
-  if(!f) return;
+function deleteFinanceRow(houseId, rowType) {
+  if (!confirm("Delete this item?")) return;
+  const f = state.finance.find(x => x.houseId === houseId);
+  if (!f) return;
 
-  switch(rowType){
-    case 'mortgage':
-      f.mortgageCompany=''; f.mortgageNumber=''; f.mortgageLogin=''; f.mortgageAmount=0;
+  switch (rowType) {
+    case "mortgage":
+      f.mortgageVisible = "no";
+      f.mortgageCompany = "";
+      f.mortgageNumber = "";
+      f.mortgageLogin = "";
+      f.mortgageAmount = 0;
+      f.mortgageKeepSameAmountNextPeriod = "no";
+      f.mortgagePaid = "unpaid";
+      f.mortgagePaidDate = "";
+      f.mortgageNotes = "";
       break;
-    case 'salesTax':
-      f.salesVisible='no';
+    case "salesTax":
+      f.salesVisible = "no";
+      f.salesTaxable = 0;
+      f.salesKeepSameAmountNextPeriod = "no";
+      f.salesPaid = "unpaid";
+      f.salesPaidDate = "";
+      f.salesNotes = "";
       break;
-    case 'touristTax':
-      f.touristVisible='no';
+    case "touristTax":
+      f.touristVisible = "no";
+      f.touristTaxable = 0;
+      f.touristKeepSameAmountNextPeriod = "no";
+      f.touristPaid = "unpaid";
+      f.touristPaidDate = "";
+      f.touristNotes = "";
       break;
-    case 'insurance':
-      f.insuranceCompany=''; f.insurancePolicyNumber=''; f.insuranceAmount=0; f.insuranceDue='';
+    case "insurance":
+      f.insuranceVisible = "no";
+      f.insuranceCompany = "";
+      f.insurancePolicyNumber = "";
+      f.insuranceLogin = "";
+      f.insuranceStart = "";
+      f.insuranceEnd = "";
+      f.insuranceAmount = 0;
+      f.insuranceKeepSameAmountNextPeriod = "no";
+      f.insuranceDue = "";
+      f.insurancePaid = "unpaid";
+      f.insurancePaidDate = "";
+      f.insuranceNotes = "";
       break;
-    case 'propertyTax':
-      f.propertyTaxAgency=''; f.propertyTaxAmount=0; f.propertyTaxDue='';
+    case "propertyTax":
+      f.propertyTaxVisible = "no";
+      f.propertyTaxAgency = "";
+      f.propertyTaxLogin = "";
+      f.propertyTaxAmount = 0;
+      f.propertyTaxKeepSameAmountNextPeriod = "no";
+      f.propertyTaxDue = "";
+      f.propertyTaxPaid = "unpaid";
+      f.propertyTaxPaidDate = "";
+      f.propertyTaxNotes = "";
       break;
   }
   saveData();
@@ -2017,7 +2071,7 @@ function renderFinance() {
       ? `<button class="light" onclick="markFinanceRowUnpaid('${house.id}','${rowType}')">Mark not paid</button>`
       : `<button class="light" onclick="markFinanceRowPaid('${house.id}','${rowType}')">Mark paid</button>`;
 
-    if (allowedByStatus(f.mortgagePaid, mortgageSt)) {
+    if (isFinanceRowVisible(f, "mortgage") && allowedByStatus(f.mortgagePaid, mortgageSt)) {
       monthlyRows.push(financeTableRow({
         house: houseDisplayName(house), item: "Mortgage", company: `${f.mortgageCompany || ""} ${f.mortgageNumber || ""}`, login: f.mortgageLogin ? "Login" : "", amount: Number(f.mortgageAmount || 0), due: mortgageDue, status: mortgageSt.text, statusKey: mortgageSt.key
       }, `
@@ -2033,7 +2087,7 @@ function renderFinance() {
         </tr>`));
     }
 
-    if (f.salesVisible !== "no" && allowedByStatus(f.salesPaid, salesSt)) {
+    if (isFinanceRowVisible(f, "salesTax") && allowedByStatus(f.salesPaid, salesSt)) {
       monthlyRows.push(financeTableRow({
         house: houseDisplayName(house), item: `Florida Sales Tax ${f.salesFiled || ""}`, company: f.salesAgency || "Florida Sales Tax", login: f.salesLogin ? "Login" : "", amount: salesTaxAmount(f.salesTaxable), due: salesDue, status: salesSt.text, statusKey: salesSt.key
       }, `
@@ -2049,7 +2103,7 @@ function renderFinance() {
         </tr>`));
     }
 
-    if (f.touristVisible !== "no" && allowedByStatus(f.touristPaid, touristSt)) {
+    if (isFinanceRowVisible(f, "touristTax") && allowedByStatus(f.touristPaid, touristSt)) {
       monthlyRows.push(financeTableRow({
         house: houseDisplayName(house), item: `Tourist Tax ${f.touristFiled || ""}`, company: f.touristAgency || "", login: f.touristLogin ? "Login" : "", amount: touristTaxAmount(f.touristTaxable), due: touristDue, status: touristSt.text, statusKey: touristSt.key
       }, `
@@ -2065,7 +2119,7 @@ function renderFinance() {
         </tr>`));
     }
 
-    if (allowedByStatus(f.insurancePaid, insuranceSt)) {
+    if (isFinanceRowVisible(f, "insurance") && allowedByStatus(f.insurancePaid, insuranceSt)) {
       annualRows.push(financeTableRow({
         house: houseDisplayName(house), item: "Hazardous Insurance", company: `${f.insuranceCompany || ""} ${f.insurancePolicyNumber || ""}`, login: f.insuranceLogin ? "Login" : "", amount: Number(f.insuranceAmount || 0), due: f.insuranceDue || "", status: insuranceSt.text, statusKey: insuranceSt.key
       }, `
@@ -2081,7 +2135,7 @@ function renderFinance() {
         </tr>`));
     }
 
-    if (allowedByStatus(f.propertyTaxPaid, propertyTaxSt)) {
+    if (isFinanceRowVisible(f, "propertyTax") && allowedByStatus(f.propertyTaxPaid, propertyTaxSt)) {
       annualRows.push(financeTableRow({
         house: houseDisplayName(house), item: "Property Taxes", company: f.propertyTaxAgency || "", login: f.propertyTaxLogin ? "County tax page" : "", amount: Number(f.propertyTaxAmount || 0), due: f.propertyTaxDue || "", status: propertyTaxSt.text, statusKey: propertyTaxSt.key
       }, `
@@ -2333,18 +2387,37 @@ function saveFinance(e) {
   e.preventDefault();
   const houseId = financeHouse.value;
   const existing = state.finance.find(f => f.houseId === houseId) || {};
+  const mortgageCompany = finMortgageCompany.value.trim();
+  const mortgageNumber = finMortgageNumber.value.trim();
+  const mortgageLogin = finMortgageLogin.value.trim();
+  const mortgageNotes = finMortgageNotes.value.trim();
+  const mortgageAmount = Number(finMortgageAmount.value || 0);
+  const insuranceCompany = finInsuranceCompany.value.trim();
+  const insurancePolicyNumber = finInsurancePolicyNumber.value.trim();
+  const insuranceLogin = finInsuranceLogin.value.trim();
+  const insuranceNotes = finInsuranceNotes.value.trim();
+  const insuranceAmount = Number(finInsuranceAmount.value || 0);
+  const propertyTaxAgency = finPropertyTaxAgency.value.trim();
+  const propertyTaxLogin = finPropertyTaxLogin.value.trim();
+  const propertyTaxNotes = finPropertyTaxNotes.value.trim();
+  const propertyTaxAmount = Number(finPropertyTaxAmount.value || 0);
+  const mortgageHasData = Boolean(mortgageCompany || mortgageNumber || mortgageLogin || mortgageNotes || mortgageAmount);
+  const insuranceHasData = Boolean(insuranceCompany || insurancePolicyNumber || insuranceLogin || finInsuranceStart.value || finInsuranceEnd.value || finInsuranceDue.value || insuranceNotes || insuranceAmount);
+  const defaultPropertyTaxAgency = `${countyNameForHouse(houseId)} property tax`;
+  const propertyTaxHasData = Boolean(propertyTaxLogin || finPropertyTaxDue.value || propertyTaxNotes || propertyTaxAmount || (propertyTaxAgency && propertyTaxAgency !== defaultPropertyTaxAgency));
   const record = {
     houseId,
-    mortgageCompany: finMortgageCompany.value.trim(),
-    mortgageNumber: finMortgageNumber.value.trim(),
-    mortgageLogin: finMortgageLogin.value.trim(),
-    mortgageAmount: Number(finMortgageAmount.value || 0),
+    mortgageVisible: existing.mortgageVisible === "no" && !mortgageHasData ? "no" : "yes",
+    mortgageCompany,
+    mortgageNumber,
+    mortgageLogin,
+    mortgageAmount,
     mortgageKeepSameAmountNextPeriod: finMortgageKeepSameAmount.value,
     mortgageDueDay: Number(finMortgageDueDay.value || 1),
     mortgagePaid: finMortgagePaid.value,
     mortgagePaidDate: finMortgagePaid.value === "paid" ? finMortgagePaidDate.value : "",
     mortgageFrequency: "monthly",
-    mortgageNotes: finMortgageNotes.value.trim(),
+    mortgageNotes,
     salesVisible: finSalesVisible.value,
     salesAgency: finSalesAgency.value.trim() || "Florida Sales Tax",
     salesLogin: finSalesLogin.value.trim(),
@@ -2367,27 +2440,29 @@ function saveFinance(e) {
     touristDueDay: Number(finTouristDueDay.value || 20),
     touristFrequency: "monthly",
     touristNotes: finTouristNotes.value.trim(),
-    insuranceCompany: finInsuranceCompany.value.trim(),
-    insurancePolicyNumber: finInsurancePolicyNumber.value.trim(),
-    insuranceLogin: finInsuranceLogin.value.trim(),
+    insuranceVisible: existing.insuranceVisible === "no" && !insuranceHasData ? "no" : "yes",
+    insuranceCompany,
+    insurancePolicyNumber,
+    insuranceLogin,
     insuranceStart: finInsuranceStart.value,
     insuranceEnd: finInsuranceEnd.value,
-    insuranceAmount: Number(finInsuranceAmount.value || 0),
+    insuranceAmount,
     insuranceKeepSameAmountNextPeriod: finInsuranceKeepSameAmount.value,
     insuranceDue: finInsuranceDue.value,
     insurancePaid: finInsurancePaid.value,
     insurancePaidDate: finInsurancePaid.value === "paid" ? (existing.insurancePaidDate || "") : "",
     insuranceFrequency: "annual",
-    insuranceNotes: finInsuranceNotes.value.trim(),
-    propertyTaxAgency: finPropertyTaxAgency.value.trim() || `${countyNameForHouse(houseId)} property tax`,
-    propertyTaxLogin: finPropertyTaxLogin.value.trim(),
-    propertyTaxAmount: Number(finPropertyTaxAmount.value || 0),
+    insuranceNotes,
+    propertyTaxVisible: existing.propertyTaxVisible === "no" && !propertyTaxHasData ? "no" : "yes",
+    propertyTaxAgency: propertyTaxAgency || defaultPropertyTaxAgency,
+    propertyTaxLogin,
+    propertyTaxAmount,
     propertyTaxKeepSameAmountNextPeriod: finPropertyTaxKeepSameAmount.value,
     propertyTaxDue: finPropertyTaxDue.value,
     propertyTaxPaid: finPropertyTaxPaid.value,
     propertyTaxPaidDate: finPropertyTaxPaid.value === "paid" ? (existing.propertyTaxPaidDate || "") : "",
     propertyTaxFrequency: "annual",
-    propertyTaxNotes: finPropertyTaxNotes.value.trim(),
+    propertyTaxNotes,
     notes: finNotes.value.trim()
   };
   normalizeFinanceRecord(record);
