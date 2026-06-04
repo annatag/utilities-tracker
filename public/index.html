@@ -1707,6 +1707,10 @@ function saveUtility(e) {
   state.utilities = utilityEditId.value ? state.utilities.map(u => u.id === utility.id ? utility : u) : [...state.utilities, utility];
   utilityDialog.close(); saveData();
 }
+function shouldAutoCreateNextUtilityOnPaid(source) {
+  return source && source.houseId !== "other" && !isOtherBillType(source.type);
+}
+
 function markUtilityPaid(id) {
   const u = state.utilities.find(x => x.id === id); if (!u) return;
   if (isInactiveUtility(u)) {
@@ -1715,7 +1719,7 @@ function markUtilityPaid(id) {
   }
   u.paid = "paid";
   u.paidDate = todayISO();
-  addNextUtilityFrom(u);
+  if (shouldAutoCreateNextUtilityOnPaid(u)) addNextUtilityFrom(u);
   saveData();
 }
 function markUtilityUnpaid(id) {
