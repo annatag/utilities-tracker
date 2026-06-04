@@ -550,8 +550,13 @@ function isInsuranceType(type) {
 
 function utilityBillingFrequency(u) {
   if (!u) return "monthly";
+
+  if (u.houseId === "other" || isOtherBillType(u.type)) {
+    return u.frequency === "annual" ? "annual" : "monthly";
+  }
+
   if (isInsuranceType(u.type)) return "annual";
-  return u.houseId === "other" && u.frequency === "annual" ? "annual" : "monthly";
+  return "monthly";
 }
 
 function normalizedFinanceFrequency(value, fallback = "monthly") {
@@ -1702,7 +1707,7 @@ function saveUtility(e) {
     alert("Enter a custom bill type.");
     return;
   }
-  const frequency = isInsuranceType(type) ? "annual" : (houseId === "other" ? utilityFrequency.value : "monthly");
+  const frequency = houseId === "other" ? utilityFrequency.value : (isInsuranceType(type) ? "annual" : "monthly");
   const utility = { id: utilityEditId.value || uid(), houseId, type, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), keepSameAmountNextPeriod:utilityKeepSameAmount.value, frequency, due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
   state.utilities = utilityEditId.value ? state.utilities.map(u => u.id === utility.id ? utility : u) : [...state.utilities, utility];
   utilityDialog.close(); saveData();
