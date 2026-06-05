@@ -353,8 +353,8 @@
         <div><label>Last 4 numbers</label><input id="creditCardLast4" maxlength="4" inputmode="numeric" placeholder="5836"></div>
         <div><label>Annual fee</label><input id="creditCardAnnualFee" type="number" step="0.01" min="0" placeholder="0.00"></div>
         <div><label>Interest rate</label><input id="creditCardInterestRate" placeholder="0%, 24.99%, 0% until Feb 2028..."></div>
-        <div><label>Due date / fee date</label><input id="creditCardDueDate" placeholder="August 1, April 1, 2026-08-01..."></div>
-        <div><label>Date opened</label><input id="creditCardOpenedDate" placeholder="April 30, 2025 or May 2026"></div>
+        <div><label>Due date / fee date</label><input id="creditCardDueDate" type="date"></div>
+        <div><label>Date opened</label><input id="creditCardOpenedDate" type="date"></div>
         <div><label>Status</label><select id="creditCardStatus"><option value="active">Active</option><option value="closed">Closed</option></select></div>
         <div><label>Business / property name</label><input id="creditCardBusinessName" placeholder="Venice Pines, Drysdale LLC..."></div>
         <div class="full"><label>Notes, points, close/reapply reminders</label><textarea id="creditCardNotes" placeholder="Bonus points, cancellation plans, reminders..."></textarea></div>
@@ -582,6 +582,31 @@ function uid() { return crypto.randomUUID ? crypto.randomUUID() : String(Date.no
 function parseDate(s) { const [y,m,d]=s.split("-").map(Number); return new Date(y, m-1, d); }
 function daysUntil(s) { if (!s) return 9999; return Math.ceil((parseDate(s) - parseDate(todayISO())) / 86400000); }
 function money(n) { return Number(n || 0).toLocaleString(undefined, {style:"currency", currency:"USD"}); }
+function formatISODateForDisplay(s) {
+  if (!s) return "";
+  const date = parseDate(s);
+  if (Number.isNaN(date.getTime())) return s;
+  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+function normalizeDatePickerValue(value, fallbackYear = new Date().getFullYear()) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+  const monthMatch = raw.match(/^(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|sept(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)(?:\s+(\d{1,2}))?(?:,?\s+(\d{4}))?$/i);
+  if (monthMatch) {
+    const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+    const month = monthNames.findIndex(name => monthMatch[1].toLowerCase().startsWith(name));
+    const day = Number(monthMatch[2] || 1);
+    const year = Number(monthMatch[3] || fallbackYear);
+    const parsed = new Date(year, month, day);
+    if (parsed.getFullYear() === year && parsed.getMonth() === month && parsed.getDate() === day) return parsed.toISOString().slice(0,10);
+  }
+
+  const parsed = new Date(raw);
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0,10);
+  return "";
+}
 
 function houseDisplayName(house) {
   if (!house) return "";
@@ -773,7 +798,7 @@ function setUtilityColumnFilter(key, value) {
     const filter = document.querySelector(`.column-filter[data-filter-key="${key}"]`);
     if (!filter) return;
     filter.focus();
-    if (filter instanceof HTMLInputElement) {
+    if (filter instanceof HTMLInputElement && ["", "text", "search", "url", "tel", "password"].includes(filter.type)) {
       const end = filter.value.length;
       filter.setSelectionRange(end, end);
     }
@@ -827,10 +852,10 @@ const CREDIT_CARD_TABLE_COLUMNS = [
   { key: "owner", label: "Owner", filter: "select", options: ["Anna", "Lubo", "Anna + Lubo"] },
   { key: "type", label: "Business / Personal", filter: "select", options: ["Business", "Personal"] },
   { key: "last4", label: "Last 4", filter: "text" },
-  { key: "dueDate", label: "Due / fee date", filter: "text" },
+  { key: "dueDate", label: "Due / fee date", filter: "text", type: "date" },
   { key: "annualFee", label: "Annual fee", filter: "text", type: "number" },
   { key: "interestRate", label: "Interest rate", filter: "text" },
-  { key: "openedDate", label: "Opened", filter: "text" },
+  { key: "openedDate", label: "Opened", filter: "text", type: "date" },
   { key: "notes", label: "Notes", filter: "text" },
   { key: "status", label: "Status", filter: "select", options: ["Active", "Closed"] }
 ];
@@ -918,7 +943,7 @@ function setConfiguredColumnFilter(configName, key, value) {
     const filter = document.querySelector(`.column-filter[data-table="${configName}"][data-filter-key="${key}"]`);
     if (!filter) return;
     filter.focus();
-    if (filter instanceof HTMLInputElement) {
+    if (filter instanceof HTMLInputElement && ["", "text", "search", "url", "tel", "password"].includes(filter.type)) {
       const end = filter.value.length;
       filter.setSelectionRange(end, end);
     }
@@ -943,7 +968,9 @@ function configuredHeaderFilterHtml(configName, column) {
     ).join("");
     return `<select class="column-filter" data-table="${configName}" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}" onchange="${config.filterFn}('${column.key}', this.value)" onclick="event.stopPropagation()">${options}</select>`;
   }
-  return `<input class="column-filter" data-table="${configName}" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}" placeholder="Filter" value="${value}" oninput="${config.filterFn}('${column.key}', this.value)" onclick="event.stopPropagation()" />`;
+  const inputType = column.type === "date" ? "date" : "text";
+  const placeholder = column.type === "date" ? "" : ' placeholder="Filter"';
+  return `<input type="${inputType}" class="column-filter" data-table="${configName}" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}"${placeholder} value="${value}" oninput="${config.filterFn}('${column.key}', this.value)" onclick="event.stopPropagation()" />`;
 }
 
 function configuredTableHeaderHtml(configName, includeActions = true) {
@@ -1304,8 +1331,8 @@ function normalizeCreditCardRecord(card) {
   card.owner = card.owner || "Anna";
   card.type = card.type || "Personal";
   card.last4 = card.last4 || "";
-  card.dueDate = card.dueDate || "";
-  card.openedDate = card.openedDate || "";
+  card.dueDate = normalizeDatePickerValue(card.dueDate);
+  card.openedDate = normalizeDatePickerValue(card.openedDate);
   card.annualFee = Number(card.annualFee || 0);
   card.interestRate = card.interestRate || "";
   card.businessName = card.businessName || "";
@@ -2705,7 +2732,9 @@ function creditCardTableRow(card) {
       status
     },
     displayValues: {
-      annualFee: money(card.annualFee)
+      dueDate: formatISODateForDisplay(card.dueDate),
+      annualFee: money(card.annualFee),
+      openedDate: formatISODateForDisplay(card.openedDate)
     },
     sortValues: {
       bank: card.bank || "",
@@ -2733,10 +2762,10 @@ function creditCardRowHtml(card) {
     <td>${escapeHtml(card.owner || "")}</td>
     <td>${escapeHtml(card.type || "")}</td>
     <td>${escapeHtml(card.last4 || "")}</td>
-    <td>${escapeHtml(card.dueDate || "")}</td>
+    <td>${escapeHtml(formatISODateForDisplay(card.dueDate))}</td>
     <td>${money(card.annualFee)}</td>
     <td>${escapeHtml(card.interestRate || "")}</td>
-    <td>${escapeHtml(card.openedDate || "")}</td>
+    <td>${escapeHtml(formatISODateForDisplay(card.openedDate))}</td>
     <td>${notes}</td>
     <td class="status ${statusClass}">${creditCardStatusText(card)}</td>
     <td><div class="actions"><button class="secondary" onclick="editCreditCard('${card.id}')">Edit</button><button class="danger" onclick="deleteCreditCard('${card.id}')">Delete</button></div></td>
