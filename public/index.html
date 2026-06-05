@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>House Maintenance, Utilities, Contacts & Finance Tracker - v6 Combined Contacts</title>
+  <title>House Maintenance, Utilities, Contacts, Finance & Credit Card Tracker</title>
   <style>
     :root { --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --accent:#2563eb; --danger:#dc2626; --warn:#d97706; --ok:#059669; --inactive:#6b7280; }
     * { box-sizing: border-box; }
@@ -45,7 +45,11 @@
     .utility-table th:nth-child(8), .utility-table td:nth-child(8) { min-width:130px; }
     .utility-table th:nth-child(9), .utility-table td:nth-child(9) { min-width:150px; }
     .utility-table th:nth-child(10), .utility-table td:nth-child(10) { min-width:210px; }
-    #financeApp table td:nth-child(5) { font-weight:800; }
+    .credit-card-table { min-width:1100px; table-layout:auto; }
+    .credit-card-table th:nth-child(1), .credit-card-table td:nth-child(1) { min-width:145px; }
+    .credit-card-table th:nth-child(2), .credit-card-table td:nth-child(2) { min-width:220px; }
+    .credit-card-table th:nth-child(9), .credit-card-table td:nth-child(9) { min-width:240px; }
+    #financeApp table td:nth-child(5), #creditCardsApp table td:nth-child(7) { font-weight:800; }
     th, td { text-align:left; padding:10px 8px; border-top:1px solid var(--border); vertical-align:top; font-size:14px; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
     .utility-table th { vertical-align:bottom; }
@@ -86,7 +90,7 @@
 <body>
   <header>
     <h1>House Maintenance, Utilities, Contacts & Finance Tracker</h1>
-    <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data syncs to Cloudflare KV when cloud storage is connected and falls back to this browser when offline.</div>
+    <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, tourist tax, and credit card payments. Data syncs to Cloudflare KV when cloud storage is connected and falls back to this browser when offline.</div>
   </header>
 
 
@@ -96,6 +100,7 @@
       <button id="maintTab" class="tab" onclick="showView('maintenance')">Maintenance</button>
       <button id="utilTab" class="tab active" onclick="showView('utilities')">Utility bills</button>
       <button id="financeTab" class="tab" onclick="showView('finance')">Mortgage / Taxes / Insurance</button>
+      <button id="creditCardsTab" class="tab" onclick="showView('creditCards')">Credit Cards</button>
       <button id="contactsTab" class="tab" onclick="showView('contacts')">Contacts</button>
     </div>
 
@@ -186,6 +191,35 @@
         <div style="display:flex; gap:8px; flex-wrap:wrap;"><button onclick="openFinanceModal()">Edit selected</button><button class="light" onclick="openFinanceItemModal()">+ Add item</button></div>
       </section>
       <div id="financeApp"></div>
+    </section>
+
+
+    <section id="creditCardsView" style="display:none;">
+      <section class="toolbar">
+        <div>
+          <label for="creditCardSearch">Search credit cards</label>
+          <input id="creditCardSearch" placeholder="Chase, Anna, last 4, points, notes..." />
+        </div>
+        <div>
+          <label for="creditCardOwnerFilter">Owner</label>
+          <select id="creditCardOwnerFilter">
+            <option value="all">All owners</option>
+            <option>Anna</option>
+            <option>Lubo</option>
+            <option>Anna + Lubo</option>
+          </select>
+        </div>
+        <div>
+          <label for="creditCardStatusFilter">Status</label>
+          <select id="creditCardStatusFilter">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+        <button onclick="openCreditCardModal()">+ Add card</button>
+      </section>
+      <div id="creditCardsApp" class="card"></div>
     </section>
 
 
@@ -292,6 +326,29 @@
     </form>
   </dialog>
 
+  <dialog id="creditCardDialog">
+    <form method="dialog" class="modal" onsubmit="saveCreditCard(event)">
+      <h3 id="creditCardModalTitle">Add credit card</h3>
+      <input type="hidden" id="creditCardEditId">
+      <div class="form-grid">
+        <div><label>Bank name</label><input id="creditCardBank" required placeholder="Chase, Barclays, Wells Fargo..."></div>
+        <div><label>Card name</label><input id="creditCardName" required placeholder="Ink Business Unlimited"></div>
+        <div><label>Owner</label><select id="creditCardOwner"><option>Anna</option><option>Lubo</option><option>Anna + Lubo</option></select></div>
+        <div><label>Business or personal?</label><select id="creditCardType"><option>Business</option><option>Personal</option></select></div>
+        <div><label>Last 4 numbers</label><input id="creditCardLast4" maxlength="4" inputmode="numeric" placeholder="5836"></div>
+        <div><label>Annual fee</label><input id="creditCardAnnualFee" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label>Due date / fee date</label><input id="creditCardDueDate" placeholder="August 1, April 1, 2026-08-01..."></div>
+        <div><label>Date opened</label><input id="creditCardOpenedDate" placeholder="April 30, 2025 or May 2026"></div>
+        <div><label>Status</label><select id="creditCardStatus"><option value="active">Active</option><option value="closed">Closed</option></select></div>
+        <div><label>Business / property name</label><input id="creditCardBusinessName" placeholder="Venice Pines, Drysdale LLC..."></div>
+        <div class="full"><label>Notes, points, close/reapply reminders</label><textarea id="creditCardNotes" placeholder="Bonus points, cancellation plans, reminders..."></textarea></div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button type="button" class="light" onclick="creditCardDialog.close()">Cancel</button>
+        <button type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
 
 
 
@@ -748,18 +805,33 @@ const CONTACT_TABLE_COLUMNS = [
   { key: "emailPhone", label: "Email / phone", filter: "text" },
   { key: "address", label: "Address", filter: "text" }
 ];
+const CREDIT_CARD_TABLE_COLUMNS = [
+  { key: "bank", label: "Bank", filter: "text" },
+  { key: "card", label: "Card", filter: "text" },
+  { key: "owner", label: "Owner", filter: "select", options: ["Anna", "Lubo", "Anna + Lubo"] },
+  { key: "type", label: "Business / Personal", filter: "select", options: ["Business", "Personal"] },
+  { key: "last4", label: "Last 4", filter: "text" },
+  { key: "dueDate", label: "Due / fee date", filter: "text" },
+  { key: "annualFee", label: "Annual fee", filter: "text", type: "number" },
+  { key: "openedDate", label: "Opened", filter: "text" },
+  { key: "notes", label: "Notes", filter: "text" },
+  { key: "status", label: "Status", filter: "select", options: ["Active", "Closed"] }
+];
 
 const maintenanceTableSort = { key: "due", dir: "asc" };
 const financeTableSort = { key: "due", dir: "asc" };
 const contactTableSort = { key: "house", dir: "asc" };
+const creditCardTableSort = { key: "bank", dir: "asc" };
 const maintenanceTableFilters = Object.fromEntries(MAINTENANCE_TABLE_COLUMNS.map(column => [column.key, ""]));
 const financeTableFilters = Object.fromEntries(FINANCE_TABLE_COLUMNS.map(column => [column.key, ""]));
 const contactTableFilters = Object.fromEntries(CONTACT_TABLE_COLUMNS.map(column => [column.key, ""]));
+const creditCardTableFilters = Object.fromEntries(CREDIT_CARD_TABLE_COLUMNS.map(column => [column.key, ""]));
 
 const TABLE_CONFIGS = {
   maintenance: { columns: MAINTENANCE_TABLE_COLUMNS, sort: maintenanceTableSort, filters: maintenanceTableFilters, sortFn: "setMaintenanceTableSort", filterFn: "setMaintenanceColumnFilter" },
   finance: { columns: FINANCE_TABLE_COLUMNS, sort: financeTableSort, filters: financeTableFilters, sortFn: "setFinanceTableSort", filterFn: "setFinanceColumnFilter" },
-  contacts: { columns: CONTACT_TABLE_COLUMNS, sort: contactTableSort, filters: contactTableFilters, sortFn: "setContactTableSort", filterFn: "setContactColumnFilter" }
+  contacts: { columns: CONTACT_TABLE_COLUMNS, sort: contactTableSort, filters: contactTableFilters, sortFn: "setContactTableSort", filterFn: "setContactColumnFilter" },
+  creditCards: { columns: CREDIT_CARD_TABLE_COLUMNS, sort: creditCardTableSort, filters: creditCardTableFilters, sortFn: "setCreditCardTableSort", filterFn: "setCreditCardColumnFilter" }
 };
 
 function tableColumnFilterMatches(row, column, filterValue) {
@@ -839,9 +911,11 @@ function setConfiguredColumnFilter(configName, key, value) {
 function setMaintenanceTableSort(key) { setConfiguredTableSort("maintenance", key); }
 function setFinanceTableSort(key) { setConfiguredTableSort("finance", key); }
 function setContactTableSort(key) { setConfiguredTableSort("contacts", key); }
+function setCreditCardTableSort(key) { setConfiguredTableSort("creditCards", key); }
 function setMaintenanceColumnFilter(key, value) { setConfiguredColumnFilter("maintenance", key, value); }
 function setFinanceColumnFilter(key, value) { setConfiguredColumnFilter("finance", key, value); }
 function setContactColumnFilter(key, value) { setConfiguredColumnFilter("contacts", key, value); }
+function setCreditCardColumnFilter(key, value) { setConfiguredColumnFilter("creditCards", key, value); }
 
 function configuredHeaderFilterHtml(configName, column) {
   const config = TABLE_CONFIGS[configName];
@@ -1179,6 +1253,49 @@ function makeDefaultOtherBills() {
   }));
 }
 
+
+function makeDefaultCreditCards() {
+  return [
+    {id:uid(), bank:"Chase", name:"Ink Business Unlimited", owner:"Anna", type:"Business", last4:"5836", dueDate:"", openedDate:"", annualFee:0, businessName:"Venice Pines", status:"active", notes:"No annual fee."},
+    {id:uid(), bank:"Chase", name:"Ink Business Preferred", owner:"Anna", type:"Business", last4:"1412", dueDate:"", openedDate:"", annualFee:95, businessName:"Corals Realty", status:"closed", notes:"CLOSED."},
+    {id:uid(), bank:"Chase", name:"Southwest Business Rapid Rewards", owner:"Anna", type:"Business", last4:"7512", dueDate:"April 1", openedDate:"", annualFee:199, businessName:"Drysdale", status:"closed", notes:"Membership fee. Keep till April 1 to get the 9K bonus points and then cancel. CLOSED on April 7, 2026. Reapply for new points after April 1, 2027."},
+    {id:uid(), bank:"Chase", name:"Amazon Chase", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee."},
+    {id:uid(), bank:"Chase", name:"Southwest Plus", owner:"Anna", type:"Personal", last4:"8665", dueDate:"August 1", openedDate:"", annualFee:69, businessName:"", status:"active", notes:"3K anniversary points."},
+    {id:uid(), bank:"Chase", name:"Sapphire Reserve", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"May 2026", annualFee:795, businessName:"", status:"active", notes:"Once in a lifetime."},
+    {id:uid(), bank:"Chase", name:"Southwest Rapid Rewards", owner:"Lubo", type:"Personal", last4:"", dueDate:"August 1", openedDate:"", annualFee:99, businessName:"", status:"active", notes:"Wait for the points to show up before closing."},
+    {id:uid(), bank:"Chase", name:"Ink Unlimited", owner:"Lubo", type:"Business", last4:"1397", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee."},
+    {id:uid(), bank:"Chase", name:"Ink Business Preferred", owner:"Lubo", type:"Business", last4:"1943", dueDate:"June 1", openedDate:"", annualFee:99, businessName:"", status:"closed", notes:"CLOSED 1/22/26."},
+    {id:uid(), bank:"Chase", name:"Ink Hyatt", owner:"Lubo", type:"Business", last4:"", dueDate:"", openedDate:"February 2026", annualFee:95, businessName:"", status:"active", notes:""},
+    {id:uid(), bank:"Barclays", name:"AAdvantage® Aviator® Red Mastercard", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"April 30, 2025", annualFee:99, businessName:"", status:"closed", notes:"5K points. CLOSED beginning of 2026."},
+    {id:uid(), bank:"Barclays", name:"American", owner:"Lubo", type:"Personal", last4:"", dueDate:"May 30", openedDate:"", annualFee:99, businessName:"", status:"closed", notes:"11K points. CLOSED."},
+    {id:uid(), bank:"Barclays", name:"Wyndham", owner:"Lubo", type:"Personal", last4:"", dueDate:"May 30", openedDate:"", annualFee:99, businessName:"", status:"active", notes:"30K points. Close after the bonus points."},
+    {id:uid(), bank:"Capital One", name:"Venture X", owner:"Lubo", type:"Personal", last4:"", dueDate:"November", openedDate:"", annualFee:395, businessName:"", status:"active", notes:"47K points. Used them for travel."},
+    {id:uid(), bank:"Wells Fargo", name:"Signify Business Cash", owner:"Anna", type:"Business", last4:"2508", dueDate:"", openedDate:"", annualFee:0, businessName:"Drysdale LLC", status:"active", notes:""},
+    {id:uid(), bank:"Wells Fargo", name:"Reflect Visa", owner:"Anna", type:"Personal", last4:"3121", dueDate:"", openedDate:"April 5, 2026", annualFee:0, businessName:"", status:"active", notes:"17K. 0% for 21 months, until Feb 2028."},
+    {id:uid(), bank:"Wells Fargo", name:"Reflect Visa", owner:"Lubo", type:"Personal", last4:"5844", dueDate:"", openedDate:"April 5, 2026", annualFee:0, businessName:"", status:"active", notes:"11K. 0% for 21 months, until Feb 2028."},
+    {id:uid(), bank:"US Bank", name:"Platinum", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:""},
+    {id:uid(), bank:"Citi", name:"Mastercard", owner:"Anna + Lubo", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"On Lubo account."},
+    {id:uid(), bank:"Discover", name:"Discover", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee. Will change to Wells Fargo."}
+  ];
+}
+
+function normalizeCreditCardRecord(card) {
+  if (!card || typeof card !== "object") return card;
+  card.id = card.id || uid();
+  card.bank = card.bank || "";
+  card.name = card.name || "";
+  card.owner = card.owner || "Anna";
+  card.type = card.type || "Personal";
+  card.last4 = card.last4 || "";
+  card.dueDate = card.dueDate || "";
+  card.openedDate = card.openedDate || "";
+  card.annualFee = Number(card.annualFee || 0);
+  card.businessName = card.businessName || "";
+  card.status = card.status === "closed" ? "closed" : "active";
+  card.notes = card.notes || "";
+  return card;
+}
+
 function defaultData() {
   const today = todayISO();
   return {
@@ -1195,7 +1312,8 @@ function defaultData() {
       {id:uid(),houseId:"h3",category:"Water filter",name:"Whole-house water filter",due:today,every:6,unit:"months",notes:""},
       {id:uid(),houseId:"h4",category:"AC / HVAC",name:"Schedule AC maintenance",due:today,every:1,unit:"years",notes:""}
     ],
-    utilities: []
+    utilities: [],
+    creditCards: makeDefaultCreditCards()
   };
 }
 
@@ -1216,6 +1334,8 @@ function normalizeLoadedData(source) {
   if (!Array.isArray(data.contacts)) data.contacts = [];
   if (!Array.isArray(data.finance)) data.finance = [];
   if (!Array.isArray(data.financeItems)) data.financeItems = [];
+  if (!Array.isArray(data.creditCards)) data.creditCards = makeDefaultCreditCards();
+  data.creditCards.forEach(normalizeCreditCardRecord);
   normalizeFrequencies(data);
   return data;
 }
@@ -1270,7 +1390,7 @@ async function saveData(options = {}) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        app: "House Maintenance Utilities Contacts Finance Tracker",
+        app: "House Maintenance Utilities Contacts Finance Credit Card Tracker",
         updatedAt: new Date().toISOString(),
         data: state
       })
@@ -1314,11 +1434,13 @@ function showView(view) {
   utilitiesView.style.display = view === "utilities" ? "" : "none";
   financeView.style.display = view === "finance" ? "" : "none";
   contactsView.style.display = view === "contacts" ? "" : "none";
+  creditCardsView.style.display = view === "creditCards" ? "" : "none";
   otherBillsView.style.display = view === "otherBills" ? "" : "none";
   const tabStates = [
     [maintTab, view === "maintenance"],
     [utilTab, view === "utilities"],
     [financeTab, view === "finance"],
+    [creditCardsTab, view === "creditCards"],
     [contactsTab, view === "contacts"],
     [document.getElementById("otherBillsTab"), view === "otherBills"]
   ];
@@ -1402,6 +1524,7 @@ function render() {
   renderMaintenance();
   renderUtilities();
   renderFinance();
+  renderCreditCards();
   renderContacts();
   renderOtherBills();
 }
@@ -2542,6 +2665,163 @@ function deleteOtherBill(id) {
 }
 
 
+function creditCardStatusText(card) {
+  return card.status === "closed" ? "Closed" : "Active";
+}
+
+function creditCardTableRow(card) {
+  const status = creditCardStatusText(card);
+  const notes = `${card.businessName || ""} ${card.notes || ""}`.trim();
+  return {
+    values: {
+      bank: card.bank || "",
+      card: `${card.name || ""} ${card.businessName || ""}`,
+      owner: card.owner || "",
+      type: card.type || "",
+      last4: card.last4 || "",
+      dueDate: card.dueDate || "",
+      annualFee: Number(card.annualFee || 0),
+      openedDate: card.openedDate || "",
+      notes,
+      status
+    },
+    displayValues: {
+      annualFee: money(card.annualFee)
+    },
+    sortValues: {
+      bank: card.bank || "",
+      card: card.name || "",
+      owner: card.owner || "",
+      type: card.type || "",
+      dueDate: card.dueDate || "",
+      annualFee: Number(card.annualFee || 0),
+      openedDate: card.openedDate || "",
+      status
+    },
+    statusKey: card.status === "closed" ? "inactive" : "ok",
+    html: creditCardRowHtml(card)
+  };
+}
+
+function creditCardRowHtml(card) {
+  const statusClass = card.status === "closed" ? "inactive" : "ok";
+  const business = card.businessName ? `<br><span class="small">${escapeHtml(card.businessName)}</span>` : "";
+  const notes = card.notes ? `<span class="small">${escapeHtml(card.notes).replace(/\n/g, "<br>")}</span>` : "";
+  return `<tr>
+    <td><b>${escapeHtml(card.bank || "")}</b></td>
+    <td><b>${escapeHtml(card.name || "")}</b>${business}</td>
+    <td>${escapeHtml(card.owner || "")}</td>
+    <td>${escapeHtml(card.type || "")}</td>
+    <td>${escapeHtml(card.last4 || "")}</td>
+    <td>${escapeHtml(card.dueDate || "")}</td>
+    <td>${money(card.annualFee)}</td>
+    <td>${escapeHtml(card.openedDate || "")}</td>
+    <td>${notes}</td>
+    <td class="status ${statusClass}">${creditCardStatusText(card)}</td>
+    <td><div class="actions"><button class="secondary" onclick="editCreditCard('${card.id}')">Edit</button><button class="danger" onclick="deleteCreditCard('${card.id}')">Delete</button></div></td>
+  </tr>`;
+}
+
+function renderCreditCards() {
+  if (!Array.isArray(state.creditCards)) state.creditCards = makeDefaultCreditCards();
+  state.creditCards.forEach(normalizeCreditCardRecord);
+
+  const q = creditCardSearch.value.toLowerCase().trim();
+  const ownerFilter = creditCardOwnerFilter.value;
+  const statusFilter = creditCardStatusFilter.value;
+
+  let cards = state.creditCards.filter(card => {
+    const text = `${card.bank} ${card.name} ${card.owner} ${card.type} ${card.last4} ${card.dueDate} ${card.openedDate} ${card.annualFee} ${card.businessName} ${card.status} ${card.notes}`.toLowerCase();
+    const ownerMatch = ownerFilter === "all" || card.owner === ownerFilter;
+    const statusMatch = statusFilter === "all" || card.status === statusFilter;
+    return (!q || text.includes(q)) && ownerMatch && statusMatch;
+  });
+
+  const rows = prepareTableRows(cards.map(card => creditCardTableRow(card)), "creditCards");
+  const activeCount = state.creditCards.filter(card => card.status !== "closed").length;
+  const closedCount = state.creditCards.filter(card => card.status === "closed").length;
+  const visibleAnnualFees = cards.reduce((sum, card) => card.status === "closed" ? sum : sum + Number(card.annualFee || 0), 0);
+
+  creditCardsApp.innerHTML = `
+    <div class="house-title">
+      <h2>Credit card payments</h2>
+      <div class="summary"><span class="pill">${rows.length} visible card(s)</span><span class="pill">${activeCount} active</span><span class="pill">${closedCount} closed</span><span class="pill">${money(visibleAnnualFees)} visible active annual fees</span></div>
+    </div>
+    <div class="table-wrap"><table class="credit-card-table">
+      ${configuredTableHeaderHtml("creditCards")}
+      <tbody>${rows.length ? rows.map(row => row.html).join("") : `<tr><td colspan="11" class="small">No credit cards match the current filters.</td></tr>`}</tbody>
+    </table></div>`;
+}
+
+function openCreditCardModal() {
+  creditCardModalTitle.textContent = "Add credit card";
+  creditCardEditId.value = "";
+  creditCardBank.value = "";
+  creditCardName.value = "";
+  creditCardOwner.value = "Anna";
+  creditCardType.value = "Personal";
+  creditCardLast4.value = "";
+  creditCardAnnualFee.value = "";
+  creditCardDueDate.value = "";
+  creditCardOpenedDate.value = "";
+  creditCardStatus.value = "active";
+  creditCardBusinessName.value = "";
+  creditCardNotes.value = "";
+  creditCardDialog.showModal();
+}
+
+function editCreditCard(id) {
+  const card = state.creditCards.find(x => x.id === id);
+  if (!card) return;
+  normalizeCreditCardRecord(card);
+  creditCardModalTitle.textContent = "Edit credit card";
+  creditCardEditId.value = card.id;
+  creditCardBank.value = card.bank || "";
+  creditCardName.value = card.name || "";
+  creditCardOwner.value = card.owner || "Anna";
+  creditCardType.value = card.type || "Personal";
+  creditCardLast4.value = card.last4 || "";
+  creditCardAnnualFee.value = card.annualFee || "";
+  creditCardDueDate.value = card.dueDate || "";
+  creditCardOpenedDate.value = card.openedDate || "";
+  creditCardStatus.value = card.status || "active";
+  creditCardBusinessName.value = card.businessName || "";
+  creditCardNotes.value = card.notes || "";
+  creditCardDialog.showModal();
+}
+
+function saveCreditCard(e) {
+  e.preventDefault();
+  if (!Array.isArray(state.creditCards)) state.creditCards = [];
+  const card = normalizeCreditCardRecord({
+    id: creditCardEditId.value || uid(),
+    bank: creditCardBank.value.trim(),
+    name: creditCardName.value.trim(),
+    owner: creditCardOwner.value,
+    type: creditCardType.value,
+    last4: creditCardLast4.value.trim(),
+    annualFee: Number(creditCardAnnualFee.value || 0),
+    dueDate: creditCardDueDate.value.trim(),
+    openedDate: creditCardOpenedDate.value.trim(),
+    status: creditCardStatus.value,
+    businessName: creditCardBusinessName.value.trim(),
+    notes: creditCardNotes.value.trim()
+  });
+  const idx = state.creditCards.findIndex(c => c.id === card.id);
+  if (idx >= 0) state.creditCards[idx] = card;
+  else state.creditCards.push(card);
+  creditCardDialog.close();
+  saveData();
+}
+
+function deleteCreditCard(id) {
+  if (confirm("Delete this credit card record?")) {
+    state.creditCards = state.creditCards.filter(card => card.id !== id);
+    saveData();
+  }
+}
+
+
 function renderContacts() {
   const q = contactSearch.value.toLowerCase().trim();
   const serviceFilter = contactServiceFilter.value;
@@ -2874,7 +3154,7 @@ function backupFilename(prefix) {
 
 function downloadJsonBackup(filename) {
   const backup = {
-    app: "House Maintenance Utilities Contacts Finance Tracker",
+    app: "House Maintenance Utilities Contacts Finance Credit Card Tracker",
     exportedAt: new Date().toISOString(),
     storageKey: STORAGE_KEY,
     data: state
@@ -2911,6 +3191,9 @@ otherBillsStatusFilter.addEventListener("change", render);
 contactSearch.addEventListener("input", render);
 contactServiceFilter.addEventListener("change", render);
 contactHouseFilter.addEventListener("change", render);
+creditCardSearch.addEventListener("input", render);
+creditCardOwnerFilter.addEventListener("change", render);
+creditCardStatusFilter.addEventListener("change", render);
 initializeApp();
 </script>
 </body>
