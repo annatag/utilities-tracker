@@ -156,3 +156,23 @@ You can:
 - Choose Monthly or Annual
 - Enter your own item name
 - Use the same fields: company/agency, login, account/policy number, amount, due date, paid status, paid date, notes
+
+## Email due-date notifications
+The app now includes a Cloudflare Pages Function at `/api/notifications` that sends email reminders to:
+- Anna: annagoranova17@gmail.com
+- Lubo: liubomirm@gmail.com
+
+The notification looks for utility bills and active credit cards that are due exactly 2 days after the day the endpoint runs. Paid or inactive utility bills and closed credit cards are skipped. A KV marker prevents duplicate sends for the same recipient, item, and due date.
+
+Email delivery uses Resend. Configure these environment variables in the Cloudflare Pages project before turning on the notification schedule:
+- `RESEND_API_KEY`: Resend API key.
+- `NOTIFICATION_FROM_EMAIL`: verified sender email address, for example `Utilities Tracker <reminders@yourdomain.com>`.
+- `NOTIFICATION_SECRET`: a private token required by the notification endpoint.
+
+To test without sending email, make a POST request with `dryRun=true`:
+```bash
+curl -X POST "https://YOUR-PAGES-DOMAIN/api/notifications?dryRun=true" \
+  -H "Authorization: Bearer YOUR_NOTIFICATION_SECRET"
+```
+
+To send the reminders, schedule a daily POST request to `/api/notifications` with the same bearer token. The endpoint computes the target due date as today plus 2 days, so running it once each morning is enough.
