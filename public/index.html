@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>House Maintenance, Utilities, Contacts & Finance Tracker - v5 Contacts Fixed</title>
+  <title>House Maintenance, Utilities, Contacts & Finance Tracker - v6 Combined Contacts</title>
   <style>
     :root { --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --accent:#2563eb; --danger:#dc2626; --warn:#d97706; --ok:#059669; --inactive:#6b7280; }
     * { box-sizing: border-box; }
@@ -400,7 +400,7 @@
         </select></div>
         <div><label>Email</label><input id="contactEmail" type="email" placeholder="name@example.com"></div>
         <div><label>Phone</label><input id="contactPhone" placeholder="(555) 555-5555"></div>
-        <div><label>Property</label><select id="contactHouse"></select></div>
+        <div><label>House</label><select id="contactHouse"></select></div>
         <div><label>Website / login / booking link</label><input id="contactWebsite" placeholder="https://..."></div>
         <div class="full"><label>Address</label><input id="contactAddress" placeholder="Company or service address"></div>
         <div class="full"><label>Notes</label><textarea id="contactNotes" placeholder="Rates, preferred tech, emergency instructions, warranty info..."></textarea></div>
@@ -743,6 +743,7 @@ const FINANCE_TABLE_COLUMNS = [
 ];
 const CONTACT_TABLE_COLUMNS = [
   { key: "name", label: "Name", filter: "text" },
+  { key: "house", label: "House", filter: "text" },
   { key: "service", label: "Service", filter: "text" },
   { key: "emailPhone", label: "Email / phone", filter: "text" },
   { key: "address", label: "Address", filter: "text" }
@@ -750,7 +751,7 @@ const CONTACT_TABLE_COLUMNS = [
 
 const maintenanceTableSort = { key: "due", dir: "asc" };
 const financeTableSort = { key: "due", dir: "asc" };
-const contactTableSort = { key: "service", dir: "asc" };
+const contactTableSort = { key: "house", dir: "asc" };
 const maintenanceTableFilters = Object.fromEntries(MAINTENANCE_TABLE_COLUMNS.map(column => [column.key, ""]));
 const financeTableFilters = Object.fromEntries(FINANCE_TABLE_COLUMNS.map(column => [column.key, ""]));
 const contactTableFilters = Object.fromEntries(CONTACT_TABLE_COLUMNS.map(column => [column.key, ""]));
@@ -2547,43 +2548,50 @@ function renderContacts() {
   const houseFilter = contactHouseFilter.value;
 
   contactsApp.innerHTML = "";
-  const housesToShow = state.houses.filter(h => houseFilter === "all" || h.id === houseFilter);
-
   setupContactButtons();
-  housesToShow.forEach(house => {
-    let contacts = (state.contacts || []).filter(c => c.houseId === house.id);
-    contacts = contacts.filter(c => {
-      const text = `${c.name} ${c.email} ${c.phone} ${c.type} ${c.address} ${c.website} ${c.notes} ${house.name}`.toLowerCase();
-      const serviceMatch = serviceFilter === "all" || c.type === serviceFilter;
-      return (!q || text.includes(q)) && serviceMatch;
-    });
-    const contactRows = prepareTableRows(contacts.map(contact => contactTableRow(contact, house)), "contacts");
 
-    const card = document.createElement("section");
-    card.className = "card";
-    card.style.marginBottom = "16px";
-    card.innerHTML = `
-      <div class="house-title">
-        <h2>${escapeHtml(houseDisplayName(house))}</h2>
-        <div class="summary"><span class="pill">${contactRows.length} visible contact(s)</span></div>
-      </div>
-      <table>
-        ${configuredTableHeaderHtml("contacts")}
-        <tbody>${contactRows.length ? contactRows.map(row => row.html).join("") : `<tr><td colspan="5" class="small">No contacts for this property yet.</td></tr>`}</tbody>
-      </table>`;
-    contactsApp.appendChild(card);
+  let contacts = (state.contacts || []).filter(c => houseFilter === "all" || c.houseId === houseFilter);
+  contacts = contacts.filter(c => {
+    const house = state.houses.find(h => h.id === c.houseId);
+    const text = `${c.name} ${c.email} ${c.phone} ${c.type} ${c.address} ${c.website} ${c.notes} ${houseDisplayName(house)}`.toLowerCase();
+    const serviceMatch = serviceFilter === "all" || c.type === serviceFilter;
+    return (!q || text.includes(q)) && serviceMatch;
   });
+  const contactRows = prepareTableRows(contacts.map(contact => contactTableRow(contact)), "contacts");
+
+  const card = document.createElement("section");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="house-title">
+      <h2>Contacts</h2>
+      <div class="summary"><span class="pill">${contactRows.length} visible contact(s)</span></div>
+    </div>
+    <table>
+      ${configuredTableHeaderHtml("contacts")}
+      <tbody>${contactRows.length ? contactRows.map(row => row.html).join("") : `<tr><td colspan="6" class="small">No contacts match the current filters yet.</td></tr>`}</tbody>
+    </table>`;
+  contactsApp.appendChild(card);
 }
 
-function contactTableRow(contact, house) {
+function contactHouseOptionsHtml(selectedHouseId) {
+  return state.houses.map(h =>
+    `<option value="${escapeHtml(h.id)}"${h.id === selectedHouseId ? " selected" : ""}>${escapeHtml(houseDisplayName(h))}</option>`
+  ).join("");
+}
+
+function contactTableRow(contact) {
+  const house = state.houses.find(h => h.id === contact.houseId);
+  const houseName = houseDisplayName(house);
   return {
     values: {
-      name: `${contact.name || ""} ${contact.website || ""} ${contact.notes || ""} ${houseDisplayName(house)}`,
+      name: `${contact.name || ""} ${contact.website || ""} ${contact.notes || ""}`,
+      house: houseName,
       service: contact.type || "",
       emailPhone: `${contact.email || ""} ${contact.phone || ""}`,
       address: contact.address || ""
     },
     sortValues: {
+      house: houseName,
       service: contact.type || "",
       name: contact.name || ""
     },
@@ -2597,6 +2605,7 @@ function contactRowHtml(c) {
   const website = c.website ? `<br><a href="${escapeHtml(c.website)}" target="_blank" rel="noopener">Website</a>` : "";
   return `<tr>
     <td><b>${escapeHtml(c.name || "")}</b>${website}<br><span class="small">${escapeHtml(c.notes || "")}</span></td>
+    <td><select class="contact-house-select" data-contact-id="${escapeHtml(c.id)}" aria-label="House for ${escapeHtml(c.name || "contact")}">${contactHouseOptionsHtml(c.houseId)}</select></td>
     <td>${escapeHtml(c.type || "")}</td>
     <td>${email}${phone}</td>
     <td>${escapeHtml(c.address || "")}</td>
@@ -2692,6 +2701,19 @@ function setupContactButtons() {
       deleteContact(deleteButton.dataset.contactId);
     }
   });
+  contactsApp.addEventListener("change", function(event) {
+    const houseSelect = event.target.closest(".contact-house-select");
+    if (!houseSelect) return;
+    updateContactHouse(houseSelect.dataset.contactId, houseSelect.value);
+  });
+}
+
+function updateContactHouse(id, houseId) {
+  if (!state.contacts) state.contacts = [];
+  const contact = state.contacts.find(c => String(c.id) === String(id));
+  if (!contact || contact.houseId === houseId) return;
+  contact.houseId = houseId;
+  saveData();
 }
 
 function openHouseModal() {
