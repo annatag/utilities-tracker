@@ -65,6 +65,8 @@
     .credit-card-table .actions { gap:4px; }
     .credit-card-table .actions button { padding:5px 6px; font-size:11px; }
     #financeApp table td:nth-child(5), #creditCardsApp table td:nth-child(7) { font-weight:800; }
+    .credit-card-due-date { color:var(--danger); font-weight:800; }
+    .credit-card-interest-rate { color:#f97316; font-weight:800; }
     th, td { text-align:left; padding:10px 8px; border-top:1px solid var(--border); vertical-align:top; font-size:14px; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
     .utility-table th { vertical-align:bottom; }
@@ -2773,9 +2775,9 @@ function creditCardRowHtml(card) {
     <td>${escapeHtml(card.owner || "")}</td>
     <td>${escapeHtml(card.type || "")}</td>
     <td>${escapeHtml(card.last4 || "")}</td>
-    <td>${escapeHtml(formatISODateForDisplay(card.dueDate))}</td>
+    <td><span class="credit-card-due-date">${escapeHtml(formatISODateForDisplay(card.dueDate))}</span></td>
     <td>${money(card.annualFee)}</td>
-    <td>${escapeHtml(formatInterestRate(card.interestRate))}</td>
+    <td><span class="credit-card-interest-rate">${escapeHtml(formatInterestRate(card.interestRate))}</span></td>
     <td>${escapeHtml(formatISODateForDisplay(card.openedDate))}</td>
     <td>${notes}</td>
     <td class="status ${statusClass}">${creditCardStatusText(card)}</td>
