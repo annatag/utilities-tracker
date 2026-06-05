@@ -11,7 +11,7 @@
     header { background:var(--card); border-bottom:1px solid var(--border); padding:18px 20px; position:sticky; top:0; z-index:2; }
     h1 { margin:0 0 6px; font-size:24px; }
     .sub { color:var(--muted); font-size:14px; }
-    main { max-width:1250px; margin:0 auto; padding:20px; }
+    main { width:100%; max-width:none; margin:0; padding:16px clamp(10px, 1.5vw, 20px); }
     .tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
     .tab { background:#e5e7eb; color:#111827; }
     .tab.active { background:var(--accent); color:white; }
@@ -89,6 +89,9 @@
     .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .full { grid-column:1 / -1; }
     .small { font-size:12px; color:var(--muted); }
+    .input-suffix-wrap { position:relative; }
+    .input-suffix-wrap input { padding-right:34px; }
+    .input-suffix { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--muted); font-weight:800; pointer-events:none; }
     .due-date { color:var(--danger); font-weight:800; }
     .due-date.paid-due-date { color:var(--muted); }
     .house-card { border:1px solid var(--border); border-radius:14px; padding:14px; background:#fff; }
@@ -352,7 +355,7 @@
         <div><label>Business or personal?</label><select id="creditCardType"><option>Business</option><option>Personal</option></select></div>
         <div><label>Last 4 numbers</label><input id="creditCardLast4" maxlength="4" inputmode="numeric" placeholder="5836"></div>
         <div><label>Annual fee</label><input id="creditCardAnnualFee" type="number" step="0.01" min="0" placeholder="0.00"></div>
-        <div><label>Interest rate</label><input id="creditCardInterestRate" placeholder="0%, 24.99%, 0% until Feb 2028..."></div>
+        <div><label>Interest rate</label><div class="input-suffix-wrap"><input id="creditCardInterestRate" inputmode="decimal" placeholder="0, 24.99, 0 until Feb 2028..."><span class="input-suffix" aria-hidden="true">%</span></div></div>
         <div><label>Due date / fee date</label><input id="creditCardDueDate" type="date"></div>
         <div><label>Date opened</label><input id="creditCardOpenedDate" type="date"></div>
         <div><label>Status</label><select id="creditCardStatus"><option value="active">Active</option><option value="closed">Closed</option></select></div>
@@ -582,6 +585,13 @@ function uid() { return crypto.randomUUID ? crypto.randomUUID() : String(Date.no
 function parseDate(s) { const [y,m,d]=s.split("-").map(Number); return new Date(y, m-1, d); }
 function daysUntil(s) { if (!s) return 9999; return Math.ceil((parseDate(s) - parseDate(todayISO())) / 86400000); }
 function money(n) { return Number(n || 0).toLocaleString(undefined, {style:"currency", currency:"USD"}); }
+function formatInterestRate(value) {
+  const rate = String(value || "").trim();
+  if (!rate || rate.includes("%")) return rate;
+  const numericRate = rate.match(/^([-+]?\d+(?:\.\d+)?)(\s+.*)?$/);
+  if (numericRate) return `${numericRate[1]}%${numericRate[2] || ""}`;
+  return rate;
+}
 function formatISODateForDisplay(s) {
   if (!s) return "";
   const date = parseDate(s);
@@ -2726,7 +2736,7 @@ function creditCardTableRow(card) {
       last4: card.last4 || "",
       dueDate: card.dueDate || "",
       annualFee: Number(card.annualFee || 0),
-      interestRate: card.interestRate || "",
+      interestRate: formatInterestRate(card.interestRate),
       openedDate: card.openedDate || "",
       notes,
       status
@@ -2734,6 +2744,7 @@ function creditCardTableRow(card) {
     displayValues: {
       dueDate: formatISODateForDisplay(card.dueDate),
       annualFee: money(card.annualFee),
+      interestRate: formatInterestRate(card.interestRate),
       openedDate: formatISODateForDisplay(card.openedDate)
     },
     sortValues: {
@@ -2743,7 +2754,7 @@ function creditCardTableRow(card) {
       type: card.type || "",
       dueDate: card.dueDate || "",
       annualFee: Number(card.annualFee || 0),
-      interestRate: card.interestRate || "",
+      interestRate: formatInterestRate(card.interestRate),
       openedDate: card.openedDate || "",
       status
     },
@@ -2764,7 +2775,7 @@ function creditCardRowHtml(card) {
     <td>${escapeHtml(card.last4 || "")}</td>
     <td>${escapeHtml(formatISODateForDisplay(card.dueDate))}</td>
     <td>${money(card.annualFee)}</td>
-    <td>${escapeHtml(card.interestRate || "")}</td>
+    <td>${escapeHtml(formatInterestRate(card.interestRate))}</td>
     <td>${escapeHtml(formatISODateForDisplay(card.openedDate))}</td>
     <td>${notes}</td>
     <td class="status ${statusClass}">${creditCardStatusText(card)}</td>
