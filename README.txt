@@ -175,4 +175,8 @@ curl -X POST "https://YOUR-PAGES-DOMAIN/api/notifications?dryRun=true" \
   -H "Authorization: Bearer YOUR_NOTIFICATION_SECRET"
 ```
 
-To send the reminders, schedule a daily POST request to `/api/notifications` with the same bearer token. The endpoint computes the target due date as today plus 2 days, so running it once each morning is enough.
+Reminders are sent by the GitHub Actions workflow in `.github/workflows/send-notifications.yml`. The workflow runs every day at 12:20 PM EST (17:20 UTC) and makes a POST request to `/api/notifications` with the same bearer token. Add these repository secrets before relying on the schedule:
+- `NOTIFICATION_BASE_URL`: the deployed Pages site URL, for example `https://YOUR-PAGES-DOMAIN`.
+- `NOTIFICATION_SECRET`: the same private token configured in Cloudflare Pages.
+
+The endpoint computes the target due date as today plus 2 days. You can also run the workflow manually from GitHub Actions using `workflow_dispatch`.
