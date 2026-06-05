@@ -1,0 +1,33 @@
+name: Send due-date notifications
+
+on:
+  schedule:
+    # GitHub Actions schedules run in UTC. 17:40 UTC is 12:40 PM EST.
+    - cron: "40 17 * * *"
+  workflow_dispatch:
+
+jobs:
+  send-notifications:
+    name: Send reminders
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST notification endpoint
+        env:
+          NOTIFICATION_BASE_URL: ${{ secrets.NOTIFICATION_BASE_URL }}
+          NOTIFICATION_SECRET: ${{ secrets.NOTIFICATION_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NOTIFICATION_BASE_URL}" ]; then
+            echo "NOTIFICATION_BASE_URL secret is required."
+            exit 1
+          fi
+
+          if [ -z "${NOTIFICATION_SECRET}" ]; then
+            echo "NOTIFICATION_SECRET secret is required."
+            exit 1
+          fi
+
+          base_url="${NOTIFICATION_BASE_URL%/}"
+          curl --fail-with-body -X POST "${base_url}/api/notifications" \
+            -H "Authorization: Bearer ${NOTIFICATION_SECRET}"
