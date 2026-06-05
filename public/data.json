@@ -468,7 +468,8 @@
         "annualFee": 0,
         "businessName": "Venice Pines",
         "status": "active",
-        "notes": "No annual fee."
+        "notes": "No annual fee.",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-chase-ink-preferred-1412",
@@ -482,7 +483,8 @@
         "annualFee": 95,
         "businessName": "Corals Realty",
         "status": "closed",
-        "notes": "CLOSED."
+        "notes": "CLOSED.",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-chase-southwest-business-7512",
@@ -496,7 +498,8 @@
         "annualFee": 199,
         "businessName": "Drysdale",
         "status": "closed",
-        "notes": "Membership fee. Keep till April 1 to get the 9K bonus points and then cancel. CLOSED on April 7, 2026. Reapply for new points after April 1, 2027."
+        "notes": "Membership fee. Keep till April 1 to get the 9K bonus points and then cancel. CLOSED on April 7, 2026. Reapply for new points after April 1, 2027.",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-chase-amazon",
@@ -510,7 +513,8 @@
         "annualFee": 0,
         "businessName": "",
         "status": "active",
-        "notes": "No annual fee."
+        "notes": "No annual fee.",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-chase-southwest-plus-8665",
@@ -524,7 +528,8 @@
         "annualFee": 69,
         "businessName": "",
         "status": "active",
-        "notes": "3K anniversary points."
+        "notes": "3K anniversary points.",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-chase-sapphire-reserve",
@@ -538,7 +543,8 @@
         "annualFee": 795,
         "businessName": "",
         "status": "active",
-        "notes": "Once in a lifetime."
+        "notes": "Once in a lifetime.",
+        "interestRate": ""
       },
       {
         "id": "cc-lubo-chase-southwest-rapid",
@@ -552,7 +558,8 @@
         "annualFee": 99,
         "businessName": "",
         "status": "active",
-        "notes": "Wait for the points to show up before closing."
+        "notes": "Wait for the points to show up before closing.",
+        "interestRate": ""
       },
       {
         "id": "cc-lubo-chase-ink-unlimited-1397",
@@ -566,7 +573,8 @@
         "annualFee": 0,
         "businessName": "",
         "status": "active",
-        "notes": "No annual fee."
+        "notes": "No annual fee.",
+        "interestRate": ""
       },
       {
         "id": "cc-lubo-chase-ink-preferred-1943",
@@ -580,7 +588,8 @@
         "annualFee": 99,
         "businessName": "",
         "status": "closed",
-        "notes": "CLOSED 1/22/26."
+        "notes": "CLOSED 1/22/26.",
+        "interestRate": ""
       },
       {
         "id": "cc-lubo-chase-ink-hyatt",
@@ -594,7 +603,8 @@
         "annualFee": 95,
         "businessName": "",
         "status": "active",
-        "notes": ""
+        "notes": "",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-barclays-aviator-red",
@@ -608,7 +618,8 @@
         "annualFee": 99,
         "businessName": "",
         "status": "closed",
-        "notes": "5K points. CLOSED beginning of 2026."
+        "notes": "5K points. CLOSED beginning of 2026.",
+        "interestRate": ""
       },
       {
         "id": "cc-lubo-barclays-american",
@@ -622,7 +633,8 @@
         "annualFee": 99,
         "businessName": "",
         "status": "closed",
-        "notes": "11K points. CLOSED."
+        "notes": "11K points. CLOSED.",
+        "interestRate": ""
       },
       {
         "id": "cc-lubo-barclays-wyndham",
@@ -636,7 +648,8 @@
         "annualFee": 99,
         "businessName": "",
         "status": "active",
-        "notes": "30K points. Close after the bonus points."
+        "notes": "30K points. Close after the bonus points.",
+        "interestRate": ""
       },
       {
         "id": "cc-lubo-capital-one-venture-x",
@@ -650,7 +663,8 @@
         "annualFee": 395,
         "businessName": "",
         "status": "active",
-        "notes": "47K points. Used them for travel."
+        "notes": "47K points. Used them for travel.",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-wells-fargo-signify-2508",
@@ -664,7 +678,8 @@
         "annualFee": 0,
         "businessName": "Drysdale LLC",
         "status": "active",
-        "notes": ""
+        "notes": "",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-wells-fargo-reflect-3121",
@@ -678,7 +693,8 @@
         "annualFee": 0,
         "businessName": "",
         "status": "active",
-        "notes": "17K. 0% for 21 months, until Feb 2028."
+        "notes": "17K. 0% for 21 months, until Feb 2028.",
+        "interestRate": ""
       },
       {
         "id": "cc-lubo-wells-fargo-reflect-5844",
@@ -692,7 +708,8 @@
         "annualFee": 0,
         "businessName": "",
         "status": "active",
-        "notes": "11K. 0% for 21 months, until Feb 2028."
+        "notes": "11K. 0% for 21 months, until Feb 2028.",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-us-bank-platinum",
@@ -706,7 +723,8 @@
         "annualFee": 0,
         "businessName": "",
         "status": "active",
-        "notes": ""
+        "notes": "",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-lubo-citi-mastercard",
@@ -720,7 +738,8 @@
         "annualFee": 0,
         "businessName": "",
         "status": "active",
-        "notes": "On Lubo account."
+        "notes": "On Lubo account.",
+        "interestRate": ""
       },
       {
         "id": "cc-anna-discover",
@@ -734,7 +753,8 @@
         "annualFee": 0,
         "businessName": "",
         "status": "active",
-        "notes": "No annual fee. Will change to Wells Fargo."
+        "notes": "No annual fee. Will change to Wells Fargo.",
+        "interestRate": ""
       }
     ]
   }

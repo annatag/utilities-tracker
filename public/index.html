@@ -45,10 +45,25 @@
     .utility-table th:nth-child(8), .utility-table td:nth-child(8) { min-width:130px; }
     .utility-table th:nth-child(9), .utility-table td:nth-child(9) { min-width:150px; }
     .utility-table th:nth-child(10), .utility-table td:nth-child(10) { min-width:210px; }
-    .credit-card-table { min-width:1100px; table-layout:auto; }
-    .credit-card-table th:nth-child(1), .credit-card-table td:nth-child(1) { min-width:145px; }
-    .credit-card-table th:nth-child(2), .credit-card-table td:nth-child(2) { min-width:220px; }
-    .credit-card-table th:nth-child(9), .credit-card-table td:nth-child(9) { min-width:240px; }
+    .credit-card-table { min-width:0; table-layout:fixed; }
+    .credit-card-table th, .credit-card-table td { padding:8px 5px; font-size:12px; overflow-wrap:anywhere; }
+    .credit-card-table th { font-size:10px; letter-spacing:.02em; }
+    .credit-card-table .sort-header { font-size:10px; gap:3px; letter-spacing:.02em; }
+    .credit-card-table .column-filter { min-width:0; padding:5px 4px; font-size:11px; }
+    .credit-card-table th:nth-child(1), .credit-card-table td:nth-child(1) { width:9%; }
+    .credit-card-table th:nth-child(2), .credit-card-table td:nth-child(2) { width:14%; }
+    .credit-card-table th:nth-child(3), .credit-card-table td:nth-child(3) { width:8%; }
+    .credit-card-table th:nth-child(4), .credit-card-table td:nth-child(4) { width:8%; }
+    .credit-card-table th:nth-child(5), .credit-card-table td:nth-child(5) { width:5%; }
+    .credit-card-table th:nth-child(6), .credit-card-table td:nth-child(6) { width:8%; }
+    .credit-card-table th:nth-child(7), .credit-card-table td:nth-child(7) { width:7%; }
+    .credit-card-table th:nth-child(8), .credit-card-table td:nth-child(8) { width:7%; }
+    .credit-card-table th:nth-child(9), .credit-card-table td:nth-child(9) { width:8%; }
+    .credit-card-table th:nth-child(10), .credit-card-table td:nth-child(10) { width:13%; }
+    .credit-card-table th:nth-child(11), .credit-card-table td:nth-child(11) { width:6%; }
+    .credit-card-table th:nth-child(12), .credit-card-table td:nth-child(12) { width:7%; }
+    .credit-card-table .actions { gap:4px; }
+    .credit-card-table .actions button { padding:5px 6px; font-size:11px; }
     #financeApp table td:nth-child(5), #creditCardsApp table td:nth-child(7) { font-weight:800; }
     th, td { text-align:left; padding:10px 8px; border-top:1px solid var(--border); vertical-align:top; font-size:14px; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
@@ -337,6 +352,7 @@
         <div><label>Business or personal?</label><select id="creditCardType"><option>Business</option><option>Personal</option></select></div>
         <div><label>Last 4 numbers</label><input id="creditCardLast4" maxlength="4" inputmode="numeric" placeholder="5836"></div>
         <div><label>Annual fee</label><input id="creditCardAnnualFee" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label>Interest rate</label><input id="creditCardInterestRate" placeholder="0%, 24.99%, 0% until Feb 2028..."></div>
         <div><label>Due date / fee date</label><input id="creditCardDueDate" placeholder="August 1, April 1, 2026-08-01..."></div>
         <div><label>Date opened</label><input id="creditCardOpenedDate" placeholder="April 30, 2025 or May 2026"></div>
         <div><label>Status</label><select id="creditCardStatus"><option value="active">Active</option><option value="closed">Closed</option></select></div>
@@ -813,6 +829,7 @@ const CREDIT_CARD_TABLE_COLUMNS = [
   { key: "last4", label: "Last 4", filter: "text" },
   { key: "dueDate", label: "Due / fee date", filter: "text" },
   { key: "annualFee", label: "Annual fee", filter: "text", type: "number" },
+  { key: "interestRate", label: "Interest rate", filter: "text" },
   { key: "openedDate", label: "Opened", filter: "text" },
   { key: "notes", label: "Notes", filter: "text" },
   { key: "status", label: "Status", filter: "select", options: ["Active", "Closed"] }
@@ -1290,6 +1307,7 @@ function normalizeCreditCardRecord(card) {
   card.dueDate = card.dueDate || "";
   card.openedDate = card.openedDate || "";
   card.annualFee = Number(card.annualFee || 0);
+  card.interestRate = card.interestRate || "";
   card.businessName = card.businessName || "";
   card.status = card.status === "closed" ? "closed" : "active";
   card.notes = card.notes || "";
@@ -2681,6 +2699,7 @@ function creditCardTableRow(card) {
       last4: card.last4 || "",
       dueDate: card.dueDate || "",
       annualFee: Number(card.annualFee || 0),
+      interestRate: card.interestRate || "",
       openedDate: card.openedDate || "",
       notes,
       status
@@ -2695,6 +2714,7 @@ function creditCardTableRow(card) {
       type: card.type || "",
       dueDate: card.dueDate || "",
       annualFee: Number(card.annualFee || 0),
+      interestRate: card.interestRate || "",
       openedDate: card.openedDate || "",
       status
     },
@@ -2715,6 +2735,7 @@ function creditCardRowHtml(card) {
     <td>${escapeHtml(card.last4 || "")}</td>
     <td>${escapeHtml(card.dueDate || "")}</td>
     <td>${money(card.annualFee)}</td>
+    <td>${escapeHtml(card.interestRate || "")}</td>
     <td>${escapeHtml(card.openedDate || "")}</td>
     <td>${notes}</td>
     <td class="status ${statusClass}">${creditCardStatusText(card)}</td>
@@ -2731,7 +2752,7 @@ function renderCreditCards() {
   const statusFilter = creditCardStatusFilter.value;
 
   let cards = state.creditCards.filter(card => {
-    const text = `${card.bank} ${card.name} ${card.owner} ${card.type} ${card.last4} ${card.dueDate} ${card.openedDate} ${card.annualFee} ${card.businessName} ${card.status} ${card.notes}`.toLowerCase();
+    const text = `${card.bank} ${card.name} ${card.owner} ${card.type} ${card.last4} ${card.dueDate} ${card.openedDate} ${card.annualFee} ${card.interestRate} ${card.businessName} ${card.status} ${card.notes}`.toLowerCase();
     const ownerMatch = ownerFilter === "all" || card.owner === ownerFilter;
     const statusMatch = statusFilter === "all" || card.status === statusFilter;
     return (!q || text.includes(q)) && ownerMatch && statusMatch;
@@ -2749,7 +2770,7 @@ function renderCreditCards() {
     </div>
     <div class="table-wrap"><table class="credit-card-table">
       ${configuredTableHeaderHtml("creditCards")}
-      <tbody>${rows.length ? rows.map(row => row.html).join("") : `<tr><td colspan="11" class="small">No credit cards match the current filters.</td></tr>`}</tbody>
+      <tbody>${rows.length ? rows.map(row => row.html).join("") : `<tr><td colspan="12" class="small">No credit cards match the current filters.</td></tr>`}</tbody>
     </table></div>`;
 }
 
@@ -2762,6 +2783,7 @@ function openCreditCardModal() {
   creditCardType.value = "Personal";
   creditCardLast4.value = "";
   creditCardAnnualFee.value = "";
+  creditCardInterestRate.value = "";
   creditCardDueDate.value = "";
   creditCardOpenedDate.value = "";
   creditCardStatus.value = "active";
@@ -2782,6 +2804,7 @@ function editCreditCard(id) {
   creditCardType.value = card.type || "Personal";
   creditCardLast4.value = card.last4 || "";
   creditCardAnnualFee.value = card.annualFee || "";
+  creditCardInterestRate.value = card.interestRate || "";
   creditCardDueDate.value = card.dueDate || "";
   creditCardOpenedDate.value = card.openedDate || "";
   creditCardStatus.value = card.status || "active";
@@ -2801,6 +2824,7 @@ function saveCreditCard(e) {
     type: creditCardType.value,
     last4: creditCardLast4.value.trim(),
     annualFee: Number(creditCardAnnualFee.value || 0),
+    interestRate: creditCardInterestRate.value.trim(),
     dueDate: creditCardDueDate.value.trim(),
     openedDate: creditCardOpenedDate.value.trim(),
     status: creditCardStatus.value,
