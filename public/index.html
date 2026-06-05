@@ -103,6 +103,32 @@
     .cloud-status { border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:16px; font-size:14px; background:#eff6ff; color:#1e40af; }
     .cloud-status.ok { background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
     .cloud-status.warn { background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+    .view-mode-toolbar { display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .view-toggle { display:flex; gap:6px; padding:4px; border:1px solid var(--border); border-radius:999px; background:#f9fafb; }
+    .view-toggle button { border-radius:999px; padding:8px 12px; background:transparent; color:var(--text); }
+    .view-toggle button.active { background:var(--accent); color:white; }
+    .view-mode-hint { color:var(--muted); font-size:13px; }
+    .mobile-card-list { display:grid; gap:10px; }
+    .mobile-item-card { border:1px solid var(--border); border-radius:14px; padding:12px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+    .mobile-card-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .mobile-card-title { font-weight:800; font-size:15px; line-height:1.25; }
+    .mobile-card-meta { color:var(--muted); font-size:12px; margin-top:2px; }
+    .mobile-card-fields { display:grid; gap:6px; margin:10px 0; }
+    .mobile-field { display:flex; justify-content:space-between; gap:10px; font-size:13px; }
+    .mobile-field span:first-child { color:var(--muted); }
+    .mobile-field span:last-child { text-align:right; font-weight:700; }
+    .mobile-actions { margin-top:8px; }
+    body.mobile-mode main { padding:12px; }
+    body.mobile-mode header { padding:14px 12px; }
+    body.mobile-mode h1 { font-size:20px; }
+    body.mobile-mode .sub { font-size:12px; }
+    body.mobile-mode .tabs { gap:6px; overflow-x:auto; flex-wrap:nowrap; padding-bottom:4px; }
+    body.mobile-mode .tab { white-space:nowrap; padding:9px 11px; }
+    body.mobile-mode .toolbar { grid-template-columns:1fr; padding:12px; }
+    body.mobile-mode .house-title { align-items:flex-start; flex-direction:column; }
+    body.mobile-mode .card { padding:12px; }
+    body.mobile-mode .desktop-table-only { display:none; }
+    body.desktop-mode .mobile-only { display:none; }
     footer { color:var(--muted); font-size:12px; margin-top:16px; }
     @media (max-width:900px) { .toolbar, .grid, .form-grid { grid-template-columns:1fr; } }
   </style>
@@ -124,7 +150,15 @@
       <button id="contactsTab" class="tab" onclick="showView('contacts')">Contacts</button>
     </div>
 
-    <section class="toolbar">
+    <section class="toolbar view-mode-toolbar">
+      <div>
+        <label>App version</label>
+        <div class="view-toggle" role="group" aria-label="Choose app version">
+          <button id="desktopModeBtn" type="button" onclick="setViewMode('desktop')">Browser version</button>
+          <button id="mobileModeBtn" type="button" onclick="setViewMode('mobile')">Mobile version</button>
+        </div>
+        <div id="viewModeHint" class="view-mode-hint">Browser version shows full tables.</div>
+      </div>
       <button class="light" onclick="openHouseModal()">View/edit/delete houses</button>
       <button class="secondary" onclick="downloadIndexHtml()">Download current app HTML</button>
     </section>
@@ -500,6 +534,7 @@
 
 <script>
 const STORAGE_KEY = "house-maintenance-tracker-v2";
+const VIEW_MODE_KEY = `${STORAGE_KEY}-view-mode`;
 let state = null;
 let cloudStorageAvailable = false;
 let cloudSaveWarningShown = false;
@@ -581,6 +616,7 @@ let pendingHouseDeletes = new Set();
 let editableHouses = new Set();
 let maintenanceViewOnly = false;
 let currentView = "utilities";
+let viewMode = safeLocalStorageGet(VIEW_MODE_KEY) === "mobile" ? "mobile" : "desktop";
 
 function todayISO() { return new Date().toISOString().slice(0,10); }
 function uid() { return crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()); }
@@ -1485,8 +1521,32 @@ async function saveData(options = {}) {
   }
 }
 
+function isMobileMode() {
+  return viewMode === "mobile";
+}
+
+function updateViewModeControls() {
+  document.body.classList.toggle("mobile-mode", isMobileMode());
+  document.body.classList.toggle("desktop-mode", !isMobileMode());
+  if (desktopModeBtn) desktopModeBtn.classList.toggle("active", !isMobileMode());
+  if (mobileModeBtn) mobileModeBtn.classList.toggle("active", isMobileMode());
+  if (viewModeHint) {
+    viewModeHint.textContent = isMobileMode()
+      ? "Mobile version shows compact cards with the main names, due dates, statuses, and actions."
+      : "Browser version shows full tables with all saved details.";
+  }
+}
+
+function setViewMode(mode) {
+  viewMode = mode === "mobile" ? "mobile" : "desktop";
+  safeLocalStorageSet(VIEW_MODE_KEY, viewMode);
+  updateViewModeControls();
+  render();
+}
+
 function showView(view) {
   currentView = view;
+  updateViewModeControls();
   maintenanceView.style.display = view === "maintenance" ? "" : "none";
   utilitiesView.style.display = view === "utilities" ? "" : "none";
   financeView.style.display = view === "finance" ? "" : "none";
@@ -1586,6 +1646,129 @@ function render() {
   renderOtherBills();
 }
 
+function mobileActionsHtml(innerHtml) {
+  return `<div class="actions mobile-actions">${innerHtml}</div>`;
+}
+
+function mobileEmptyHtml(message) {
+  return `<div class="small">${escapeHtml(message)}</div>`;
+}
+
+function mobileFieldHtml(label, value, className = "") {
+  return `<div class="mobile-field"><span>${escapeHtml(label)}</span><span class="${escapeHtml(className)}">${value}</span></div>`;
+}
+
+function rowActionsFromHtml(html) {
+  const match = String(html || "").match(/<td><div class="actions">([\s\S]*?)<\/div><\/td>\s*<\/tr>\s*$/);
+  return match ? match[1] : "";
+}
+
+function mobileCardListHtml(rows, emptyMessage) {
+  return `<div class="mobile-card-list mobile-only">${rows.length ? rows.map(row => row.mobileHtml || utilityMobileCard(row)).join("") : mobileEmptyHtml(emptyMessage)}</div>`;
+}
+
+function maintenanceMobileCard(item) {
+  const s = statusFor(item);
+  const repeat = item.unit === "none" ? "One-time" : `Every ${item.every} ${item.unit}`;
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(item.name)}</div><div class="mobile-card-meta">${escapeHtml(item.category || "")}</div></div>
+      <div class="status ${s.key}">${s.text}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due", `<span class="due-date">${escapeHtml(item.due || "")}</span>`)}
+      ${mobileFieldHtml("Repeat", escapeHtml(repeat))}
+    </div>
+    ${mobileActionsHtml(`<button class="light" onclick="markDone('${item.id}')">Done</button><button class="secondary" onclick="editItem('${item.id}')">Edit</button>`)}
+  </article>`;
+}
+
+function utilityMobileCard(u) {
+  const s = utilityStatus(u);
+  const paymentButton = u.paid === "paid"
+    ? `<button class="light" onclick="markUtilityUnpaid('${u.id}')">Mark not paid</button>`
+    : `<button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button>`;
+  const link = u.url ? `<a href="${escapeHtml(u.url)}" target="_blank" rel="noopener">Open login</a>` : "";
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(u.provider || u.type || "Bill")}</div><div class="mobile-card-meta">${escapeHtml(u.type || "")}${link ? ` · ${link}` : ""}</div></div>
+      <div class="status ${s.key}">${s.text}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due", `<span class="${dueDateClass(u.paid)}">${escapeHtml(u.due || "")}</span>`)}
+      ${mobileFieldHtml("Amount", `<b>${money(u.amount)}</b>`)}
+      ${mobileFieldHtml("Autopay", u.autopay === "on" ? `<span class="autopay-on">ON</span>` : "Off")}
+    </div>
+    ${mobileActionsHtml(`${paymentButton}<button class="secondary" onclick="editUtility('${u.id}')">Edit</button>`)}
+  </article>`;
+}
+
+function otherBillMobileCard(b) {
+  const s = otherBillStatus(b);
+  const link = b.login ? `<a href="${escapeHtml(b.login)}" target="_blank" rel="noopener">Open login</a>` : "";
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(b.provider || b.type || "Bill")}</div><div class="mobile-card-meta">${escapeHtml(b.type || "")}${link ? ` · ${link}` : ""}</div></div>
+      <div class="status ${s.key}">${s.text}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due", `<span class="${dueDateClass(b.paid)}">${escapeHtml(b.due || "")}</span>`)}
+      ${mobileFieldHtml("Amount", `<b>${money(b.amount)}</b>`)}
+    </div>
+    ${mobileActionsHtml(`<button class="light" onclick="markOtherBillPaid('${b.id}')">Mark paid</button><button class="secondary" onclick="editOtherBill('${b.id}')">Edit</button>`)}
+  </article>`;
+}
+
+function financeMobileCard(row) {
+  const values = row.values || {};
+  const actions = rowActionsFromHtml(row.html);
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(values.item || "Finance item")}</div><div class="mobile-card-meta">${escapeHtml(values.house || "")}</div></div>
+      <div class="status ${row.statusKey || ""}">${escapeHtml(values.status || "")}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due", `<span class="due-date">${escapeHtml(values.due || "")}</span>`)}
+      ${mobileFieldHtml("Amount", money(values.amount))}
+      ${values.company ? mobileFieldHtml("Company", escapeHtml(values.company)) : ""}
+    </div>
+    ${actions ? mobileActionsHtml(actions) : ""}
+  </article>`;
+}
+
+function creditCardMobileCard(card) {
+  const statusClass = card.status === "closed" ? "inactive" : "ok";
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(card.bank || "")} ${escapeHtml(card.name || "")}</div><div class="mobile-card-meta">${escapeHtml(card.owner || "")} · ${escapeHtml(card.type || "")}${card.last4 ? ` · ${escapeHtml(card.last4)}` : ""}</div></div>
+      <div class="status ${statusClass}">${creditCardStatusText(card)}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due / fee date", `<span class="credit-card-due-date">${escapeHtml(formatISODateForDisplay(card.dueDate))}</span>`)}
+      ${mobileFieldHtml("Annual fee", money(card.annualFee))}
+      ${card.interestRate ? mobileFieldHtml("Interest", `<span class="credit-card-interest-rate">${escapeHtml(formatInterestRate(card.interestRate))}</span>`) : ""}
+    </div>
+    ${mobileActionsHtml(`<button class="secondary" onclick="editCreditCard('${card.id}')">Edit</button><button class="danger" onclick="deleteCreditCard('${card.id}')">Delete</button>`)}
+  </article>`;
+}
+
+function contactMobileCard(contact) {
+  const house = state.houses.find(h => h.id === contact.houseId);
+  const email = contact.email ? `<a href="mailto:${escapeHtml(contact.email)}">${escapeHtml(contact.email)}</a>` : "";
+  const phone = contact.phone ? escapeHtml(contact.phone) : "";
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(contact.name || "Contact")}</div><div class="mobile-card-meta">${escapeHtml(contact.type || "")}</div></div>
+      <div class="mobile-card-meta">${escapeHtml(houseDisplayName(house))}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Phone", phone || "—")}
+      ${mobileFieldHtml("Email", email || "—")}
+    </div>
+    ${mobileActionsHtml(`<button class="secondary contact-edit-btn" data-contact-id="${escapeHtml(contact.id)}">Edit</button><button class="danger contact-delete-btn" data-contact-id="${escapeHtml(contact.id)}">Delete</button>`)}
+  </article>`;
+}
+
 function renderMaintenance() {
   const q = search.value.toLowerCase().trim();
   const statusFilter = filterStatus.value;
@@ -1606,7 +1789,8 @@ function renderMaintenance() {
     card.className = "card";
     card.style.width = "100%";
     card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${maintenanceRows.length} visible item(s)</span><span class="pill">${overdue} overdue</span><span class="pill">${soon} due soon</span></div></div>
-      <table>${configuredTableHeaderHtml("maintenance")}<tbody>${maintenanceRows.length ? maintenanceRows.map(row => row.html).join("") : `<tr><td colspan="4" class="small">No items match this filter.</td></tr>`}</tbody></table>`;
+      <table class="desktop-table-only">${configuredTableHeaderHtml("maintenance")}<tbody>${maintenanceRows.length ? maintenanceRows.map(row => row.html).join("") : `<tr><td colspan="4" class="small">No items match this filter.</td></tr>`}</tbody></table>
+      ${mobileCardListHtml(maintenanceRows, "No items match this filter.")}`;
     app.appendChild(card);
   });
 }
@@ -1649,7 +1833,8 @@ function renderUtilities() {
     card.className = "card";
     card.style.width = "100%";
     card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${houseUtilityBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount && statusFilter !== "all" ? `<span class="pill">${oldPaidCount} paid hidden</span>` : ""}</div></div>
-      <div class="table-wrap"><table class="utility-table">${utilityTableHeaderHtml()}<tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.</td></tr>`}</tbody></table></div>
+      <div class="table-wrap desktop-table-only"><table class="utility-table">${utilityTableHeaderHtml()}<tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.</td></tr>`}</tbody></table></div>
+      ${mobileCardListHtml(houseUtilityBills, "No utility bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.")}
       <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <button class="light" onclick="openUtilityModal('${house.id}')">+ Add bill for this house</button>
         <select id="newMonthType-${house.id}" style="max-width:180px;">
@@ -1690,7 +1875,7 @@ function renderUtilities() {
       <div class="summary"><span class="pill">${visibleOtherBills.length} visible bill(s)</span>${hiddenOtherPaidCount && statusFilter !== "all" ? `<span class="pill">${hiddenOtherPaidCount} paid hidden</span>` : ""}</div>
     </div>
 
-    <div class="table-wrap">
+    <div class="table-wrap desktop-table-only">
       <table class="utility-table">
         ${utilityTableHeaderHtml()}
         <tbody>
@@ -1700,6 +1885,7 @@ function renderUtilities() {
         </tbody>
       </table>
     </div>
+    ${mobileCardListHtml(visibleOtherBills, "No Other bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.")}
     <div style="margin-top:10px;">
       <button class="light" onclick="openUtilityModal('other')">+ Add bill to Other</button>
     </div>
@@ -1718,7 +1904,8 @@ function maintenanceTableRow(item, house) {
     },
     sortValues: { due: item.due || "" },
     statusKey: s.key,
-    html: rowHtml(item)
+    html: rowHtml(item),
+    mobileHtml: maintenanceMobileCard(item)
   };
 }
 
@@ -2207,7 +2394,8 @@ function financeTableRow(values, html) {
       due: values.due
     },
     statusKey: values.statusKey,
-    html
+    html,
+    mobileHtml: ""
   };
 }
 
@@ -2387,6 +2575,8 @@ function renderFinance() {
 
   const visibleMonthlyRows = prepareTableRows(monthlyRows, "finance");
   const visibleAnnualRows = prepareTableRows(annualRows, "finance");
+  visibleMonthlyRows.forEach(row => { row.mobileHtml = financeMobileCard(row); });
+  visibleAnnualRows.forEach(row => { row.mobileHtml = financeMobileCard(row); });
 
   financeApp.innerHTML = `
     <section class="card" style="margin-bottom:16px;">
@@ -2394,12 +2584,13 @@ function renderFinance() {
         <h2>Monthly Dues — All Houses</h2>
         <div class="summary"><span class="pill">${visibleMonthlyRows.length} visible item(s)</span></div>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap desktop-table-only">
         <table class="utility-table">
           ${configuredTableHeaderHtml("finance")}
           <tbody>${visibleMonthlyRows.length ? visibleMonthlyRows.map(row => row.html).join("") : `<tr><td colspan="8" class="small">No monthly dues match this filter.</td></tr>`}</tbody>
         </table>
       </div>
+      ${mobileCardListHtml(visibleMonthlyRows, "No monthly dues match this filter.")}
     </section>
 
     <section class="card">
@@ -2407,12 +2598,13 @@ function renderFinance() {
         <h2>Annual Dues — All Houses</h2>
         <div class="summary"><span class="pill">${visibleAnnualRows.length} visible item(s)</span></div>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap desktop-table-only">
         <table class="utility-table">
           ${configuredTableHeaderHtml("finance")}
           <tbody>${visibleAnnualRows.length ? visibleAnnualRows.map(row => row.html).join("") : `<tr><td colspan="8" class="small">No annual dues match this filter.</td></tr>`}</tbody>
         </table>
       </div>
+      ${mobileCardListHtml(visibleAnnualRows, "No annual dues match this filter.")}
     </section>`;
 }
 
@@ -2680,8 +2872,9 @@ function renderOtherBills() {
   }).sort((a,b) => parseDate(a.due) - parseDate(b.due));
   const totalUnpaid = bills.filter(b => b.paid !== "paid").reduce((sum,b) => sum + Number(b.amount || 0), 0);
   otherBillsApp.innerHTML = `<div class="house-title"><h2>Other Bills</h2><div class="summary"><span class="pill">${bills.length} bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span></div></div>
-    <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account #</th><th>Statement date</th><th>Amount due</th><th>Due date</th><th>Paid status</th><th>Actions</th></tr></thead>
-    <tbody>${bills.length ? bills.map(otherBillRowHtml).join("") : `<tr><td colspan="8" class="small">No other bills match this view.</td></tr>`}</tbody></table></div>`;
+    <div class="table-wrap desktop-table-only"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account #</th><th>Statement date</th><th>Amount due</th><th>Due date</th><th>Paid status</th><th>Actions</th></tr></thead>
+    <tbody>${bills.length ? bills.map(otherBillRowHtml).join("") : `<tr><td colspan="8" class="small">No other bills match this view.</td></tr>`}</tbody></table></div>
+    <div class="mobile-card-list mobile-only">${bills.length ? bills.map(otherBillMobileCard).join("") : mobileEmptyHtml("No other bills match this view.")}</div>`;
 }
 
 function otherBillRowHtml(b) {
@@ -2761,7 +2954,8 @@ function creditCardTableRow(card) {
       status
     },
     statusKey: card.status === "closed" ? "inactive" : "ok",
-    html: creditCardRowHtml(card)
+    html: creditCardRowHtml(card),
+    mobileHtml: creditCardMobileCard(card)
   };
 }
 
@@ -2810,10 +3004,11 @@ function renderCreditCards() {
       <h2>Credit card payments</h2>
       <div class="summary"><span class="pill">${rows.length} visible card(s)</span><span class="pill">${activeCount} active</span><span class="pill">${closedCount} closed</span><span class="pill">${money(visibleAnnualFees)} visible active annual fees</span></div>
     </div>
-    <div class="table-wrap"><table class="credit-card-table">
+    <div class="table-wrap desktop-table-only"><table class="credit-card-table">
       ${configuredTableHeaderHtml("creditCards")}
       <tbody>${rows.length ? rows.map(row => row.html).join("") : `<tr><td colspan="12" class="small">No credit cards match the current filters.</td></tr>`}</tbody>
-    </table></div>`;
+    </table></div>
+    ${mobileCardListHtml(rows, "No credit cards match the current filters.")}`;
 }
 
 function openCreditCardModal() {
@@ -2912,10 +3107,11 @@ function renderContacts() {
       <h2>Contacts</h2>
       <div class="summary"><span class="pill">${contactRows.length} visible contact(s)</span></div>
     </div>
-    <table>
+    <table class="desktop-table-only">
       ${configuredTableHeaderHtml("contacts")}
       <tbody>${contactRows.length ? contactRows.map(row => row.html).join("") : `<tr><td colspan="6" class="small">No contacts match the current filters yet.</td></tr>`}</tbody>
-    </table>`;
+    </table>
+    ${mobileCardListHtml(contactRows, "No contacts match the current filters yet.")}`;
   contactsApp.appendChild(card);
 }
 
@@ -2941,7 +3137,8 @@ function contactTableRow(contact) {
       service: contact.type || "",
       name: contact.name || ""
     },
-    html: contactRowHtml(contact)
+    html: contactRowHtml(contact),
+    mobileHtml: contactMobileCard(contact)
   };
 }
 
