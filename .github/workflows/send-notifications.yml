@@ -2,8 +2,8 @@ name: Send due-date notifications
 
 on:
   schedule:
-    # GitHub Actions schedules run in UTC. 17:40 UTC is 12:40 PM EST.
-    - cron: "40 17 * * *"
+    # GitHub Actions schedules run in UTC. 17:20 UTC is 12:20 PM EST.
+    - cron: "20 17 * * *"
   workflow_dispatch:
 
 jobs:
