@@ -68,6 +68,14 @@ Utilities now opens as the default tab.
 Each utility bill now has an Autopay On/Off option.
 If Autopay is On and the bill due date is today or earlier, the tracker automatically marks the bill as Paid and sets the paid date to today.
 
+## Utility Billing Frequency
+Each utility bill has a Billing Frequency option:
+- Monthly
+- Annual
+- One time
+
+One-time utility bills stay as single records when marked paid; the tracker does not create a new unpaid follow-up record for them.
+
 
 ## Autopay paid date behavior
 When Autopay automatically marks a utility bill as Paid, the Paid Date is set equal to the bill Due Date.
