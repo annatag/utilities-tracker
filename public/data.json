@@ -1,5 +1,5 @@
 {
-  "app": "House Maintenance Utilities Contacts Finance Tracker",
+  "app": "House Maintenance Utilities Contacts Finance Credit Card Tracker",
   "createdAt": "2026-05-29T14:09:36.979Z",
   "storageKey": "house-maintenance-tracker-v2",
   "data": {
@@ -86,7 +86,8 @@
         "due": "2026-06-16",
         "paid": "unpaid",
         "paidDate": "",
-        "notes": ""
+        "notes": "",
+        "frequency": "monthly"
       },
       {
         "id": "3aedd040-0edd-42c2-bfe9-44ccdd5308e2",
@@ -100,7 +101,8 @@
         "due": "2026-05-26",
         "paid": "paid",
         "paidDate": "2026-05-29",
-        "notes": ""
+        "notes": "",
+        "frequency": "monthly"
       },
       {
         "id": "b9626c28-edd9-4068-b4c8-1b88ece6ce2b",
@@ -114,7 +116,8 @@
         "due": "2026-06-05",
         "paid": "paid",
         "paidDate": "2026-05-29",
-        "notes": ""
+        "notes": "",
+        "frequency": "monthly"
       },
       {
         "id": "1778b97d-41bb-4f1c-9721-5fc3a519659f",
@@ -128,7 +131,8 @@
         "due": "2026-06-04",
         "paid": "paid",
         "paidDate": "2026-05-28",
-        "notes": ""
+        "notes": "",
+        "frequency": "monthly"
       },
       {
         "id": "21597f85-be51-4c1c-b66b-cc003b59792e",
@@ -142,7 +146,8 @@
         "due": "2026-06-05",
         "paid": "unpaid",
         "paidDate": "2026-06-05",
-        "notes": "drysdaleavenue@gmail.com Cancelled on June 1st 2026\n This is unlimited data plan, with Xfinity modem rented. Need to cancel the rental before the end of the contract - Dec 8 2026"
+        "notes": "drysdaleavenue@gmail.com Cancelled on June 1st 2026\n This is unlimited data plan, with Xfinity modem rented. Need to cancel the rental before the end of the contract - Dec 8 2026",
+        "frequency": "monthly"
       },
       {
         "id": "0bfddc64-37b2-4a2b-ad42-6ec52bb88b98",
@@ -156,7 +161,8 @@
         "due": "2026-05-29",
         "paid": "paid",
         "paidDate": "2026-05-29",
-        "notes": "Transferred to tenant (Jeff in March 2026), annagoranova17@gmail.com"
+        "notes": "Transferred to tenant (Jeff in March 2026), annagoranova17@gmail.com",
+        "frequency": "monthly"
       },
       {
         "id": "c884e6d2-e837-40fc-a820-a6abec98ae2c",
@@ -170,7 +176,8 @@
         "due": "2026-06-04",
         "paid": "unpaid",
         "paidDate": "2026-05-29",
-        "notes": "Autopay enabled, contract end November 2026."
+        "notes": "Autopay enabled, contract end November 2026.",
+        "frequency": "monthly"
       },
       {
         "id": "e316f69a-128c-4734-9edd-8260022d7229",
@@ -184,7 +191,53 @@
         "due": "2026-06-29",
         "paid": "unpaid",
         "paidDate": "",
-        "notes": "Transferred to tenant (Jeff in March 2026), annagoranova17@gmail.com"
+        "notes": "Transferred to tenant (Jeff in March 2026), annagoranova17@gmail.com",
+        "frequency": "monthly"
+      },
+      {
+        "id": "5ca20857-7f9d-424f-bba0-95249731161a",
+        "houseId": "h3",
+        "type": "Electric",
+        "provider": "FPL",
+        "url": "https://www.fpl.com/fpl-app/my-account/login?redirectTo=/my-account/pay-online.html?icid=HCTL01",
+        "account": "6770229067",
+        "statementDate": "2026-06-04",
+        "amount": 0,
+        "due": "2026-06-26",
+        "paid": "unpaid",
+        "paidDate": "",
+        "notes": "",
+        "frequency": "monthly"
+      },
+      {
+        "id": "7301f2a3-a977-4a72-be9f-f740282ec2bb",
+        "houseId": "h3",
+        "type": "Water",
+        "provider": "Charlotte County",
+        "url": "https://ipn4.paymentus.com/cp/ccfl",
+        "account": "202816-137978",
+        "statementDate": "2026-06-15",
+        "amount": 0,
+        "due": "2026-07-05",
+        "paid": "unpaid",
+        "paidDate": "",
+        "notes": "",
+        "frequency": "monthly"
+      },
+      {
+        "id": "79002851-c5ac-4059-8886-1551b5f28c90",
+        "houseId": "h1",
+        "type": "Water",
+        "provider": "City of Venice",
+        "url": "https://ven-egov.aspgov.com/Click2GovCX/logonuser.html?OWASP_CSRFTOKEN=K07C-EY3V-D76I-OOMT-XOOB-SXYE-M3I0-NGAX",
+        "account": "000086658-000078288",
+        "statementDate": "2026-06-14",
+        "amount": 0,
+        "due": "2026-07-04",
+        "paid": "unpaid",
+        "paidDate": "",
+        "notes": "",
+        "frequency": "monthly"
       }
     ],
     "finance": [
@@ -224,7 +277,12 @@
         "propertyTaxAmount": 9074,
         "propertyTaxDue": "2025-11-30",
         "propertyTaxPaid": "paid",
-        "notes": ""
+        "notes": "",
+        "mortgageFrequency": "monthly",
+        "salesFrequency": "monthly",
+        "touristFrequency": "monthly",
+        "insuranceFrequency": "annual",
+        "propertyTaxFrequency": "annual"
       },
       {
         "houseId": "h2",
@@ -260,7 +318,12 @@
         "propertyTaxAmount": 0,
         "propertyTaxDue": "",
         "propertyTaxPaid": "unpaid",
-        "notes": ""
+        "notes": "",
+        "mortgageFrequency": "monthly",
+        "salesFrequency": "monthly",
+        "touristFrequency": "monthly",
+        "insuranceFrequency": "annual",
+        "propertyTaxFrequency": "annual"
       },
       {
         "houseId": "h3",
@@ -296,7 +359,12 @@
         "propertyTaxAmount": 0,
         "propertyTaxDue": "",
         "propertyTaxPaid": "unpaid",
-        "notes": ""
+        "notes": "",
+        "mortgageFrequency": "monthly",
+        "salesFrequency": "monthly",
+        "touristFrequency": "monthly",
+        "insuranceFrequency": "annual",
+        "propertyTaxFrequency": "annual"
       },
       {
         "houseId": "h4",
@@ -332,7 +400,12 @@
         "propertyTaxAmount": 0,
         "propertyTaxDue": "",
         "propertyTaxPaid": "unpaid",
-        "notes": ""
+        "notes": "",
+        "mortgageFrequency": "monthly",
+        "salesFrequency": "monthly",
+        "touristFrequency": "monthly",
+        "insuranceFrequency": "annual",
+        "propertyTaxFrequency": "annual"
       }
     ],
     "contacts": [
@@ -346,6 +419,342 @@
         "website": "",
         "address": "",
         "notes": ""
+      }
+    ],
+    "financeItems": [
+      {
+        "id": "f020813e-390c-4baf-b4a8-1a02ee03c632",
+        "houseId": "h1",
+        "sourceRowType": "insurance",
+        "frequency": "annual",
+        "name": "Hazardous Insurance",
+        "company": "MSI",
+        "login": "https://apps.msimga.com/login?isInternal=True",
+        "account": "88185506",
+        "amount": 0,
+        "keepSameAmountNextPeriod": "no",
+        "notes": "",
+        "due": "2026-11-07",
+        "paid": "unpaid",
+        "paidDate": ""
+      },
+      {
+        "id": "efe77b03-f970-46a5-b07e-69898b785cf2",
+        "houseId": "h1",
+        "sourceRowType": "propertyTax",
+        "frequency": "annual",
+        "name": "Property Taxes",
+        "company": "Sarasota County property tax",
+        "login": "https://www.sc-pa.com/propertysearch/parcel/details/0364120160",
+        "account": "",
+        "amount": 0,
+        "keepSameAmountNextPeriod": "no",
+        "notes": "",
+        "due": "2026-11-30",
+        "paid": "unpaid",
+        "paidDate": ""
+      }
+    ],
+    "creditCards": [
+      {
+        "id": "cc-anna-chase-ink-unlimited-5836",
+        "bank": "Chase",
+        "name": "Ink Business Unlimited",
+        "owner": "Anna",
+        "type": "Business",
+        "last4": "5836",
+        "dueDate": "",
+        "openedDate": "",
+        "annualFee": 0,
+        "businessName": "Venice Pines",
+        "status": "active",
+        "notes": "No annual fee.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-chase-ink-preferred-1412",
+        "bank": "Chase",
+        "name": "Ink Business Preferred",
+        "owner": "Anna",
+        "type": "Business",
+        "last4": "1412",
+        "dueDate": "",
+        "openedDate": "",
+        "annualFee": 95,
+        "businessName": "Corals Realty",
+        "status": "closed",
+        "notes": "CLOSED.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-chase-southwest-business-7512",
+        "bank": "Chase",
+        "name": "Southwest Business Rapid Rewards",
+        "owner": "Anna",
+        "type": "Business",
+        "last4": "7512",
+        "dueDate": "April 1",
+        "openedDate": "",
+        "annualFee": 199,
+        "businessName": "Drysdale",
+        "status": "closed",
+        "notes": "Membership fee. Keep till April 1 to get the 9K bonus points and then cancel. CLOSED on April 7, 2026. Reapply for new points after April 1, 2027.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-chase-amazon",
+        "bank": "Chase",
+        "name": "Amazon Chase",
+        "owner": "Anna",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "",
+        "openedDate": "",
+        "annualFee": 0,
+        "businessName": "",
+        "status": "active",
+        "notes": "No annual fee.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-chase-southwest-plus-8665",
+        "bank": "Chase",
+        "name": "Southwest Plus",
+        "owner": "Anna",
+        "type": "Personal",
+        "last4": "8665",
+        "dueDate": "August 1",
+        "openedDate": "",
+        "annualFee": 69,
+        "businessName": "",
+        "status": "active",
+        "notes": "3K anniversary points.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-chase-sapphire-reserve",
+        "bank": "Chase",
+        "name": "Sapphire Reserve",
+        "owner": "Anna",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "",
+        "openedDate": "May 2026",
+        "annualFee": 795,
+        "businessName": "",
+        "status": "active",
+        "notes": "Once in a lifetime.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-lubo-chase-southwest-rapid",
+        "bank": "Chase",
+        "name": "Southwest Rapid Rewards",
+        "owner": "Lubo",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "August 1",
+        "openedDate": "",
+        "annualFee": 99,
+        "businessName": "",
+        "status": "active",
+        "notes": "Wait for the points to show up before closing.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-lubo-chase-ink-unlimited-1397",
+        "bank": "Chase",
+        "name": "Ink Unlimited",
+        "owner": "Lubo",
+        "type": "Business",
+        "last4": "1397",
+        "dueDate": "",
+        "openedDate": "",
+        "annualFee": 0,
+        "businessName": "",
+        "status": "active",
+        "notes": "No annual fee.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-lubo-chase-ink-preferred-1943",
+        "bank": "Chase",
+        "name": "Ink Business Preferred",
+        "owner": "Lubo",
+        "type": "Business",
+        "last4": "1943",
+        "dueDate": "June 1",
+        "openedDate": "",
+        "annualFee": 99,
+        "businessName": "",
+        "status": "closed",
+        "notes": "CLOSED 1/22/26.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-lubo-chase-ink-hyatt",
+        "bank": "Chase",
+        "name": "Ink Hyatt",
+        "owner": "Lubo",
+        "type": "Business",
+        "last4": "",
+        "dueDate": "",
+        "openedDate": "February 2026",
+        "annualFee": 95,
+        "businessName": "",
+        "status": "active",
+        "notes": "",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-barclays-aviator-red",
+        "bank": "Barclays",
+        "name": "AAdvantage® Aviator® Red Mastercard",
+        "owner": "Anna",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "",
+        "openedDate": "April 30, 2025",
+        "annualFee": 99,
+        "businessName": "",
+        "status": "closed",
+        "notes": "5K points. CLOSED beginning of 2026.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-lubo-barclays-american",
+        "bank": "Barclays",
+        "name": "American",
+        "owner": "Lubo",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "May 30",
+        "openedDate": "",
+        "annualFee": 99,
+        "businessName": "",
+        "status": "closed",
+        "notes": "11K points. CLOSED.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-lubo-barclays-wyndham",
+        "bank": "Barclays",
+        "name": "Wyndham",
+        "owner": "Lubo",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "May 30",
+        "openedDate": "",
+        "annualFee": 99,
+        "businessName": "",
+        "status": "active",
+        "notes": "30K points. Close after the bonus points.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-lubo-capital-one-venture-x",
+        "bank": "Capital One",
+        "name": "Venture X",
+        "owner": "Lubo",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "November",
+        "openedDate": "",
+        "annualFee": 395,
+        "businessName": "",
+        "status": "active",
+        "notes": "47K points. Used them for travel.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-wells-fargo-signify-2508",
+        "bank": "Wells Fargo",
+        "name": "Signify Business Cash",
+        "owner": "Anna",
+        "type": "Business",
+        "last4": "2508",
+        "dueDate": "",
+        "openedDate": "",
+        "annualFee": 0,
+        "businessName": "Drysdale LLC",
+        "status": "active",
+        "notes": "",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-wells-fargo-reflect-3121",
+        "bank": "Wells Fargo",
+        "name": "Reflect Visa",
+        "owner": "Anna",
+        "type": "Personal",
+        "last4": "3121",
+        "dueDate": "",
+        "openedDate": "April 5, 2026",
+        "annualFee": 0,
+        "businessName": "",
+        "status": "active",
+        "notes": "17K. 0% for 21 months, until Feb 2028.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-lubo-wells-fargo-reflect-5844",
+        "bank": "Wells Fargo",
+        "name": "Reflect Visa",
+        "owner": "Lubo",
+        "type": "Personal",
+        "last4": "5844",
+        "dueDate": "",
+        "openedDate": "April 5, 2026",
+        "annualFee": 0,
+        "businessName": "",
+        "status": "active",
+        "notes": "11K. 0% for 21 months, until Feb 2028.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-us-bank-platinum",
+        "bank": "US Bank",
+        "name": "Platinum",
+        "owner": "Anna",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "",
+        "openedDate": "",
+        "annualFee": 0,
+        "businessName": "",
+        "status": "active",
+        "notes": "",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-lubo-citi-mastercard",
+        "bank": "Citi",
+        "name": "Mastercard",
+        "owner": "Anna + Lubo",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "",
+        "openedDate": "",
+        "annualFee": 0,
+        "businessName": "",
+        "status": "active",
+        "notes": "On Lubo account.",
+        "interestRate": ""
+      },
+      {
+        "id": "cc-anna-discover",
+        "bank": "Discover",
+        "name": "Discover",
+        "owner": "Anna",
+        "type": "Personal",
+        "last4": "",
+        "dueDate": "",
+        "openedDate": "",
+        "annualFee": 0,
+        "businessName": "",
+        "status": "active",
+        "notes": "No annual fee. Will change to Wells Fargo.",
+        "interestRate": ""
       }
     ]
   }

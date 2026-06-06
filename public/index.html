@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>House Maintenance, Utilities, Contacts & Finance Tracker - v5 Contacts Fixed</title>
+  <title>House Maintenance, Utilities, Contacts, Finance & Credit Card Tracker</title>
   <style>
-    :root { --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --accent:#2563eb; --danger:#dc2626; --warn:#d97706; --ok:#059669; }
+    :root { --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --accent:#2563eb; --danger:#dc2626; --warn:#d97706; --ok:#059669; --inactive:#6b7280; }
     * { box-sizing: border-box; }
     body { margin:0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
     header { background:var(--card); border-bottom:1px solid var(--border); padding:18px 20px; position:sticky; top:0; z-index:2; }
     h1 { margin:0 0 6px; font-size:24px; }
     .sub { color:var(--muted); font-size:14px; }
-    main { max-width:1250px; margin:0 auto; padding:20px; }
+    main { width:100%; max-width:none; margin:0; padding:16px clamp(10px, 1.5vw, 20px); }
     .tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
     .tab { background:#e5e7eb; color:#111827; }
     .tab.active { background:var(--accent); color:white; }
@@ -44,13 +44,45 @@
     .utility-table th:nth-child(7), .utility-table td:nth-child(7) { min-width:135px; }
     .utility-table th:nth-child(8), .utility-table td:nth-child(8) { min-width:130px; }
     .utility-table th:nth-child(9), .utility-table td:nth-child(9) { min-width:150px; }
+    .utility-table th:nth-child(10), .utility-table td:nth-child(10) { min-width:210px; }
+    .credit-card-table { min-width:0; table-layout:fixed; }
+    .credit-card-table th, .credit-card-table td { padding:8px 5px; font-size:12px; overflow-wrap:anywhere; }
+    .credit-card-table th { font-size:10px; letter-spacing:.02em; }
+    .credit-card-table .sort-header { font-size:10px; gap:3px; letter-spacing:.02em; }
+    .credit-card-table .column-filter { min-width:0; padding:5px 4px; font-size:11px; }
+    .credit-card-table th:nth-child(1), .credit-card-table td:nth-child(1) { width:9%; }
+    .credit-card-table th:nth-child(2), .credit-card-table td:nth-child(2) { width:14%; }
+    .credit-card-table th:nth-child(3), .credit-card-table td:nth-child(3) { width:8%; }
+    .credit-card-table th:nth-child(4), .credit-card-table td:nth-child(4) { width:8%; }
+    .credit-card-table th:nth-child(5), .credit-card-table td:nth-child(5) { width:5%; }
+    .credit-card-table th:nth-child(6), .credit-card-table td:nth-child(6) { width:8%; }
+    .credit-card-table th:nth-child(7), .credit-card-table td:nth-child(7) { width:7%; }
+    .credit-card-table th:nth-child(8), .credit-card-table td:nth-child(8) { width:7%; }
+    .credit-card-table th:nth-child(9), .credit-card-table td:nth-child(9) { width:8%; }
+    .credit-card-table th:nth-child(10), .credit-card-table td:nth-child(10) { width:13%; }
+    .credit-card-table th:nth-child(11), .credit-card-table td:nth-child(11) { width:6%; }
+    .credit-card-table th:nth-child(12), .credit-card-table td:nth-child(12) { width:7%; }
+    .credit-card-table .actions { gap:4px; }
+    .credit-card-table .actions button { padding:5px 6px; font-size:11px; }
+    #financeApp table td:nth-child(5), #creditCardsApp table td:nth-child(7) { font-weight:800; }
+    .credit-card-due-date { color:var(--danger); font-weight:800; }
+    .credit-card-interest-rate { color:#f97316; font-weight:800; }
     th, td { text-align:left; padding:10px 8px; border-top:1px solid var(--border); vertical-align:top; font-size:14px; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    .utility-table th { vertical-align:bottom; }
+    .table-header-control { display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .sort-header { display:flex; justify-content:space-between; align-items:center; gap:6px; width:100%; padding:0; border:0; border-radius:0; background:transparent; color:var(--muted); cursor:pointer; font-size:12px; font-weight:800; text-align:left; text-transform:uppercase; letter-spacing:.04em; }
+    .sort-header:hover, .sort-header:focus { color:var(--accent); outline:none; }
+    .sort-indicator { color:var(--accent); font-size:11px; min-width:12px; text-align:right; }
+    .column-filter { width:100%; min-width:90px; padding:6px 7px; border-radius:8px; font-size:12px; font-weight:500; text-transform:none; letter-spacing:normal; }
+    .column-filter::placeholder { color:#9ca3af; }
     .status { font-weight:700; }
     .overdue, .unpaid-overdue { color:var(--danger); }
     .soon { color:var(--warn); }
     .ok, .paid { color:var(--ok); }
     .unpaid { color:var(--warn); }
+    .inactive { color:var(--inactive); }
+    .autopay-on { color:var(--ok); font-weight:800; text-transform:uppercase; }
     .actions { display:flex; gap:6px; flex-wrap:wrap; }
     .actions button { padding:6px 8px; font-size:12px; }
     dialog { border:0; border-radius:16px; padding:0; max-width:620px; width:92vw; box-shadow:0 20px 60px rgba(0,0,0,.22); }
@@ -59,6 +91,11 @@
     .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .full { grid-column:1 / -1; }
     .small { font-size:12px; color:var(--muted); }
+    .input-suffix-wrap { position:relative; }
+    .input-suffix-wrap input { padding-right:34px; }
+    .input-suffix { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--muted); font-weight:800; pointer-events:none; }
+    .due-date { color:var(--danger); font-weight:800; }
+    .due-date.paid-due-date { color:var(--muted); }
     .house-card { border:1px solid var(--border); border-radius:14px; padding:14px; background:#fff; }
     .house-card.pending-delete { opacity:.55; background:#f3f4f6; border-style:dashed; }
     .house-card.pending-delete input { background:#f9fafb; color:#6b7280; }
@@ -66,6 +103,32 @@
     .cloud-status { border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:16px; font-size:14px; background:#eff6ff; color:#1e40af; }
     .cloud-status.ok { background:#ecfdf5; border-color:#a7f3d0; color:#065f46; }
     .cloud-status.warn { background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+    .view-mode-toolbar { display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .view-toggle { display:flex; gap:6px; padding:4px; border:1px solid var(--border); border-radius:999px; background:#f9fafb; }
+    .view-toggle button { border-radius:999px; padding:8px 12px; background:transparent; color:var(--text); }
+    .view-toggle button.active { background:var(--accent); color:white; }
+    .view-mode-hint { color:var(--muted); font-size:13px; }
+    .mobile-card-list { display:grid; gap:10px; }
+    .mobile-item-card { border:1px solid var(--border); border-radius:14px; padding:12px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+    .mobile-card-top { display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .mobile-card-title { font-weight:800; font-size:15px; line-height:1.25; }
+    .mobile-card-meta { color:var(--muted); font-size:12px; margin-top:2px; }
+    .mobile-card-fields { display:grid; gap:6px; margin:10px 0; }
+    .mobile-field { display:flex; justify-content:space-between; gap:10px; font-size:13px; }
+    .mobile-field span:first-child { color:var(--muted); }
+    .mobile-field span:last-child { text-align:right; font-weight:700; }
+    .mobile-actions { margin-top:8px; }
+    body.mobile-mode main { padding:12px; }
+    body.mobile-mode header { padding:14px 12px; }
+    body.mobile-mode h1 { font-size:20px; }
+    body.mobile-mode .sub { font-size:12px; }
+    body.mobile-mode .tabs { gap:6px; overflow-x:auto; flex-wrap:nowrap; padding-bottom:4px; }
+    body.mobile-mode .tab { white-space:nowrap; padding:9px 11px; }
+    body.mobile-mode .toolbar { grid-template-columns:1fr; padding:12px; }
+    body.mobile-mode .house-title { align-items:flex-start; flex-direction:column; }
+    body.mobile-mode .card { padding:12px; }
+    body.mobile-mode .desktop-table-only { display:none; }
+    body.desktop-mode .mobile-only { display:none; }
     footer { color:var(--muted); font-size:12px; margin-top:16px; }
     @media (max-width:900px) { .toolbar, .grid, .form-grid { grid-template-columns:1fr; } }
   </style>
@@ -73,7 +136,7 @@
 <body>
   <header>
     <h1>House Maintenance, Utilities, Contacts & Finance Tracker</h1>
-    <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, and tourist tax. Data is loaded from and saved only to Cloudflare KV.</div>
+    <div class="sub">Tracks maintenance, utility bills, service contacts, mortgages, insurance, property taxes, sales tax, tourist tax, and credit card payments. Data syncs to Cloudflare KV when cloud storage is connected and falls back to this browser when offline.</div>
   </header>
 
 
@@ -83,11 +146,21 @@
       <button id="maintTab" class="tab" onclick="showView('maintenance')">Maintenance</button>
       <button id="utilTab" class="tab active" onclick="showView('utilities')">Utility bills</button>
       <button id="financeTab" class="tab" onclick="showView('finance')">Mortgage / Taxes / Insurance</button>
+      <button id="creditCardsTab" class="tab" onclick="showView('creditCards')">Credit Cards</button>
       <button id="contactsTab" class="tab" onclick="showView('contacts')">Contacts</button>
     </div>
 
-    <section class="toolbar">
+    <section class="toolbar view-mode-toolbar">
+      <div>
+        <label>App version</label>
+        <div class="view-toggle" role="group" aria-label="Choose app version">
+          <button id="desktopModeBtn" type="button" onclick="setViewMode('desktop')">Browser version</button>
+          <button id="mobileModeBtn" type="button" onclick="setViewMode('mobile')">Mobile version</button>
+        </div>
+        <div id="viewModeHint" class="view-mode-hint">Browser version shows full tables.</div>
+      </div>
       <button class="light" onclick="openHouseModal()">View/edit/delete houses</button>
+      <button class="secondary" onclick="downloadIndexHtml()">Download current app HTML</button>
     </section>
 
     <section id="maintenanceView" style="display:none;">
@@ -116,7 +189,7 @@
 
     <section id="utilitiesView">
       <div class="warning">
-        Do not store passwords here. Use your browser or password manager for credentials. This app stores provider links, account notes, bill totals, due dates, autopay, and paid/unpaid status only.
+        Do not store passwords here. Use your browser or password manager for credentials. This app stores provider links, account notes, bill totals, due dates, autopay, and PAID, NOT PAID, or INACTIVE status only.
       </div>
       <section class="toolbar">
         <div>
@@ -126,10 +199,12 @@
         <div>
           <label for="utilityStatusFilter">Payment status</label>
           <select id="utilityStatusFilter">
-            <option value="all">All</option>
-            <option value="unpaid">Unpaid</option>
-            <option value="paid">Paid</option>
-            <option value="overdue">Unpaid and overdue</option>
+            <option value="allDue">ALL DUE</option>
+            <option value="all">ALL</option>
+            <option value="unpaid">NOT PAID</option>
+            <option value="paid">PAID</option>
+            <option value="inactive">INACTIVE</option>
+            <option value="overdue">NOT PAID and overdue</option>
           </select>
         </div>
         <div>
@@ -138,9 +213,9 @@
         </div>
         <button onclick="openUtilityModal()">+ Add bill</button>
       </section>
-      
+
       <section class="toolbar" style="grid-template-columns:1fr;">
-        <span class="small"><b>Others:</b> Use “+ Add bill” and choose Auto Insurance, Car Payment, Mobile Phones, Math Class, Soccer Club, or Other from the bill type dropdown.</span>
+        <span class="small"><b>Others:</b> Use “+ Add bill” and choose Auto Insurance, Car Payment, Mobile Phones, Math Class, Soccer Club, or Custom bill type from the bill type dropdown.</span>
       </section>
       <div id="utilityApp" class="grid"></div>
     </section>
@@ -155,9 +230,11 @@
         <div>
           <label for="financeStatusFilter">Status</label>
           <select id="financeStatusFilter">
-            <option value="all">All</option>
+            <option value="allDue">ALL DUE</option>
+            <option value="all">ALL</option>
             <option value="unpaid">Not paid</option>
             <option value="paid">Paid</option>
+            <option value="inactive">Inactive</option>
             <option value="overdue">Not paid and overdue</option>
           </select>
         </div>
@@ -168,6 +245,35 @@
         <div style="display:flex; gap:8px; flex-wrap:wrap;"><button onclick="openFinanceModal()">Edit selected</button><button class="light" onclick="openFinanceItemModal()">+ Add item</button></div>
       </section>
       <div id="financeApp"></div>
+    </section>
+
+
+    <section id="creditCardsView" style="display:none;">
+      <section class="toolbar">
+        <div>
+          <label for="creditCardSearch">Search credit cards</label>
+          <input id="creditCardSearch" placeholder="Chase, Anna, last 4, points, notes..." />
+        </div>
+        <div>
+          <label for="creditCardOwnerFilter">Owner</label>
+          <select id="creditCardOwnerFilter">
+            <option value="all">All owners</option>
+            <option>Anna</option>
+            <option>Lubo</option>
+            <option>Anna + Lubo</option>
+          </select>
+        </div>
+        <div>
+          <label for="creditCardStatusFilter">Status</label>
+          <select id="creditCardStatusFilter">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+        <button onclick="openCreditCardModal()">+ Add card</button>
+      </section>
+      <div id="creditCardsApp" class="card"></div>
     </section>
 
 
@@ -226,7 +332,7 @@
     </section>
 
     <footer>
-      Tip: all tracker data is shared through Cloudflare KV. Configure the TRACKER_BACKUPS binding before making changes.
+      Tip: in cloud mode, data is shared through Cloudflare KV. Auto-backup still downloads a JSON safety copy when data changes.
     </footer>
   </main>
 
@@ -256,14 +362,16 @@
       <div class="form-grid">
         <div><label>House</label><select id="utilityHouse"></select></div>
         <div><label>Bill type</label><select id="utilityType"></select></div>
-        <div><label>Billing Frequency</label><select id="utilityBillingFrequency"><option value="monthly">Monthly</option><option value="annual">Annual</option><option value="one-time">One time</option></select></div>
+        <div id="utilityCustomTypeWrap" style="display:none;"><label>Custom bill type</label><input id="utilityCustomType" placeholder="Gym, storage, music class..."></div>
         <div><label>Provider</label><input id="utilityProvider" required placeholder="TECO, county water..."></div>
         <div><label>Login page URL</label><input id="utilityUrl" placeholder="https://..."></div>
         <div><label>Account number</label><input id="utilityAccount" placeholder="Utility account number"></div>
         <div><label>Statement date</label><input id="utilityStatementDate" type="date"></div>
         <div><label>Amount due</label><input id="utilityAmount" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label>Keep same amount next period?</label><select id="utilityKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
+        <div><label>Billing frequency</label><select id="utilityFrequency"><option value="monthly">Monthly</option><option value="annual">Annual</option></select></div>
         <div><label>Due date</label><input id="utilityDue" type="date" required></div>
-        <div><label>Payment status</label><select id="utilityPaid"><option value="unpaid">Unpaid</option><option value="paid">Paid</option></select></div>
+        <div><label>Payment status</label><select id="utilityPaid"><option value="unpaid">NOT PAID</option><option value="paid">PAID</option><option value="inactive">INACTIVE</option></select></div>
         <div><label>Autopay</label><select id="utilityAutopay"><option value="off">Off</option><option value="on">On</option></select></div>
         <div id="utilityPaidDateWrap"><label>Paid date</label><input id="utilityPaidDate" type="date"></div>
         <div class="full"><label>Notes, confirmation #, or autopay info</label><textarea id="utilityNotes" placeholder="Autopay enabled, confirmation number, meter notes. Do NOT store passwords."></textarea></div>
@@ -272,6 +380,30 @@
     </form>
   </dialog>
 
+  <dialog id="creditCardDialog">
+    <form method="dialog" class="modal" onsubmit="saveCreditCard(event)">
+      <h3 id="creditCardModalTitle">Add credit card</h3>
+      <input type="hidden" id="creditCardEditId">
+      <div class="form-grid">
+        <div><label>Bank name</label><input id="creditCardBank" required placeholder="Chase, Barclays, Wells Fargo..."></div>
+        <div><label>Card name</label><input id="creditCardName" required placeholder="Ink Business Unlimited"></div>
+        <div><label>Owner</label><select id="creditCardOwner"><option>Anna</option><option>Lubo</option><option>Anna + Lubo</option></select></div>
+        <div><label>Business or personal?</label><select id="creditCardType"><option>Business</option><option>Personal</option></select></div>
+        <div><label>Last 4 numbers</label><input id="creditCardLast4" maxlength="4" inputmode="numeric" placeholder="5836"></div>
+        <div><label>Annual fee</label><input id="creditCardAnnualFee" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div><label>Interest rate</label><div class="input-suffix-wrap"><input id="creditCardInterestRate" inputmode="decimal" placeholder="0, 24.99, 0 until Feb 2028..."><span class="input-suffix" aria-hidden="true">%</span></div></div>
+        <div><label>Due date / fee date</label><input id="creditCardDueDate" type="date"></div>
+        <div><label>Date opened</label><input id="creditCardOpenedDate" type="date"></div>
+        <div><label>Status</label><select id="creditCardStatus"><option value="active">Active</option><option value="closed">Closed</option></select></div>
+        <div><label>Business / property name</label><input id="creditCardBusinessName" placeholder="Venice Pines, Drysdale LLC..."></div>
+        <div class="full"><label>Notes, points, close/reapply reminders</label><textarea id="creditCardNotes" placeholder="Bonus points, cancellation plans, reminders..."></textarea></div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+        <button type="button" class="light" onclick="creditCardDialog.close()">Cancel</button>
+        <button type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
 
 
 
@@ -287,8 +419,9 @@
         <div><label>Login page</label><input id="financeItemLogin" placeholder="https://..."></div>
         <div><label>Account / policy number</label><input id="financeItemAccount" placeholder="Account or policy number"></div>
         <div><label>Amount due</label><input id="financeItemAmount" type="number" step="0.01" min="0"></div>
+        <div><label>Keep same amount next period?</label><select id="financeItemKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div><label>Due date</label><input id="financeItemDue" type="date"></div>
-        <div><label>Paid?</label><select id="financeItemPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
+        <div><label>Paid?</label><select id="financeItemPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
         <div><label>Paid date</label><input id="financeItemPaidDate" type="date"></div>
         <div class="full"><label>Notes</label><textarea id="financeItemNotes" placeholder="Notes, confirmation number, policy details..."></textarea></div>
       </div>
@@ -301,60 +434,65 @@
 
   <dialog id="financeDialog">
     <form method="dialog" class="modal" onsubmit="saveFinance(event)">
-      <h3>Edit mortgage / insurance / taxes</h3>
+      <h3 id="financeModalTitle">Edit mortgage / insurance / taxes</h3>
       <div class="form-grid">
         <div class="full"><label>Property</label><select id="financeHouse"></select></div>
 
-        <div class="full"><h4>Monthly mortgage</h4></div>
-        <div><label>Mortgage company</label><input id="finMortgageCompany" placeholder="Mortgage company"></div>
-        <div><label>Mortgage number</label><input id="finMortgageNumber" placeholder="Mortgage/account number"></div>
-        <div><label>Mortgage login page</label><input id="finMortgageLogin" placeholder="https://..."></div>
-        <div><label>Monthly amount due</label><input id="finMortgageAmount" type="number" step="0.01" min="0"></div>
-        <div><label>Due on the 1-st</label><input id="finMortgageDueDay" type="number" min="1" max="28" value="1"></div>
-        <div><label>Paid?</label><select id="finMortgagePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finMortgageNotes" placeholder="Mortgage notes..."></textarea></div>
-        <div><label>Paid date</label><input id="finMortgagePaidDate" type="date"></div>
+        <div class="full" data-finance-section="mortgage"><h4>Monthly mortgage</h4></div>
+        <div data-finance-section="mortgage"><label>Mortgage company</label><input id="finMortgageCompany" placeholder="Mortgage company"></div>
+        <div data-finance-section="mortgage"><label>Mortgage number</label><input id="finMortgageNumber" placeholder="Mortgage/account number"></div>
+        <div data-finance-section="mortgage"><label>Mortgage login page</label><input id="finMortgageLogin" placeholder="https://..."></div>
+        <div data-finance-section="mortgage"><label>Monthly amount due</label><input id="finMortgageAmount" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="mortgage"><label>Keep same amount next month?</label><select id="finMortgageKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
+        <div data-finance-section="mortgage"><label>Due on the 1-st</label><input id="finMortgageDueDay" type="number" min="1" max="28" value="1"></div>
+        <div data-finance-section="mortgage"><label>Paid?</label><select id="finMortgagePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
+        <div class="full" data-finance-section="mortgage"><label>Notes</label><textarea id="finMortgageNotes" placeholder="Mortgage notes..."></textarea></div>
+        <div data-finance-section="mortgage"><label>Paid date</label><input id="finMortgagePaidDate" type="date"></div>
 
-        <div class="full"><h4>Monthly sales tax</h4></div>
-        <div><label>Show sales tax for this property?</label><select id="finSalesVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
-        <div><label>Agency name</label><input id="finSalesAgency" placeholder="Florida Sales Tax"></div>
-        <div><label>Login page</label><input id="finSalesLogin" placeholder="https://..."></div>
-        <div><label>Return filed?</label><select id="finSalesFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
-        <div><label>Taxable amount</label><input id="finSalesTaxable" type="number" step="0.01" min="0"></div>
-        <div><label>Paid?</label><select id="finSalesPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finSalesNotes" placeholder="Sales tax notes..."></textarea></div>
-        <div><label>Due on the 1-st</label><input id="finSalesDueDay" type="number" min="1" max="28" value="20"></div>
+        <div class="full" data-finance-section="salesTax"><h4>Monthly sales tax</h4></div>
+        <div data-finance-section="salesTax"><label>Show sales tax for this property?</label><select id="finSalesVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
+        <div data-finance-section="salesTax"><label>Agency name</label><input id="finSalesAgency" placeholder="Florida Sales Tax"></div>
+        <div data-finance-section="salesTax"><label>Login page</label><input id="finSalesLogin" placeholder="https://..."></div>
+        <div data-finance-section="salesTax"><label>Return filed?</label><select id="finSalesFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
+        <div data-finance-section="salesTax"><label>Taxable amount</label><input id="finSalesTaxable" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="salesTax"><label>Keep same amount next month?</label><select id="finSalesKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
+        <div data-finance-section="salesTax"><label>Paid?</label><select id="finSalesPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
+        <div class="full" data-finance-section="salesTax"><label>Notes</label><textarea id="finSalesNotes" placeholder="Sales tax notes..."></textarea></div>
+        <div data-finance-section="salesTax"><label>Due on the 1-st</label><input id="finSalesDueDay" type="number" min="1" max="28" value="20"></div>
 
-        <div class="full"><h4>Monthly tourist tax</h4></div>
-        <div><label>Show tourist tax for this property?</label><select id="finTouristVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
-        <div><label>Agency name</label><input id="finTouristAgency" placeholder="County Name - tourist county tax"></div>
-        <div><label>Login page</label><input id="finTouristLogin" placeholder="https://..."></div>
-        <div><label>Return filed?</label><select id="finTouristFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
-        <div><label>Taxable amount</label><input id="finTouristTaxable" type="number" step="0.01" min="0"></div>
-        <div><label>Paid?</label><select id="finTouristPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finTouristNotes" placeholder="Tourist tax notes..."></textarea></div>
-        <div><label>Due on the 1-st</label><input id="finTouristDueDay" type="number" min="1" max="28" value="20"></div>
+        <div class="full" data-finance-section="touristTax"><h4>Monthly tourist tax</h4></div>
+        <div data-finance-section="touristTax"><label>Show tourist tax for this property?</label><select id="finTouristVisible"><option value="yes">Show</option><option value="no">Hide</option></select></div>
+        <div data-finance-section="touristTax"><label>Agency name</label><input id="finTouristAgency" placeholder="County Name - tourist county tax"></div>
+        <div data-finance-section="touristTax"><label>Login page</label><input id="finTouristLogin" placeholder="https://..."></div>
+        <div data-finance-section="touristTax"><label>Return filed?</label><select id="finTouristFiled"><option value="not filed">Not filed</option><option value="filed">Filed</option></select></div>
+        <div data-finance-section="touristTax"><label>Taxable amount</label><input id="finTouristTaxable" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="touristTax"><label>Keep same amount next month?</label><select id="finTouristKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
+        <div data-finance-section="touristTax"><label>Paid?</label><select id="finTouristPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
+        <div class="full" data-finance-section="touristTax"><label>Notes</label><textarea id="finTouristNotes" placeholder="Tourist tax notes..."></textarea></div>
+        <div data-finance-section="touristTax"><label>Due on the 1-st</label><input id="finTouristDueDay" type="number" min="1" max="28" value="20"></div>
 
-        <div class="full"><h4>Annual hazardous insurance</h4></div>
-        <div><label>Hazardous Insurance company</label><input id="finInsuranceCompany" placeholder="Hazardous Insurance company"></div>
-        <div><label>Policy number</label><input id="finInsurancePolicyNumber" placeholder="Policy number"></div>
-        <div><label>Login page</label><input id="finInsuranceLogin" placeholder="https://..."></div>
-        <div><label>Policy period start</label><input id="finInsuranceStart" type="date"></div>
-        <div><label>Policy period end</label><input id="finInsuranceEnd" type="date"></div>
-        <div><label>Amount per year</label><input id="finInsuranceAmount" type="number" step="0.01" min="0"></div>
-        <div><label>Due date</label><input id="finInsuranceDue" type="date"></div>
-        <div><label>Paid?</label><select id="finInsurancePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finInsuranceNotes" placeholder="Policy notes, escrow, reminders..."></textarea></div>
+        <div class="full" data-finance-section="insurance"><h4>Annual hazardous insurance</h4></div>
+        <div data-finance-section="insurance"><label>Hazardous Insurance company</label><input id="finInsuranceCompany" placeholder="Hazardous Insurance company"></div>
+        <div data-finance-section="insurance"><label>Policy number</label><input id="finInsurancePolicyNumber" placeholder="Policy number"></div>
+        <div data-finance-section="insurance"><label>Login page</label><input id="finInsuranceLogin" placeholder="https://..."></div>
+        <div data-finance-section="insurance"><label>Policy period start</label><input id="finInsuranceStart" type="date"></div>
+        <div data-finance-section="insurance"><label>Policy period end</label><input id="finInsuranceEnd" type="date"></div>
+        <div data-finance-section="insurance"><label>Amount per year</label><input id="finInsuranceAmount" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="insurance"><label>Keep same amount next year?</label><select id="finInsuranceKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
+        <div data-finance-section="insurance"><label>Due date</label><input id="finInsuranceDue" type="date"></div>
+        <div data-finance-section="insurance"><label>Paid?</label><select id="finInsurancePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
+        <div class="full" data-finance-section="insurance"><label>Notes</label><textarea id="finInsuranceNotes" placeholder="Policy notes, escrow, reminders..."></textarea></div>
 
-        <div class="full"><h4>Annual property taxes</h4></div>
-        <div><label>County / agency</label><input id="finPropertyTaxAgency" placeholder="County property tax"></div>
-        <div><label>County tax page / login</label><input id="finPropertyTaxLogin" placeholder="https://..."></div>
-        <div><label>Property taxes per year</label><input id="finPropertyTaxAmount" type="number" step="0.01" min="0"></div>
-        <div><label>Due date</label><input id="finPropertyTaxDue" type="date"></div>
-        <div><label>Paid?</label><select id="finPropertyTaxPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option></select></div>
-        <div class="full"><label>Notes</label><textarea id="finPropertyTaxNotes" placeholder="Parcel ID, reminders, confirmations..."></textarea></div>
+        <div class="full" data-finance-section="propertyTax"><h4>Annual property taxes</h4></div>
+        <div data-finance-section="propertyTax"><label>County / agency</label><input id="finPropertyTaxAgency" placeholder="County property tax"></div>
+        <div data-finance-section="propertyTax"><label>County tax page / login</label><input id="finPropertyTaxLogin" placeholder="https://..."></div>
+        <div data-finance-section="propertyTax"><label>Property taxes per year</label><input id="finPropertyTaxAmount" type="number" step="0.01" min="0"></div>
+        <div data-finance-section="propertyTax"><label>Keep same amount next year?</label><select id="finPropertyTaxKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
+        <div data-finance-section="propertyTax"><label>Due date</label><input id="finPropertyTaxDue" type="date"></div>
+        <div data-finance-section="propertyTax"><label>Paid?</label><select id="finPropertyTaxPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
+        <div class="full" data-finance-section="propertyTax"><label>Notes</label><textarea id="finPropertyTaxNotes" placeholder="Parcel ID, reminders, confirmations..."></textarea></div>
 
-        <div class="full"><label>Notes</label><textarea id="finNotes" placeholder="Escrow, parcel ID, confirmation numbers, reminders..."></textarea></div>
+        <div class="full" data-finance-section="all"><label>Notes</label><textarea id="finNotes" placeholder="Escrow, parcel ID, confirmation numbers, reminders..."></textarea></div>
       </div>
       <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
         <button type="button" class="light" onclick="financeDialog.close()">Cancel</button>
@@ -374,7 +512,7 @@
         </select></div>
         <div><label>Email</label><input id="contactEmail" type="email" placeholder="name@example.com"></div>
         <div><label>Phone</label><input id="contactPhone" placeholder="(555) 555-5555"></div>
-        <div><label>Property</label><select id="contactHouse"></select></div>
+        <div><label>House</label><select id="contactHouse"></select></div>
         <div><label>Website / login / booking link</label><input id="contactWebsite" placeholder="https://..."></div>
         <div class="full"><label>Address</label><input id="contactAddress" placeholder="Company or service address"></div>
         <div class="full"><label>Notes</label><textarea id="contactNotes" placeholder="Rates, preferred tech, emergency instructions, warranty info..."></textarea></div>
@@ -395,6 +533,8 @@
   </dialog>
 
 <script>
+const STORAGE_KEY = "house-maintenance-tracker-v2";
+const VIEW_MODE_KEY = `${STORAGE_KEY}-view-mode`;
 let state = null;
 let cloudStorageAvailable = false;
 let cloudSaveWarningShown = false;
@@ -404,6 +544,35 @@ function setCloudStatus(message, kind = "warn") {
   if (!status) return;
   status.textContent = message;
   status.className = `cloud-status ${kind}`;
+}
+
+function safeLocalStorageGet(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch (err) {
+    console.warn(`Browser localStorage could not read ${key}. Safari Private Browsing or site settings may block local backups.`, err);
+    return null;
+  }
+}
+
+function safeLocalStorageSet(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    console.warn(`Browser localStorage could not save ${key}. Safari Private Browsing or site settings may block local backups.`, err);
+    return false;
+  }
+}
+
+function safeLocalStorageRemove(key) {
+  try {
+    window.localStorage.removeItem(key);
+    return true;
+  } catch (err) {
+    console.warn(`Browser localStorage could not remove ${key}. Safari Private Browsing or site settings may block local backups.`, err);
+    return false;
+  }
 }
 
 async function initializeApp() {
@@ -419,14 +588,25 @@ async function initializeApp() {
     console.log("Loaded cloud data:", cloudData);
 
     state = normalizeLoadedData(cloudData);
-    cloudStorageAvailable = true;
-    setCloudStatus("Shared cloud storage is connected. Changes are saved only to Cloudflare KV.", "ok");
+    cloudStorageAvailable = cloudData.cloudStorageConfigured !== false;
+    if (cloudStorageAvailable) {
+      setCloudStatus("Shared cloud storage is connected. Changes saved here should appear on your other devices.", "ok");
+    } else {
+      setCloudStatus(cloudData.warning || "Cloud storage is not configured. Changes are saved only in this browser.", "warn");
+    }
+
+    // Keep a local browser backup for offline fallback.
+    safeLocalStorageSet(
+      STORAGE_KEY,
+      JSON.stringify(state, null, 2)
+    );
 
   } catch (err) {
-    console.error("API failed; KV data could not be loaded", err);
+    console.error("API failed, loading local/public backup", err);
     cloudStorageAvailable = false;
-    setCloudStatus("Cloudflare KV data is unavailable. Configure /api/items and the TRACKER_BACKUPS KV binding, then refresh.", "warn");
-    state = normalizeLoadedData({ houses: [], items: [], utilities: [], contacts: [], finance: [], financeItems: [], otherBills: [] });
+    setCloudStatus("Cloud storage is unreachable. Changes are saved only in this browser until /api/items is available.", "warn");
+
+    state = await loadData();
   }
 
   ensureFinanceRecords();
@@ -436,12 +616,45 @@ let pendingHouseDeletes = new Set();
 let editableHouses = new Set();
 let maintenanceViewOnly = false;
 let currentView = "utilities";
+let viewMode = safeLocalStorageGet(VIEW_MODE_KEY) === "mobile" ? "mobile" : "desktop";
 
 function todayISO() { return new Date().toISOString().slice(0,10); }
 function uid() { return crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()); }
 function parseDate(s) { const [y,m,d]=s.split("-").map(Number); return new Date(y, m-1, d); }
 function daysUntil(s) { if (!s) return 9999; return Math.ceil((parseDate(s) - parseDate(todayISO())) / 86400000); }
 function money(n) { return Number(n || 0).toLocaleString(undefined, {style:"currency", currency:"USD"}); }
+function formatInterestRate(value) {
+  const rate = String(value || "").trim();
+  if (!rate || rate.includes("%")) return rate;
+  const numericRate = rate.match(/^([-+]?\d+(?:\.\d+)?)(\s+.*)?$/);
+  if (numericRate) return `${numericRate[1]}%${numericRate[2] || ""}`;
+  return rate;
+}
+function formatISODateForDisplay(s) {
+  if (!s) return "";
+  const date = parseDate(s);
+  if (Number.isNaN(date.getTime())) return s;
+  return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+function normalizeDatePickerValue(value, fallbackYear = new Date().getFullYear()) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+  const monthMatch = raw.match(/^(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|sept(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)(?:\s+(\d{1,2}))?(?:,?\s+(\d{4}))?$/i);
+  if (monthMatch) {
+    const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+    const month = monthNames.findIndex(name => monthMatch[1].toLowerCase().startsWith(name));
+    const day = Number(monthMatch[2] || 1);
+    const year = Number(monthMatch[3] || fallbackYear);
+    const parsed = new Date(year, month, day);
+    if (parsed.getFullYear() === year && parsed.getMonth() === month && parsed.getDate() === day) return parsed.toISOString().slice(0,10);
+  }
+
+  const parsed = new Date(raw);
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0,10);
+  return "";
+}
 
 function houseDisplayName(house) {
   if (!house) return "";
@@ -473,21 +686,350 @@ function addMonthsISO(dateStr, months = 1) {
   return d.toISOString().slice(0,10);
 }
 
+function nextRecurringDate(dateStr, frequency = "monthly") {
+  return addMonthsISO(dateStr, frequency === "annual" ? 12 : 1);
+}
+
+function isOtherBillType(type) {
+  return ["Auto Insurance", "Car Payment", "Mobile Phones", "Soccer Club", "Math Class"].includes(String(type || ""));
+}
+
+function isInsuranceType(type) {
+  return String(type || "").toLowerCase().includes("insurance");
+}
+
+function utilityBillingFrequency(u) {
+  if (!u) return "monthly";
+
+  if (u.houseId === "other" || isOtherBillType(u.type)) {
+    return u.frequency === "annual" ? "annual" : "monthly";
+  }
+
+  if (isInsuranceType(u.type)) return "annual";
+  return "monthly";
+}
+
+function normalizedFinanceFrequency(value, fallback = "monthly") {
+  return value === "annual" ? "annual" : fallback;
+}
+
+function financeItemFrequency(item) {
+  if (!item) return "monthly";
+  const text = `${item.name || ""} ${item.sourceRowType || ""}`.toLowerCase();
+
+  if (text.includes("insurance") || text.includes("property tax")) return "annual";
+  if (text.includes("mortgage") || text.includes("sales tax") || text.includes("tourist tax")) return "monthly";
+
+  return item.frequency === "annual" ? "annual" : "monthly";
+}
+
+function isInactiveUtility(u) {
+  return (u && u.paid === "inactive") || (typeof u === "string" && u === "inactive");
+}
+
+function isPaidInNormalView(paid) {
+  return paid === "paid" || paid === "inactive";
+}
+
+function shouldCreateNextUtility(source) {
+  return source && source.paid === "paid" && !isInactiveUtility(source);
+}
+
 function isMonthlyUtilityType(type) {
   const t = String(type || "").toLowerCase();
   return t.includes("water") || t.includes("electric") || t.includes("internet");
 }
 
-function getUtilityBillingFrequency(u) {
-  return u && u.billingFrequency ? u.billingFrequency : "monthly";
+const UTILITY_TABLE_COLUMNS = [
+  { key: "type", label: "Bill type", filter: "text" },
+  { key: "provider", label: "Provider / login", filter: "text" },
+  { key: "account", label: "Account number", filter: "text" },
+  { key: "amount", label: "Amount due", filter: "text" },
+  { key: "frequency", label: "Frequency", filter: "select", options: ["Monthly", "Annual"] },
+  { key: "statementDate", label: "Statement date", filter: "text" },
+  { key: "due", label: "Due date", filter: "text" },
+  { key: "autopay", label: "Autopay", filter: "select", options: ["On", "Off"] },
+  { key: "paidStatus", label: "Paid status", filter: "select", options: ["Paid", "Not paid", "Inactive", "Overdue"] },
+  { key: "actions", label: "Actions", filter: "text" }
+];
+
+const utilityTableSort = { key: "due", dir: "asc" };
+const utilityTableFilters = Object.fromEntries(UTILITY_TABLE_COLUMNS.map(column => [column.key, ""]));
+
+function utilityActionText(u) {
+  return `${u && u.paid === "paid" ? "mark not paid" : "mark paid"} new period edit delete`;
 }
 
-function isRecurringMonthlyUtility(u) {
-  return getUtilityBillingFrequency(u) === "monthly" && isMonthlyUtilityType(u.type);
+function utilityColumnValue(u, key) {
+  if (!u) return "";
+  const status = utilityStatus(u);
+  const values = {
+    type: u.type || "",
+    provider: `${u.provider || ""} ${u.url || ""}`,
+    account: u.account || "",
+    amount: `${Number(u.amount || 0)} ${money(u.amount)}`,
+    frequency: utilityBillingFrequency(u) === "annual" ? "Annual" : "Monthly",
+    statementDate: u.statementDate || "",
+    due: u.due || "",
+    autopay: u.autopay === "on" ? "On" : "Off",
+    paidStatus: `${status.text} ${u.paid || ""} ${u.paidDate || ""}`,
+    actions: utilityActionText(u)
+  };
+  return values[key] ?? "";
 }
 
-function isOtherBillType(type) {
-  return ["Auto Insurance", "Car Payment", "Mobile Phones", "Soccer Club", "Math Class"].includes(String(type || ""));
+function utilityColumnFilterMatches(u, key, filterValue) {
+  if (!filterValue) return true;
+  const value = String(utilityColumnValue(u, key)).toLowerCase();
+  const filter = filterValue.toLowerCase();
+
+  if (key === "paidStatus") {
+    const status = utilityStatus(u).key;
+    if (filter === "overdue") return status === "unpaid-overdue";
+    if (filter === "not paid") return u.paid === "unpaid";
+    return value.includes(filter);
+  }
+
+  return value.includes(filter);
+}
+
+function filterUtilityTableRows(bills) {
+  return bills.filter(u => UTILITY_TABLE_COLUMNS.every(column =>
+    utilityColumnFilterMatches(u, column.key, utilityTableFilters[column.key])
+  ));
+}
+
+function compareUtilityRows(a, b) {
+  const key = utilityTableSort.key;
+  const dir = utilityTableSort.dir === "desc" ? -1 : 1;
+  const aValue = utilityColumnValue(a, key);
+  const bValue = utilityColumnValue(b, key);
+  let result;
+
+  if (["amount"].includes(key)) {
+    result = Number(a.amount || 0) - Number(b.amount || 0);
+  } else if (["statementDate", "due"].includes(key)) {
+    result = parseDate(aValue || "9999-12-31") - parseDate(bValue || "9999-12-31");
+  } else {
+    result = String(aValue || "").localeCompare(String(bValue || ""), undefined, { numeric: true, sensitivity: "base" });
+  }
+
+  if (result === 0 && key !== "due") {
+    result = parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31");
+  }
+
+  return result * dir;
+}
+
+function sortUtilityTableRows(bills) {
+  return [...bills].sort(compareUtilityRows);
+}
+
+function prepareUtilityTableRows(bills) {
+  return sortUtilityTableRows(filterUtilityTableRows(bills));
+}
+
+function setUtilityTableSort(key) {
+  if (utilityTableSort.key === key) {
+    utilityTableSort.dir = utilityTableSort.dir === "asc" ? "desc" : "asc";
+  } else {
+    utilityTableSort.key = key;
+    utilityTableSort.dir = "asc";
+  }
+  render();
+}
+
+function setUtilityColumnFilter(key, value) {
+  utilityTableFilters[key] = value;
+  render();
+  requestAnimationFrame(() => {
+    const filter = document.querySelector(`.column-filter[data-filter-key="${key}"]`);
+    if (!filter) return;
+    filter.focus();
+    if (filter instanceof HTMLInputElement && ["", "text", "search", "url", "tel", "password"].includes(filter.type)) {
+      const end = filter.value.length;
+      filter.setSelectionRange(end, end);
+    }
+  });
+}
+
+function utilityHeaderFilterHtml(column) {
+  const value = escapeHtml(utilityTableFilters[column.key] || "");
+  if (column.filter === "select") {
+    const options = ["", ...column.options].map(option =>
+      `<option value="${escapeHtml(option)}"${(utilityTableFilters[column.key] || "") === option ? " selected" : ""}>${option ? escapeHtml(option) : "All"}</option>`
+    ).join("");
+    return `<select class="column-filter" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}" onchange="setUtilityColumnFilter('${column.key}', this.value)" onclick="event.stopPropagation()">${options}</select>`;
+  }
+  return `<input class="column-filter" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}" placeholder="Filter" value="${value}" oninput="setUtilityColumnFilter('${column.key}', this.value)" onclick="event.stopPropagation()" />`;
+}
+
+function utilityTableHeaderHtml() {
+  return `<thead><tr>${UTILITY_TABLE_COLUMNS.map(column => {
+    const isSorted = utilityTableSort.key === column.key;
+    const indicator = isSorted ? (utilityTableSort.dir === "asc" ? "▲" : "▼") : "↕";
+    return `<th><div class="table-header-control"><button type="button" class="sort-header" onclick="setUtilityTableSort('${column.key}')" aria-label="Sort by ${escapeHtml(column.label)}"><span>${escapeHtml(column.label)}</span><span class="sort-indicator" aria-hidden="true">${indicator}</span></button>${utilityHeaderFilterHtml(column)}</div></th>`;
+  }).join("")}</tr></thead>`;
+}
+
+
+const MAINTENANCE_TABLE_COLUMNS = [
+  { key: "task", label: "Task", filter: "text" },
+  { key: "due", label: "Due", filter: "text", type: "date" },
+  { key: "status", label: "Status", filter: "select", options: ["Overdue", "Due soon", "Ok"] }
+];
+const FINANCE_TABLE_COLUMNS = [
+  { key: "house", label: "House", filter: "text" },
+  { key: "item", label: "Item", filter: "text" },
+  { key: "company", label: "Company / agency", filter: "text" },
+  { key: "login", label: "Login", filter: "text" },
+  { key: "amount", label: "Amount", filter: "text", type: "number" },
+  { key: "due", label: "Due", filter: "text", type: "date" },
+  { key: "status", label: "Status", filter: "select", options: ["Paid", "Not paid", "Inactive", "Overdue"] }
+];
+const CONTACT_TABLE_COLUMNS = [
+  { key: "name", label: "Name", filter: "text" },
+  { key: "house", label: "House", filter: "text" },
+  { key: "service", label: "Service", filter: "text" },
+  { key: "emailPhone", label: "Email / phone", filter: "text" },
+  { key: "address", label: "Address", filter: "text" }
+];
+const CREDIT_CARD_TABLE_COLUMNS = [
+  { key: "bank", label: "Bank", filter: "text" },
+  { key: "card", label: "Card", filter: "text" },
+  { key: "owner", label: "Owner", filter: "select", options: ["Anna", "Lubo", "Anna + Lubo"] },
+  { key: "type", label: "Business / Personal", filter: "select", options: ["Business", "Personal"] },
+  { key: "last4", label: "Last 4", filter: "text" },
+  { key: "dueDate", label: "Due / fee date", filter: "text", type: "date" },
+  { key: "annualFee", label: "Annual fee", filter: "text", type: "number" },
+  { key: "interestRate", label: "Interest rate", filter: "text" },
+  { key: "openedDate", label: "Opened", filter: "text", type: "date" },
+  { key: "notes", label: "Notes", filter: "text" },
+  { key: "status", label: "Status", filter: "select", options: ["Active", "Closed"] }
+];
+
+const maintenanceTableSort = { key: "due", dir: "asc" };
+const financeTableSort = { key: "due", dir: "asc" };
+const contactTableSort = { key: "house", dir: "asc" };
+const creditCardTableSort = { key: "bank", dir: "asc" };
+const maintenanceTableFilters = Object.fromEntries(MAINTENANCE_TABLE_COLUMNS.map(column => [column.key, ""]));
+const financeTableFilters = Object.fromEntries(FINANCE_TABLE_COLUMNS.map(column => [column.key, ""]));
+const contactTableFilters = Object.fromEntries(CONTACT_TABLE_COLUMNS.map(column => [column.key, ""]));
+const creditCardTableFilters = Object.fromEntries(CREDIT_CARD_TABLE_COLUMNS.map(column => [column.key, ""]));
+
+const TABLE_CONFIGS = {
+  maintenance: { columns: MAINTENANCE_TABLE_COLUMNS, sort: maintenanceTableSort, filters: maintenanceTableFilters, sortFn: "setMaintenanceTableSort", filterFn: "setMaintenanceColumnFilter" },
+  finance: { columns: FINANCE_TABLE_COLUMNS, sort: financeTableSort, filters: financeTableFilters, sortFn: "setFinanceTableSort", filterFn: "setFinanceColumnFilter" },
+  contacts: { columns: CONTACT_TABLE_COLUMNS, sort: contactTableSort, filters: contactTableFilters, sortFn: "setContactTableSort", filterFn: "setContactColumnFilter" },
+  creditCards: { columns: CREDIT_CARD_TABLE_COLUMNS, sort: creditCardTableSort, filters: creditCardTableFilters, sortFn: "setCreditCardTableSort", filterFn: "setCreditCardColumnFilter" }
+};
+
+function tableColumnFilterMatches(row, column, filterValue) {
+  if (!filterValue) return true;
+  const filter = filterValue.toLowerCase();
+  const rawValue = String(row.values[column.key] ?? "").toLowerCase();
+  const displayValue = String(row.displayValues && row.displayValues[column.key] !== undefined ? row.displayValues[column.key] : "").toLowerCase();
+  const value = `${rawValue} ${displayValue}`;
+
+  if (column.key === "status") {
+    if (filter === "overdue") return row.statusKey === "overdue" || row.statusKey === "unpaid-overdue";
+    if (filter === "not paid") return value.includes("not paid") || row.statusKey === "unpaid" || row.statusKey === "unpaid-overdue";
+    if (filter === "due soon") return row.statusKey === "soon";
+    if (filter === "ok") return row.statusKey === "ok";
+  }
+
+  return value.includes(filter);
+}
+
+function filterTableRows(rows, columns, filters) {
+  return rows.filter(row => columns.every(column => tableColumnFilterMatches(row, column, filters[column.key])));
+}
+
+function compareTableRows(a, b, columns, sortState) {
+  const key = sortState.key;
+  const dir = sortState.dir === "desc" ? -1 : 1;
+  const column = columns.find(c => c.key === key) || columns[0];
+  const aValue = a.sortValues && a.sortValues[key] !== undefined ? a.sortValues[key] : a.values[key];
+  const bValue = b.sortValues && b.sortValues[key] !== undefined ? b.sortValues[key] : b.values[key];
+  let result;
+
+  if (column.type === "number") {
+    result = Number(aValue || 0) - Number(bValue || 0);
+  } else if (column.type === "date") {
+    result = parseDate(aValue || "9999-12-31") - parseDate(bValue || "9999-12-31");
+  } else {
+    result = String(aValue || "").localeCompare(String(bValue || ""), undefined, { numeric: true, sensitivity: "base" });
+  }
+
+  if (result === 0 && key !== "due" && (a.sortValues && b.sortValues) && (a.sortValues.due || b.sortValues.due)) {
+    result = parseDate(a.sortValues.due || "9999-12-31") - parseDate(b.sortValues.due || "9999-12-31");
+  }
+
+  return result * dir;
+}
+
+function prepareTableRows(rows, configName) {
+  const config = TABLE_CONFIGS[configName];
+  return filterTableRows(rows, config.columns, config.filters).sort((a,b) => compareTableRows(a, b, config.columns, config.sort));
+}
+
+function setConfiguredTableSort(configName, key) {
+  const sortState = TABLE_CONFIGS[configName].sort;
+  if (sortState.key === key) {
+    sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+  } else {
+    sortState.key = key;
+    sortState.dir = "asc";
+  }
+  render();
+}
+
+function setConfiguredColumnFilter(configName, key, value) {
+  TABLE_CONFIGS[configName].filters[key] = value;
+  render();
+  requestAnimationFrame(() => {
+    const filter = document.querySelector(`.column-filter[data-table="${configName}"][data-filter-key="${key}"]`);
+    if (!filter) return;
+    filter.focus();
+    if (filter instanceof HTMLInputElement && ["", "text", "search", "url", "tel", "password"].includes(filter.type)) {
+      const end = filter.value.length;
+      filter.setSelectionRange(end, end);
+    }
+  });
+}
+
+function setMaintenanceTableSort(key) { setConfiguredTableSort("maintenance", key); }
+function setFinanceTableSort(key) { setConfiguredTableSort("finance", key); }
+function setContactTableSort(key) { setConfiguredTableSort("contacts", key); }
+function setCreditCardTableSort(key) { setConfiguredTableSort("creditCards", key); }
+function setMaintenanceColumnFilter(key, value) { setConfiguredColumnFilter("maintenance", key, value); }
+function setFinanceColumnFilter(key, value) { setConfiguredColumnFilter("finance", key, value); }
+function setContactColumnFilter(key, value) { setConfiguredColumnFilter("contacts", key, value); }
+function setCreditCardColumnFilter(key, value) { setConfiguredColumnFilter("creditCards", key, value); }
+
+function configuredHeaderFilterHtml(configName, column) {
+  const config = TABLE_CONFIGS[configName];
+  const value = escapeHtml(config.filters[column.key] || "");
+  if (column.filter === "select") {
+    const options = ["", ...column.options].map(option =>
+      `<option value="${escapeHtml(option)}"${(config.filters[column.key] || "") === option ? " selected" : ""}>${option ? escapeHtml(option) : "All"}</option>`
+    ).join("");
+    return `<select class="column-filter" data-table="${configName}" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}" onchange="${config.filterFn}('${column.key}', this.value)" onclick="event.stopPropagation()">${options}</select>`;
+  }
+  const inputType = column.type === "date" ? "date" : "text";
+  const placeholder = column.type === "date" ? "" : ' placeholder="Filter"';
+  return `<input type="${inputType}" class="column-filter" data-table="${configName}" data-filter-key="${column.key}" aria-label="Filter ${escapeHtml(column.label)}"${placeholder} value="${value}" oninput="${config.filterFn}('${column.key}', this.value)" onclick="event.stopPropagation()" />`;
+}
+
+function configuredTableHeaderHtml(configName, includeActions = true) {
+  const config = TABLE_CONFIGS[configName];
+  const headerCells = config.columns.map(column => {
+    const isSorted = config.sort.key === column.key;
+    const indicator = isSorted ? (config.sort.dir === "asc" ? "▲" : "▼") : "↕";
+    return `<th><div class="table-header-control"><button type="button" class="sort-header" onclick="${config.sortFn}('${column.key}')" aria-label="Sort by ${escapeHtml(column.label)}"><span>${escapeHtml(column.label)}</span><span class="sort-indicator" aria-hidden="true">${indicator}</span></button>${configuredHeaderFilterHtml(configName, column)}</div></th>`;
+  });
+  if (includeActions) headerCells.push("<th>Actions</th>");
+  return `<thead><tr>${headerCells.join("")}</tr></thead>`;
 }
 
 function latestUtilityByType(houseId, type) {
@@ -497,28 +1039,67 @@ function latestUtilityByType(houseId, type) {
   return matches[0] || null;
 }
 
-function createNextMonthUtilityFrom(id) {
-  const source = state.utilities.find(u => u.id === id);
-  if (!source) return;
-  if (!isRecurringMonthlyUtility(source)) {
-    alert("Only monthly recurring bills create a new unpaid record.");
-    return;
-  }
-  const newItem = {
+function shouldCarryAmountForward(value) {
+  return value === "yes";
+}
+
+function shouldCarryUtilityAmountForward(source) {
+  return shouldCarryAmountForward(source && source.keepSameAmountNextPeriod);
+}
+
+function buildNextUtilityFrom(source) {
+  if (!source) return null;
+  const frequency = utilityBillingFrequency(source);
+  return {
     ...source,
     id: uid(),
-    statementDate: addMonthsISO(source.statementDate || source.due, 1),
-    due: addMonthsISO(source.due || source.statementDate, 1),
-    amount: 0,
+    frequency,
+    statementDate: nextRecurringDate(source.statementDate || source.due, frequency),
+    due: nextRecurringDate(source.due || source.statementDate, frequency),
+    amount: shouldCarryUtilityAmountForward(source) ? Number(source.amount || 0) : 0,
     paid: "unpaid",
     paidDate: "",
     notes: source.notes || ""
   };
-  state.utilities.push(newItem);
-  saveData();
 }
 
-function createNextMonthUtilityForHouseType(houseId, selectedType) {
+function hasMatchingUnpaidUtility(source, due) {
+  return state.utilities.some(u =>
+    u.id !== source.id &&
+    u.houseId === source.houseId &&
+    u.type === source.type &&
+    u.provider === source.provider &&
+    u.account === source.account &&
+    u.due === due &&
+    u.paid !== "paid"
+  );
+}
+
+function addNextUtilityFrom(source) {
+  if (!shouldCreateNextUtility(source)) return null;
+  const newItem = buildNextUtilityFrom(source);
+  if (!newItem || hasMatchingUnpaidUtility(source, newItem.due)) return null;
+  state.utilities.push(newItem);
+  return newItem;
+}
+
+function newUtilityCreatedMessage(newItem) {
+  return `New period created for ${newItem.type || "utility"}${newItem.due ? ` with due date ${newItem.due}` : ""}.`;
+}
+
+async function createNextMonthUtilityFrom(id) {
+  const source = state.utilities.find(u => u.id === id);
+  if (!source) return;
+  const newItem = addNextUtilityFrom(source);
+  if (!newItem) {
+    alert("A new period is only created from PAID active utilities. INACTIVE utilities do not roll forward.");
+    return;
+  }
+  await saveData();
+  alert(newUtilityCreatedMessage(newItem));
+}
+
+async function createNextMonthUtilityForHouseType(houseId, selectedType) {
   if (!selectedType) {
     alert("Choose Electric, Water, or Internet first.");
     return;
@@ -533,20 +1114,16 @@ function createNextMonthUtilityForHouseType(houseId, selectedType) {
     return;
   }
 
-  state.utilities.push({
-    ...source,
-    id: uid(),
-    statementDate: addMonthsISO(source.statementDate || source.due, 1),
-    due: addMonthsISO(source.due || source.statementDate, 1),
-    amount: 0,
-    paid: "unpaid",
-    paidDate: "",
-    notes: source.notes || ""
-  });
-  saveData();
+  const newItem = addNextUtilityFrom(source);
+  if (!newItem) {
+    alert("A new month is only created from a PAID active utility. INACTIVE utilities do not roll forward.");
+    return;
+  }
+  await saveData();
+  alert(newUtilityCreatedMessage(newItem));
 }
 
-function createNextMonthUtilitiesForHouse(houseId) {
+async function createNextMonthUtilitiesForHouse(houseId) {
   const types = [...new Set(state.utilities
     .filter(u => u.houseId === houseId && isRecurringMonthlyUtility(u))
     .map(u => u.type))];
@@ -556,21 +1133,19 @@ function createNextMonthUtilitiesForHouse(houseId) {
     return;
   }
 
+  const createdItems = [];
   types.forEach(type => {
     const source = latestUtilityByType(houseId, type);
     if (!source) return;
-    state.utilities.push({
-      ...source,
-      id: uid(),
-      statementDate: addMonthsISO(source.statementDate || source.due, 1),
-      due: addMonthsISO(source.due || source.statementDate, 1),
-      amount: 0,
-      paid: "unpaid",
-      paidDate: "",
-      notes: source.notes || ""
-    });
+    const newItem = addNextUtilityFrom(source);
+    if (newItem) createdItems.push(newItem);
   });
-  saveData();
+  if (!createdItems.length) {
+    alert("No new monthly utilities were created. New months are only created from PAID active utilities, and INACTIVE utilities do not roll forward.");
+    return;
+  }
+  await saveData();
+  alert(`${createdItems.length} new period${createdItems.length === 1 ? "" : "s"} created.`);
 }
 
 function monthStartFromISO(dateStr) {
@@ -608,9 +1183,7 @@ function addInterval(dateStr, every, unit) {
 function dueDateForDay(day) {
   day = Math.min(Math.max(Number(day || 1), 1), 28);
   const now = new Date();
-  let due = new Date(now.getFullYear(), now.getMonth(), day);
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (due < today) due = new Date(now.getFullYear(), now.getMonth() + 1, day);
+  const due = new Date(now.getFullYear(), now.getMonth(), day);
   return due.toISOString().slice(0,10);
 }
 
@@ -627,9 +1200,10 @@ function daysLeftText(dateStr) {
   return `${d} day(s) left`;
 }
 
-function financeStatus(paid, dueDate) {
+function financeStatus(paid, dueDate, paidDate = "") {
+  if (paid === "inactive") return {key:"inactive", text:"INACTIVE"};
   const d = daysUntil(dueDate);
-  if (paid === "paid") return {key:"paid", text:"Paid"};
+  if (paid === "paid") return {key:"paid", text: paidDate ? `Paid ${paidDate}` : "Paid"};
   if (d < 0) return {key:"unpaid-overdue", text:`Not paid, overdue ${Math.abs(d)} day(s)`};
   if (d === 0) return {key:"unpaid", text:"Not paid, due today"};
   return {key:"unpaid", text:`Not paid, ${d} day(s) left`};
@@ -650,39 +1224,98 @@ function makeFinanceRecord(houseId) {
     mortgageCompany: "",
     mortgageNumber: "",
     mortgageLogin: "",
+    mortgageVisible: "yes",
     mortgageAmount: 0,
+    mortgageKeepSameAmountNextPeriod: "no",
     mortgageDueDay: 1,
     mortgagePaid: "unpaid",
     mortgagePaidDate: "",
+    mortgageFrequency: "monthly",
     salesVisible: "yes",
     salesAgency: "Florida Sales Tax",
     salesLogin: "",
     salesFiled: "not filed",
     salesTaxable: 0,
+    salesKeepSameAmountNextPeriod: "no",
     salesPaid: "unpaid",
+    salesPaidDate: "",
     salesDueDay: 20,
+    salesFrequency: "monthly",
     touristVisible: "yes",
     touristAgency: `${countyNameForHouse(houseId)} - tourist county tax`,
     touristLogin: "",
     touristFiled: "not filed",
     touristTaxable: 0,
+    touristKeepSameAmountNextPeriod: "no",
     touristPaid: "unpaid",
+    touristPaidDate: "",
     touristDueDay: 20,
+    touristFrequency: "monthly",
     insuranceCompany: "",
     insurancePolicyNumber: "",
     insuranceLogin: "",
+    insuranceVisible: "yes",
     insuranceStart: "",
     insuranceEnd: "",
     insuranceAmount: 0,
+    insuranceKeepSameAmountNextPeriod: "no",
     insuranceDue: "",
     insurancePaid: "unpaid",
+    insurancePaidDate: "",
+    insuranceFrequency: "annual",
     propertyTaxAgency: `${countyNameForHouse(houseId)} property tax`,
+    propertyTaxVisible: "yes",
     propertyTaxLogin: "",
     propertyTaxAmount: 0,
+    propertyTaxKeepSameAmountNextPeriod: "no",
     propertyTaxDue: "",
     propertyTaxPaid: "unpaid",
+    propertyTaxPaidDate: "",
+    propertyTaxFrequency: "annual",
     notes: ""
   };
+}
+
+function makeDefaultFinanceRecords() {
+  return ["h1","h2","h3","h4"].map(makeFinanceRecord);
+}
+
+function normalizeFinanceRecord(record) {
+  if (!record || typeof record !== "object") return record;
+  record.mortgageFrequency = "monthly";
+  record.salesFrequency = "monthly";
+  record.touristFrequency = "monthly";
+  record.insuranceFrequency = "annual";
+  record.propertyTaxFrequency = "annual";
+  record.mortgageVisible = record.mortgageVisible || "yes";
+  record.insuranceVisible = record.insuranceVisible || "yes";
+  record.propertyTaxVisible = record.propertyTaxVisible || "yes";
+  record.mortgageKeepSameAmountNextPeriod = record.mortgageKeepSameAmountNextPeriod || "no";
+  record.salesKeepSameAmountNextPeriod = record.salesKeepSameAmountNextPeriod || "no";
+  record.touristKeepSameAmountNextPeriod = record.touristKeepSameAmountNextPeriod || "no";
+  record.insuranceKeepSameAmountNextPeriod = record.insuranceKeepSameAmountNextPeriod || "no";
+  record.propertyTaxKeepSameAmountNextPeriod = record.propertyTaxKeepSameAmountNextPeriod || "no";
+  return record;
+}
+
+function normalizeFinanceItemRecord(item) {
+  if (!item || typeof item !== "object") return item;
+  item.frequency = financeItemFrequency(item);
+  item.keepSameAmountNextPeriod = item.keepSameAmountNextPeriod || "no";
+  return item;
+}
+
+function normalizeFrequencies(data) {
+  (data.utilities || []).forEach(u => {
+    if (!u || typeof u !== "object") return;
+    if (!("autopay" in u)) u.autopay = "off";
+    if (!("keepSameAmountNextPeriod" in u)) u.keepSameAmountNextPeriod = "no";
+    u.frequency = utilityBillingFrequency(u);
+  });
+
+  (data.finance || []).forEach(normalizeFinanceRecord);
+  (data.financeItems || []).forEach(normalizeFinanceItemRecord);
+  return data;
 }
 
 function ensureFinanceRecords() {
@@ -691,6 +1324,8 @@ function ensureFinanceRecords() {
     if (!state.finance.some(f => f.houseId === h.id)) state.finance.push(makeFinanceRecord(h.id));
   });
   state.finance = state.finance.filter(f => state.houses.some(h => h.id === f.houseId));
+  state.finance.forEach(normalizeFinanceRecord);
+  if (state.financeItems) state.financeItems.forEach(normalizeFinanceItemRecord);
 }
 
 function salesTaxAmount(amount) {
@@ -703,8 +1338,144 @@ function touristTaxAmount(amount) {
 
 
 
-async function saveData() {
-  // Save exclusively to Cloudflare KV.
+function makeDefaultOtherBills() {
+  return ["Auto Insurance", "Car Payment", "Mobile Phones", "Math Class", "Soccer Club"].map(type => ({
+    id: uid(), type, provider: "", login: "", account: "", statementDate: "",
+    amount: 0, frequency: isInsuranceType(type) ? "annual" : "monthly", due: todayISO(), paid: "unpaid", paidDate: "", notes: ""
+  }));
+}
+
+
+function makeDefaultCreditCards() {
+  return [
+    {id:uid(), bank:"Chase", name:"Ink Business Unlimited", owner:"Anna", type:"Business", last4:"5836", dueDate:"", openedDate:"", annualFee:0, businessName:"Venice Pines", status:"active", notes:"No annual fee."},
+    {id:uid(), bank:"Chase", name:"Ink Business Preferred", owner:"Anna", type:"Business", last4:"1412", dueDate:"", openedDate:"", annualFee:95, businessName:"Corals Realty", status:"closed", notes:"CLOSED."},
+    {id:uid(), bank:"Chase", name:"Southwest Business Rapid Rewards", owner:"Anna", type:"Business", last4:"7512", dueDate:"April 1", openedDate:"", annualFee:199, businessName:"Drysdale", status:"closed", notes:"Membership fee. Keep till April 1 to get the 9K bonus points and then cancel. CLOSED on April 7, 2026. Reapply for new points after April 1, 2027."},
+    {id:uid(), bank:"Chase", name:"Amazon Chase", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee."},
+    {id:uid(), bank:"Chase", name:"Southwest Plus", owner:"Anna", type:"Personal", last4:"8665", dueDate:"August 1", openedDate:"", annualFee:69, businessName:"", status:"active", notes:"3K anniversary points."},
+    {id:uid(), bank:"Chase", name:"Sapphire Reserve", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"May 2026", annualFee:795, businessName:"", status:"active", notes:"Once in a lifetime."},
+    {id:uid(), bank:"Chase", name:"Southwest Rapid Rewards", owner:"Lubo", type:"Personal", last4:"", dueDate:"August 1", openedDate:"", annualFee:99, businessName:"", status:"active", notes:"Wait for the points to show up before closing."},
+    {id:uid(), bank:"Chase", name:"Ink Unlimited", owner:"Lubo", type:"Business", last4:"1397", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee."},
+    {id:uid(), bank:"Chase", name:"Ink Business Preferred", owner:"Lubo", type:"Business", last4:"1943", dueDate:"June 1", openedDate:"", annualFee:99, businessName:"", status:"closed", notes:"CLOSED 1/22/26."},
+    {id:uid(), bank:"Chase", name:"Ink Hyatt", owner:"Lubo", type:"Business", last4:"", dueDate:"", openedDate:"February 2026", annualFee:95, businessName:"", status:"active", notes:""},
+    {id:uid(), bank:"Barclays", name:"AAdvantage® Aviator® Red Mastercard", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"April 30, 2025", annualFee:99, businessName:"", status:"closed", notes:"5K points. CLOSED beginning of 2026."},
+    {id:uid(), bank:"Barclays", name:"American", owner:"Lubo", type:"Personal", last4:"", dueDate:"May 30", openedDate:"", annualFee:99, businessName:"", status:"closed", notes:"11K points. CLOSED."},
+    {id:uid(), bank:"Barclays", name:"Wyndham", owner:"Lubo", type:"Personal", last4:"", dueDate:"May 30", openedDate:"", annualFee:99, businessName:"", status:"active", notes:"30K points. Close after the bonus points."},
+    {id:uid(), bank:"Capital One", name:"Venture X", owner:"Lubo", type:"Personal", last4:"", dueDate:"November", openedDate:"", annualFee:395, businessName:"", status:"active", notes:"47K points. Used them for travel."},
+    {id:uid(), bank:"Wells Fargo", name:"Signify Business Cash", owner:"Anna", type:"Business", last4:"2508", dueDate:"", openedDate:"", annualFee:0, businessName:"Drysdale LLC", status:"active", notes:""},
+    {id:uid(), bank:"Wells Fargo", name:"Reflect Visa", owner:"Anna", type:"Personal", last4:"3121", dueDate:"", openedDate:"April 5, 2026", annualFee:0, businessName:"", status:"active", notes:"17K. 0% for 21 months, until Feb 2028."},
+    {id:uid(), bank:"Wells Fargo", name:"Reflect Visa", owner:"Lubo", type:"Personal", last4:"5844", dueDate:"", openedDate:"April 5, 2026", annualFee:0, businessName:"", status:"active", notes:"11K. 0% for 21 months, until Feb 2028."},
+    {id:uid(), bank:"US Bank", name:"Platinum", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:""},
+    {id:uid(), bank:"Citi", name:"Mastercard", owner:"Anna + Lubo", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"On Lubo account."},
+    {id:uid(), bank:"Discover", name:"Discover", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee. Will change to Wells Fargo."}
+  ];
+}
+
+function normalizeCreditCardRecord(card) {
+  if (!card || typeof card !== "object") return card;
+  card.id = card.id || uid();
+  card.bank = card.bank || "";
+  card.name = card.name || "";
+  card.owner = card.owner || "Anna";
+  card.type = card.type || "Personal";
+  card.last4 = card.last4 || "";
+  card.dueDate = normalizeDatePickerValue(card.dueDate);
+  card.openedDate = normalizeDatePickerValue(card.openedDate);
+  card.annualFee = Number(card.annualFee || 0);
+  card.interestRate = card.interestRate || "";
+  card.businessName = card.businessName || "";
+  card.status = card.status === "closed" ? "closed" : "active";
+  card.notes = card.notes || "";
+  return card;
+}
+
+function defaultData() {
+  const today = todayISO();
+  return {
+    houses: [
+      {id:"h1",name:"116 Runaway Field Ave, Nokomis, FL 34275"},
+      {id:"h2",name:"1008 Pine Forest Ct, Venice, FL 34293"},
+      {id:"h3",name:"13680 Drysdale Ave, Port Charlotte, FL 33981"},
+      {id:"h4",name:"310 SW 29th Street, Cape Coral, FL 33914"}
+    ],
+    items: [
+      {id:uid(),houseId:"h1",category:"Air filter",name:"Replace AC air filter",due:today,every:3,unit:"months",notes:"Add filter size in notes."},
+      {id:uid(),houseId:"h1",category:"Water filter",name:"Replace refrigerator water filter",due:today,every:6,unit:"months",notes:""},
+      {id:uid(),houseId:"h2",category:"Air filter",name:"Replace AC air filter",due:today,every:3,unit:"months",notes:""},
+      {id:uid(),houseId:"h3",category:"Water filter",name:"Whole-house water filter",due:today,every:6,unit:"months",notes:""},
+      {id:uid(),houseId:"h4",category:"AC / HVAC",name:"Schedule AC maintenance",due:today,every:1,unit:"years",notes:""}
+    ],
+    utilities: [],
+    creditCards: makeDefaultCreditCards()
+  };
+}
+
+function unwrapTrackerData(source) {
+  return source && typeof source === "object" && source.data && typeof source.data === "object" ? source.data : source;
+}
+
+function normalizeLoadedData(source) {
+  const data = unwrapTrackerData(source);
+
+  if (!data || typeof data !== "object" || !Array.isArray(data.houses)) {
+    throw new Error("Tracker data is missing a houses array.");
+  }
+
+  data.houses.forEach(normalizeHouseRecord);
+  if (!Array.isArray(data.items)) data.items = [];
+  if (!Array.isArray(data.utilities)) data.utilities = [];
+  if (!Array.isArray(data.contacts)) data.contacts = [];
+  if (!Array.isArray(data.finance)) data.finance = [];
+  if (!Array.isArray(data.financeItems)) data.financeItems = [];
+  if (!Array.isArray(data.creditCards)) data.creditCards = makeDefaultCreditCards();
+  data.creditCards.forEach(normalizeCreditCardRecord);
+  normalizeFrequencies(data);
+  return data;
+}
+
+async function loadPublicDataJson() {
+  const response = await fetch("data.json", { cache: "no-store" });
+
+  if (!response.ok) {
+    throw new Error(`Could not load public/data.json (${response.status})`);
+  }
+
+  return normalizeLoadedData(await response.json());
+}
+
+async function loadData() {
+  const old = safeLocalStorageGet("house-maintenance-tracker-v1");
+  const saved = safeLocalStorageGet(STORAGE_KEY);
+
+  if (saved || old) {
+    try {
+      return normalizeLoadedData(JSON.parse(saved || old));
+    } catch (err) {
+      console.warn("Stored browser backup is invalid; trying public/data.json", err);
+    }
+  }
+
+  try {
+    const publicData = await loadPublicDataJson();
+    safeLocalStorageSet(STORAGE_KEY, JSON.stringify(publicData, null, 2));
+    return publicData;
+  } catch (err) {
+    console.warn("public/data.json is unavailable or invalid; using built-in sample data", err);
+  }
+
+  return normalizeLoadedData(defaultData());
+}
+
+async function saveData(options = {}) {
+
+  // Keep a local browser backup when the browser allows it. Safari can block
+  // localStorage in some privacy modes, so this must never prevent the cloud save.
+  safeLocalStorageSet(
+    STORAGE_KEY,
+    JSON.stringify(state, null, 2)
+  );
+
+  // Save to Cloudflare KV when deployed. Local file/offline usage safely falls back to localStorage.
   try {
     const res = await fetch("/api/items", {
       method: "POST",
@@ -712,7 +1483,7 @@ async function saveData() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        app: "House Maintenance Utilities Contacts Finance Tracker",
+        app: "House Maintenance Utilities Contacts Finance Credit Card Tracker",
         updatedAt: new Date().toISOString(),
         data: state
       })
@@ -729,11 +1500,11 @@ async function saveData() {
       throw new Error(`Cloud save failed with ${res.status}.${detail}`);
     }
     cloudStorageAvailable = true;
-    setCloudStatus("Shared cloud storage is connected. Last change was saved only to Cloudflare KV.", "ok");
+    setCloudStatus("Shared cloud storage is connected. Last change was saved to Cloudflare KV.", "ok");
   } catch (err) {
     cloudStorageAvailable = false;
-    const message = `Cloud save failed. Your change was not persisted because this app now saves only to Cloudflare KV. Check Cloudflare Pages Functions and the TRACKER_BACKUPS KV binding. ${err.message || err}`;
-    console.error("Failed saving to Cloudflare KV", err);
+    const message = `Cloud save failed. Your change was saved only in this browser and will not appear on another device until Cloudflare Pages Functions and the TRACKER_BACKUPS KV binding are working. ${err.message || err}`;
+    console.error("Failed saving to cloud storage; local backup was kept", err);
     setCloudStatus(message, "warn");
     if (!cloudSaveWarningShown) {
       cloudSaveWarningShown = true;
@@ -741,20 +1512,52 @@ async function saveData() {
     }
   }
 
+  initializeAutoBackupSetting();
+
+  render();
+
+  if (!options.skipAutoBackup) {
+    scheduleAutoBackup();
+  }
+}
+
+function isMobileMode() {
+  return viewMode === "mobile";
+}
+
+function updateViewModeControls() {
+  document.body.classList.toggle("mobile-mode", isMobileMode());
+  document.body.classList.toggle("desktop-mode", !isMobileMode());
+  if (desktopModeBtn) desktopModeBtn.classList.toggle("active", !isMobileMode());
+  if (mobileModeBtn) mobileModeBtn.classList.toggle("active", isMobileMode());
+  if (viewModeHint) {
+    viewModeHint.textContent = isMobileMode()
+      ? "Mobile version shows compact cards with the main names, due dates, statuses, and actions."
+      : "Browser version shows full tables with all saved details.";
+  }
+}
+
+function setViewMode(mode) {
+  viewMode = mode === "mobile" ? "mobile" : "desktop";
+  safeLocalStorageSet(VIEW_MODE_KEY, viewMode);
+  updateViewModeControls();
   render();
 }
 
 function showView(view) {
   currentView = view;
+  updateViewModeControls();
   maintenanceView.style.display = view === "maintenance" ? "" : "none";
   utilitiesView.style.display = view === "utilities" ? "" : "none";
   financeView.style.display = view === "finance" ? "" : "none";
   contactsView.style.display = view === "contacts" ? "" : "none";
+  creditCardsView.style.display = view === "creditCards" ? "" : "none";
   otherBillsView.style.display = view === "otherBills" ? "" : "none";
   const tabStates = [
     [maintTab, view === "maintenance"],
     [utilTab, view === "utilities"],
     [financeTab, view === "finance"],
+    [creditCardsTab, view === "creditCards"],
     [contactsTab, view === "contacts"],
     [document.getElementById("otherBillsTab"), view === "otherBills"]
   ];
@@ -796,10 +1599,11 @@ function statusFor(item) {
 
 function utilityStatus(u) {
   const d = daysUntil(u.due);
-  if (u.paid === "paid") return { key:"paid", text: u.paidDate ? `Paid ${u.paidDate}` : "Paid" };
-  if (d < 0) return { key:"unpaid-overdue", text:`<b>Unpaid, overdue ${Math.abs(d)} day(s)</b>` };
-  if (d === 0) return { key:"unpaid", text:"Unpaid, due today" };
-  return { key:"unpaid", text:`<b>Unpaid, due in ${d} day(s)</b>` };
+  if (u.paid === "inactive") return { key:"inactive", text:"INACTIVE" };
+  if (u.paid === "paid") return { key:"paid", text: u.paidDate ? `PAID ${u.paidDate}` : "PAID" };
+  if (d < 0) return { key:"unpaid-overdue", text:`<b>NOT PAID, overdue ${Math.abs(d)} day(s)</b>` };
+  if (d === 0) return { key:"unpaid", text:"NOT PAID, due today" };
+  return { key:"unpaid", text:`<b>NOT PAID, due in ${d} day(s)</b>` };
 }
 
 
@@ -810,7 +1614,7 @@ function applyUtilityAutopay() {
   (state.utilities || []).forEach(u => {
     if (!("autopay" in u)) u.autopay = "off";
 
-    if (u.autopay === "on" && u.paid !== "paid" && u.due && daysUntil(u.due) <= 0) {
+    if (u.autopay === "on" && u.paid === "unpaid" && u.due && daysUntil(u.due) <= 0) {
       u.paid = "paid";
       u.paidDate = u.due;
       if (u.notes) {
@@ -820,12 +1624,13 @@ function applyUtilityAutopay() {
       } else {
         u.notes = "Autopay marked paid on due date " + u.due;
       }
+      addNextUtilityFrom(u);
       changed = true;
     }
   });
 
   if (changed) {
-    saveData();
+    safeLocalStorageSet(STORAGE_KEY, JSON.stringify(state, null, 2));
   }
 }
 
@@ -836,8 +1641,132 @@ function render() {
   renderMaintenance();
   renderUtilities();
   renderFinance();
+  renderCreditCards();
   renderContacts();
   renderOtherBills();
+}
+
+function mobileActionsHtml(innerHtml) {
+  return `<div class="actions mobile-actions">${innerHtml}</div>`;
+}
+
+function mobileEmptyHtml(message) {
+  return `<div class="small">${escapeHtml(message)}</div>`;
+}
+
+function mobileFieldHtml(label, value, className = "") {
+  return `<div class="mobile-field"><span>${escapeHtml(label)}</span><span class="${escapeHtml(className)}">${value}</span></div>`;
+}
+
+function rowActionsFromHtml(html) {
+  const match = String(html || "").match(/<td><div class="actions">([\s\S]*?)<\/div><\/td>\s*<\/tr>\s*$/);
+  return match ? match[1] : "";
+}
+
+function mobileCardListHtml(rows, emptyMessage) {
+  return `<div class="mobile-card-list mobile-only">${rows.length ? rows.map(row => row.mobileHtml || utilityMobileCard(row)).join("") : mobileEmptyHtml(emptyMessage)}</div>`;
+}
+
+function maintenanceMobileCard(item) {
+  const s = statusFor(item);
+  const repeat = item.unit === "none" ? "One-time" : `Every ${item.every} ${item.unit}`;
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(item.name)}</div><div class="mobile-card-meta">${escapeHtml(item.category || "")}</div></div>
+      <div class="status ${s.key}">${s.text}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due", `<span class="due-date">${escapeHtml(item.due || "")}</span>`)}
+      ${mobileFieldHtml("Repeat", escapeHtml(repeat))}
+    </div>
+    ${mobileActionsHtml(`<button class="light" onclick="markDone('${item.id}')">Done</button><button class="secondary" onclick="editItem('${item.id}')">Edit</button>`)}
+  </article>`;
+}
+
+function utilityMobileCard(u) {
+  const s = utilityStatus(u);
+  const paymentButton = u.paid === "paid"
+    ? `<button class="light" onclick="markUtilityUnpaid('${u.id}')">Mark not paid</button>`
+    : `<button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button>`;
+  const link = u.url ? `<a href="${escapeHtml(u.url)}" target="_blank" rel="noopener">Open login</a>` : "";
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(u.provider || u.type || "Bill")}</div><div class="mobile-card-meta">${escapeHtml(u.type || "")}${link ? ` · ${link}` : ""}</div></div>
+      <div class="status ${s.key}">${s.text}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due", `<span class="${dueDateClass(u.paid)}">${escapeHtml(u.due || "")}</span>`)}
+      ${mobileFieldHtml("Amount", `<b>${money(u.amount)}</b>`)}
+      ${mobileFieldHtml("Autopay", u.autopay === "on" ? `<span class="autopay-on">ON</span>` : "Off")}
+    </div>
+    ${mobileActionsHtml(`${paymentButton}<button class="secondary" onclick="editUtility('${u.id}')">Edit</button>`)}
+  </article>`;
+}
+
+function otherBillMobileCard(b) {
+  const s = otherBillStatus(b);
+  const link = b.login ? `<a href="${escapeHtml(b.login)}" target="_blank" rel="noopener">Open login</a>` : "";
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(b.provider || b.type || "Bill")}</div><div class="mobile-card-meta">${escapeHtml(b.type || "")}${link ? ` · ${link}` : ""}</div></div>
+      <div class="status ${s.key}">${s.text}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due", `<span class="${dueDateClass(b.paid)}">${escapeHtml(b.due || "")}</span>`)}
+      ${mobileFieldHtml("Amount", `<b>${money(b.amount)}</b>`)}
+    </div>
+    ${mobileActionsHtml(`<button class="light" onclick="markOtherBillPaid('${b.id}')">Mark paid</button><button class="secondary" onclick="editOtherBill('${b.id}')">Edit</button>`)}
+  </article>`;
+}
+
+function financeMobileCard(row) {
+  const values = row.values || {};
+  const actions = rowActionsFromHtml(row.html);
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(values.item || "Finance item")}</div><div class="mobile-card-meta">${escapeHtml(values.house || "")}</div></div>
+      <div class="status ${row.statusKey || ""}">${escapeHtml(values.status || "")}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due", `<span class="due-date">${escapeHtml(values.due || "")}</span>`)}
+      ${mobileFieldHtml("Amount", money(values.amount))}
+      ${values.company ? mobileFieldHtml("Company", escapeHtml(values.company)) : ""}
+    </div>
+    ${actions ? mobileActionsHtml(actions) : ""}
+  </article>`;
+}
+
+function creditCardMobileCard(card) {
+  const statusClass = card.status === "closed" ? "inactive" : "ok";
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(card.bank || "")} ${escapeHtml(card.name || "")}</div><div class="mobile-card-meta">${escapeHtml(card.owner || "")} · ${escapeHtml(card.type || "")}${card.last4 ? ` · ${escapeHtml(card.last4)}` : ""}</div></div>
+      <div class="status ${statusClass}">${creditCardStatusText(card)}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Due / fee date", `<span class="credit-card-due-date">${escapeHtml(formatISODateForDisplay(card.dueDate))}</span>`)}
+      ${mobileFieldHtml("Annual fee", money(card.annualFee))}
+      ${card.interestRate ? mobileFieldHtml("Interest", `<span class="credit-card-interest-rate">${escapeHtml(formatInterestRate(card.interestRate))}</span>`) : ""}
+    </div>
+    ${mobileActionsHtml(`<button class="secondary" onclick="editCreditCard('${card.id}')">Edit</button><button class="danger" onclick="deleteCreditCard('${card.id}')">Delete</button>`)}
+  </article>`;
+}
+
+function contactMobileCard(contact) {
+  const house = state.houses.find(h => h.id === contact.houseId);
+  const email = contact.email ? `<a href="mailto:${escapeHtml(contact.email)}">${escapeHtml(contact.email)}</a>` : "";
+  const phone = contact.phone ? escapeHtml(contact.phone) : "";
+  return `<article class="mobile-item-card">
+    <div class="mobile-card-top">
+      <div><div class="mobile-card-title">${escapeHtml(contact.name || "Contact")}</div><div class="mobile-card-meta">${escapeHtml(contact.type || "")}</div></div>
+      <div class="mobile-card-meta">${escapeHtml(houseDisplayName(house))}</div>
+    </div>
+    <div class="mobile-card-fields">
+      ${mobileFieldHtml("Phone", phone || "—")}
+      ${mobileFieldHtml("Email", email || "—")}
+    </div>
+    ${mobileActionsHtml(`<button class="secondary contact-edit-btn" data-contact-id="${escapeHtml(contact.id)}">Edit</button><button class="danger contact-delete-btn" data-contact-id="${escapeHtml(contact.id)}">Delete</button>`)}
+  </article>`;
 }
 
 function renderMaintenance() {
@@ -852,14 +1781,16 @@ function renderMaintenance() {
       const status = statusFor(i).key;
       const text = `${houseDisplayName(house)} ${i.category} ${i.name} ${i.notes}`.toLowerCase();
       return (!q || text.includes(q)) && (statusFilter === "all" || statusFilter === status);
-    }).sort((a,b) => parseDate(a.due) - parseDate(b.due));
+    });
+    const maintenanceRows = prepareTableRows(items.map(item => maintenanceTableRow(item, house)), "maintenance");
     const overdue = items.filter(i => statusFor(i).key === "overdue").length;
     const soon = items.filter(i => statusFor(i).key === "soon").length;
     const card = document.createElement("section");
     card.className = "card";
     card.style.width = "100%";
-    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${items.length} item(s)</span><span class="pill">${overdue} overdue</span><span class="pill">${soon} due soon</span></div></div>
-      <table><thead><tr><th>Task</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead><tbody>${items.length ? items.map(rowHtml).join("") : `<tr><td colspan="4" class="small">No items match this filter.</td></tr>`}</tbody></table>`;
+    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${maintenanceRows.length} visible item(s)</span><span class="pill">${overdue} overdue</span><span class="pill">${soon} due soon</span></div></div>
+      <table class="desktop-table-only">${configuredTableHeaderHtml("maintenance")}<tbody>${maintenanceRows.length ? maintenanceRows.map(row => row.html).join("") : `<tr><td colspan="4" class="small">No items match this filter.</td></tr>`}</tbody></table>
+      ${mobileCardListHtml(maintenanceRows, "No items match this filter.")}`;
     app.appendChild(card);
   });
 }
@@ -872,37 +1803,38 @@ function renderUtilities() {
 
   state.houses.forEach(house => {
     if (houseFilter !== "all" && houseFilter !== house.id) return;
-    let allBillsForHouse = state.utilities.filter(u => u.houseId === house.id && !isOtherBillType(u.type))
-      .sort((a,b) => parseDate(a.due) - parseDate(b.due));
+    let allBillsForHouse = state.utilities.filter(u => u.houseId === house.id && !isOtherBillType(u.type));
 
-    const oldPaidCount = allBillsForHouse.filter(u => isPaidBeforeCurrentMonth(u)).length;
+    const oldPaidCount = allBillsForHouse.filter(u => u.paid === "paid").length;
 
     const visibleBills = allBillsForHouse.filter(u => {
       const s = utilityStatus(u).key;
       const text = `${houseDisplayName(house)} ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
-      const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid";
+      const showingAllStatuses = statusFilter === "all";
+      const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid" || showingAllStatuses;
 
-      // Hide bills paid last month or older in the normal property view,
-      // but allow them to appear when searching or when the Paid filter is selected.
-      if (isPaidBeforeCurrentMonth(u) && !searchingOrPaidFilter) return false;
+      // Hide paid bills in the ALL DUE property view, but keep INACTIVE bills visible
+      // so inactive records remain easy to find. The ALL filter shows every status.
+      if (u.paid === "paid" && !searchingOrPaidFilter) return false;
 
-      const statusMatch = statusFilter === "all" || 
+      const statusMatch = showingAllStatuses || statusFilter === "allDue" ||
         (statusFilter === "overdue" && s === "unpaid-overdue") ||
         (statusFilter === "unpaid" && u.paid === "unpaid") ||
-        (statusFilter === "paid" && u.paid === "paid");
+        (statusFilter === "paid" && u.paid === "paid") ||
+        (statusFilter === "inactive" && u.paid === "inactive");
       return (!q || text.includes(q)) && statusMatch;
     });
 
-    const houseUtilityBills = visibleBills.filter(u => !isOtherBillType(u.type)).sort((a,b) => parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31"));
-    const otherBills = visibleBills.filter(u => isOtherBillType(u.type));
+    const houseUtilityBills = prepareUtilityTableRows(visibleBills.filter(u => !isOtherBillType(u.type)));
 
-    const totalUnpaid = allBillsForHouse.filter(u => u.paid !== "paid").reduce((sum,u) => sum + Number(u.amount || 0), 0);
+    const totalUnpaid = allBillsForHouse.filter(u => u.paid === "unpaid").reduce((sum,u) => sum + Number(u.amount || 0), 0);
     const overdue = allBillsForHouse.filter(u => utilityStatus(u).key === "unpaid-overdue").length;
     const card = document.createElement("section");
     card.className = "card";
     card.style.width = "100%";
-    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${visibleBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount ? `<span class="pill">${oldPaidCount} old paid hidden</span>` : ""}</div></div>
-      <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Billing Frequency</th><th>Provider / login</th><th>Account number</th><th>Amount due</th><th>Statement date</th><th>Due date</th><th>Autopay</th><th>Paid status</th><th>Actions</th></tr></thead><tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Old paid bills are hidden unless you search or select the Paid filter.</td></tr>`}</tbody></table></div>
+    card.innerHTML = `<div class="house-title"><h2>${escapeHtml(houseDisplayName(house))}</h2><div class="summary"><span class="pill">${houseUtilityBills.length} visible bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span><span class="pill">${overdue} overdue</span>${oldPaidCount && statusFilter !== "all" ? `<span class="pill">${oldPaidCount} paid hidden</span>` : ""}</div></div>
+      <div class="table-wrap desktop-table-only"><table class="utility-table">${utilityTableHeaderHtml()}<tbody>${houseUtilityBills.length ? houseUtilityBills.map(utilityRowHtml).join("") : `<tr><td colspan="10" class="small">No utility bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.</td></tr>`}</tbody></table></div>
+      ${mobileCardListHtml(houseUtilityBills, "No utility bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.")}
       <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <button class="light" onclick="openUtilityModal('${house.id}')">+ Add bill for this house</button>
         <select id="newMonthType-${house.id}" style="max-width:180px;">
@@ -917,7 +1849,21 @@ function renderUtilities() {
   });
 
   // Standalone Other section
-  const allOtherBills = (state.utilities || []).filter(u => u.houseId === "other" || isOtherBillType(u.type)).sort((a,b) => parseDate(a.due || "9999-12-31") - parseDate(b.due || "9999-12-31"));
+  const allOtherBills = (state.utilities || []).filter(u => u.houseId === "other" || isOtherBillType(u.type));
+  const visibleOtherBills = prepareUtilityTableRows(allOtherBills.filter(u => {
+    const s = utilityStatus(u).key;
+    const text = `other ${u.type} ${u.provider} ${u.account} ${u.notes} ${u.paid} ${u.paidDate}`.toLowerCase();
+    const showingAllStatuses = statusFilter === "all";
+    const searchingOrPaidFilter = Boolean(q) || statusFilter === "paid" || showingAllStatuses;
+    if (u.paid === "paid" && !searchingOrPaidFilter) return false;
+    const statusMatch = showingAllStatuses || statusFilter === "allDue" ||
+      (statusFilter === "overdue" && s === "unpaid-overdue") ||
+      (statusFilter === "unpaid" && u.paid === "unpaid") ||
+      (statusFilter === "paid" && u.paid === "paid") ||
+      (statusFilter === "inactive" && u.paid === "inactive");
+    return (!q || text.includes(q)) && statusMatch;
+  }));
+  const hiddenOtherPaidCount = allOtherBills.filter(u => u.paid === "paid").length;
 
   const otherCard = document.createElement("section");
   otherCard.className = "card";
@@ -926,32 +1872,20 @@ function renderUtilities() {
   otherCard.innerHTML = `
     <div class="house-title">
       <h2>Other</h2>
-      <div class="summary"><span class="pill">${allOtherBills.length} bill(s)</span></div>
+      <div class="summary"><span class="pill">${visibleOtherBills.length} visible bill(s)</span>${hiddenOtherPaidCount && statusFilter !== "all" ? `<span class="pill">${hiddenOtherPaidCount} paid hidden</span>` : ""}</div>
     </div>
 
-    <div class="table-wrap">
+    <div class="table-wrap desktop-table-only">
       <table class="utility-table">
-        <thead>
-          <tr>
-            <th>Bill type</th>
-            <th>Billing Frequency</th>
-            <th>Provider / login</th>
-            <th>Account number</th>
-            <th>Amount due</th>
-            <th>Statement date</th>
-            <th>Due date</th>
-            <th>Autopay</th>
-            <th>Paid status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+        ${utilityTableHeaderHtml()}
         <tbody>
-          ${allOtherBills.length
-            ? allOtherBills.map(utilityRowHtml).join("")
-            : `<tr><td colspan="10" class="small">No Other bills yet.</td></tr>`}
+          ${visibleOtherBills.length
+            ? visibleOtherBills.map(utilityRowHtml).join("")
+            : `<tr><td colspan="10" class="small">No Other bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.</td></tr>`}
         </tbody>
       </table>
     </div>
+    ${mobileCardListHtml(visibleOtherBills, "No Other bills match this view. Paid bills are hidden in ALL DUE unless you search or select the ALL or PAID filter.")}
     <div style="margin-top:10px;">
       <button class="light" onclick="openUtilityModal('other')">+ Add bill to Other</button>
     </div>
@@ -960,27 +1894,48 @@ function renderUtilities() {
   utilityApp.appendChild(otherCard);
 }
 
+function maintenanceTableRow(item, house) {
+  const s = statusFor(item);
+  return {
+    values: {
+      task: `${item.name || ""} ${item.category || ""} ${item.notes || ""} ${houseDisplayName(house)}`,
+      due: item.due || "",
+      status: s.text
+    },
+    sortValues: { due: item.due || "" },
+    statusKey: s.key,
+    html: rowHtml(item),
+    mobileHtml: maintenanceMobileCard(item)
+  };
+}
+
 function rowHtml(i) {
   const s = statusFor(i);
-  return `<tr><td><b>${escapeHtml(i.name)}</b><br><span class="small">${escapeHtml(i.category)}${i.notes ? " · " + escapeHtml(i.notes) : ""}</span></td><td>${i.due}<br><span class="small">${i.unit === "none" ? "One-time" : `Every ${i.every} ${i.unit}`}</span></td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markDone('${i.id}')">Done</button><button class="light" onclick="viewItem('${i.id}')">View</button><button class="secondary" onclick="editItem('${i.id}')">Edit</button><button class="danger" onclick="deleteItem('${i.id}')">Delete</button></div></td></tr>`;
+  return `<tr><td><b>${escapeHtml(i.name)}</b><br><span class="small">${escapeHtml(i.category)}${i.notes ? " · " + escapeHtml(i.notes) : ""}</span></td><td><span class="due-date">${escapeHtml(i.due)}</span><br><span class="small">${i.unit === "none" ? "One-time" : `Every ${i.every} ${i.unit}`}</span></td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markDone('${i.id}')">Done</button><button class="light" onclick="viewItem('${i.id}')">View</button><button class="secondary" onclick="editItem('${i.id}')">Edit</button><button class="danger" onclick="deleteItem('${i.id}')">Delete</button></div></td></tr>`;
+}
+
+function dueDateClass(paid) {
+  return paid === "paid" ? "due-date paid-due-date" : "due-date";
 }
 
 function utilityRowHtml(u) {
   const s = utilityStatus(u);
   const link = u.url ? `<a href="${escapeHtml(u.url)}" target="_blank" rel="noopener">Open login</a>` : "";
-  const frequencyLabels = {"monthly": "Monthly", "annual": "Annual", "one-time": "One time"};
-  const frequency = getUtilityBillingFrequency(u);
+  const paymentButton = u.paid === "paid"
+    ? `<button class="light" onclick="markUtilityUnpaid('${u.id}')">Mark not paid</button>`
+    : `<button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button>`;
   return `<tr>
     <td><b>${escapeHtml(u.type || "")}</b></td>
     <td>${escapeHtml(frequencyLabels[frequency] || frequency)}</td>
     <td><b>${escapeHtml(u.provider || "")}</b><br><span class="small">${link}</span></td>
     <td>${escapeHtml(u.account || "")}</td>
     <td><b>${money(u.amount)}</b></td>
+    <td>${utilityBillingFrequency(u) === "annual" ? "Annual" : "Monthly"}</td>
     <td>${escapeHtml(u.statementDate || "")}</td>
-    <td>${escapeHtml(u.due || "")}</td>
-    <td>${u.autopay === "on" ? "On" : "Off"}</td>
-    <td class="status ${s.key}">${u.paid === "paid" ? "Paid" : "Not paid"}${u.paidDate ? `<br><span class="small">${escapeHtml(u.paidDate)}</span>` : ""}</td>
-    <td><div class="actions"><button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button>${isRecurringMonthlyUtility(u) ? `<button class="light" onclick="createNextMonthUtilityFrom('${u.id}')">New month</button>` : ""}<button class="secondary" onclick="editUtility('${u.id}')">Edit</button><button class="danger" onclick="deleteUtility('${u.id}')">Delete</button></div></td>
+    <td><span class="${dueDateClass(u.paid)}">${escapeHtml(u.due || "")}</span></td>
+    <td>${u.autopay === "on" ? `<span class="autopay-on">ON</span>` : "Off"}</td>
+    <td class="status ${s.key}">${s.text}${u.paidDate && u.paid !== "paid" ? `<br><span class="small">${escapeHtml(u.paidDate)}</span>` : ""}</td>
+    <td><div class="actions">${paymentButton}<button class="light" onclick="createNextMonthUtilityFrom('${u.id}')">New period</button><button class="secondary" onclick="editUtility('${u.id}')">Edit</button><button class="danger" onclick="deleteUtility('${u.id}')">Delete</button></div></td>
   </tr>`;
 }
 
@@ -1049,15 +2004,52 @@ function deleteItem(id) { if (confirm("Delete this item?")) { state.items = stat
 
 const HOUSE_UTILITY_TYPES = ["Electric", "Water", "Gas", "Trash", "Internet", "HOA", "Other"];
 const OTHER_BILL_TYPES = ["Auto Insurance", "Car Payment", "Mobile Phones", "Soccer Club", "Math Class"];
+const CUSTOM_UTILITY_TYPE_VALUE = "__custom__";
 
-function populateUtilityTypeOptions(destination = "") {
-  const current = utilityType.value;
+function utilityTypeOptionHtml(label, value = label) {
+  return `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;
+}
+
+function customUtilityTypeValue() {
+  return utilityCustomType.value.trim();
+}
+
+function populateUtilityTypeOptions(destination = "", selectedType = utilityType.value) {
   const types = destination === "other" ? OTHER_BILL_TYPES : HOUSE_UTILITY_TYPES;
-  utilityType.innerHTML = types.map(t => `<option>${t}</option>`).join("");
-  if (types.includes(current)) utilityType.value = current;
+  const customOptions = destination === "other" ? [utilityTypeOptionHtml("Custom bill type…", CUSTOM_UTILITY_TYPE_VALUE)] : [];
+  utilityType.innerHTML = [
+    ...types.map(t => utilityTypeOptionHtml(t)),
+    ...customOptions
+  ].join("");
+
+  if (types.includes(selectedType)) {
+    utilityType.value = selectedType;
+  } else if (destination === "other" && selectedType && selectedType !== CUSTOM_UTILITY_TYPE_VALUE) {
+    utilityType.value = CUSTOM_UTILITY_TYPE_VALUE;
+    utilityCustomType.value = selectedType;
+  } else if (destination === "other" && selectedType === CUSTOM_UTILITY_TYPE_VALUE) {
+    utilityType.value = CUSTOM_UTILITY_TYPE_VALUE;
+  }
+
+  updateUtilityCustomTypeVisibility();
+}
+
+function updateUtilityCustomTypeVisibility() {
+  const isCustom = utilityHouse.value === "other" && utilityType.value === CUSTOM_UTILITY_TYPE_VALUE;
+  utilityCustomTypeWrap.style.display = isCustom ? "" : "none";
+  utilityCustomType.required = isCustom;
+  if (!isCustom) utilityCustomType.value = "";
+}
+
+function selectedUtilityType() {
+  if (utilityHouse.value === "other" && utilityType.value === CUSTOM_UTILITY_TYPE_VALUE) {
+    return customUtilityTypeValue();
+  }
+  return utilityType.value;
 }
 
 function updateUtilityTypeOptionsFromHouse() {
+  utilityCustomType.value = "";
   populateUtilityTypeOptions(utilityHouse.value);
 }
 
@@ -1082,54 +2074,332 @@ function openUtilityModal(houseId) {
   utilityModalTitle.textContent = houseId === "other" ? "Add Other bill" : "Add utility bill";
   utilityEditId.value = "";
   utilityHouse.value = houseId || (utilityHouseFilter.value !== "all" ? utilityHouseFilter.value : state.houses[0].id);
-  populateUtilityTypeOptions(utilityHouse.value);
-  utilityType.value = utilityHouse.value === "other" ? "Auto Insurance" : "Electric";
-  utilityBillingFrequency.value = "monthly"; utilityProvider.value = ""; utilityUrl.value = ""; utilityAccount.value = ""; utilityStatementDate.value = ""; utilityAmount.value = ""; utilityDue.value = todayISO(); utilityPaid.value = "unpaid"; utilityAutopay.value = "off"; utilityPaidDate.value = ""; utilityNotes.value = ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
+  populateUtilityTypeOptions(utilityHouse.value, utilityHouse.value === "other" ? "Auto Insurance" : "Electric");
+  utilityProvider.value = ""; utilityUrl.value = ""; utilityAccount.value = ""; utilityStatementDate.value = ""; utilityAmount.value = ""; utilityKeepSameAmount.value = "no"; utilityFrequency.value = "monthly"; utilityDue.value = todayISO(); utilityPaid.value = "unpaid"; utilityAutopay.value = "off"; utilityPaidDate.value = ""; utilityNotes.value = ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
 }
 function editUtility(id) {
   const u = state.utilities.find(x => x.id === id); if (!u) return;
-  utilityModalTitle.textContent = "Edit utility bill"; utilityEditId.value = u.id; utilityHouse.value = isOtherBillType(u.type) ? "other" : u.houseId; populateUtilityTypeOptions(utilityHouse.value); utilityType.value = u.type; utilityBillingFrequency.value = getUtilityBillingFrequency(u); utilityProvider.value = u.provider; utilityUrl.value = u.url || ""; utilityAccount.value = u.account || ""; utilityStatementDate.value = u.statementDate || ""; utilityAmount.value = u.amount || ""; utilityDue.value = u.due; utilityPaid.value = u.paid || "unpaid"; utilityAutopay.value = u.autopay || "off"; utilityPaidDate.value = u.paidDate || ""; utilityNotes.value = u.notes || ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
+  utilityModalTitle.textContent = "Edit utility bill"; utilityEditId.value = u.id; utilityHouse.value = (u.houseId === "other" || isOtherBillType(u.type)) ? "other" : u.houseId; utilityCustomType.value = ""; populateUtilityTypeOptions(utilityHouse.value, u.type); utilityProvider.value = u.provider; utilityUrl.value = u.url || ""; utilityAccount.value = u.account || ""; utilityStatementDate.value = u.statementDate || ""; utilityAmount.value = u.amount || ""; utilityKeepSameAmount.value = u.keepSameAmountNextPeriod || "no"; utilityFrequency.value = utilityBillingFrequency(u); utilityDue.value = u.due; utilityPaid.value = u.paid || "unpaid"; utilityAutopay.value = u.autopay || "off"; utilityPaidDate.value = u.paidDate || ""; utilityNotes.value = u.notes || ""; updateUtilityPaidDateVisibility(); utilityDialog.showModal();
 }
 function saveUtility(e) {
   e.preventDefault();
   if (utilityPaid.value !== "paid") utilityPaidDate.value = "";
-  const utility = { id: utilityEditId.value || uid(), houseId:utilityHouse.value === "other" ? "other" : utilityHouse.value, type:utilityType.value, billingFrequency:utilityBillingFrequency.value, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
+  const houseId = utilityHouse.value === "other" ? "other" : utilityHouse.value;
+  const type = selectedUtilityType();
+  if (!type) {
+    alert("Enter a custom bill type.");
+    return;
+  }
+  const frequency = houseId === "other" ? utilityFrequency.value : (isInsuranceType(type) ? "annual" : "monthly");
+  const utility = { id: utilityEditId.value || uid(), houseId, type, provider:utilityProvider.value.trim(), url:utilityUrl.value.trim(), account:utilityAccount.value.trim(), statementDate:utilityStatementDate.value, amount:Number(utilityAmount.value || 0), keepSameAmountNextPeriod:utilityKeepSameAmount.value, frequency, due:utilityDue.value, paid:utilityPaid.value, autopay:utilityAutopay.value, paidDate:utilityPaidDate.value, notes:utilityNotes.value.trim() };
   state.utilities = utilityEditId.value ? state.utilities.map(u => u.id === utility.id ? utility : u) : [...state.utilities, utility];
   utilityDialog.close(); saveData();
 }
+function shouldAutoCreateNextUtilityOnPaid(source) {
+  return source && source.houseId !== "other" && !isOtherBillType(source.type);
+}
+
 function markUtilityPaid(id) {
   const u = state.utilities.find(x => x.id === id); if (!u) return;
-  u.paid = "paid"; u.paidDate = todayISO(); saveData();
+  if (isInactiveUtility(u)) {
+    alert("INACTIVE utilities do not roll forward. Edit the bill and set it to PAID if it should become active again.");
+    return;
+  }
+  u.paid = "paid";
+  u.paidDate = todayISO();
+  if (shouldAutoCreateNextUtilityOnPaid(u)) addNextUtilityFrom(u);
+  saveData();
+}
+function markUtilityUnpaid(id) {
+  const u = state.utilities.find(x => x.id === id); if (!u) return;
+  u.paid = "unpaid";
+  u.paidDate = "";
+  utilityStatusFilter.value = "allDue";
+  saveData();
 }
 function deleteUtility(id) { if (confirm("Delete this utility bill?")) { state.utilities = state.utilities.filter(u => u.id !== id); saveData(); } }
 
 
 
 
-function deleteFinanceRow(houseId,rowType){
-  if(!confirm('Delete this item?')) return;
-  const f = state.finance.find(x=>x.houseId===houseId);
-  if(!f) return;
+function financeRowPaymentFields(rowType) {
+  const fields = {
+    mortgage: ["mortgagePaid", "mortgagePaidDate"],
+    salesTax: ["salesPaid", "salesPaidDate"],
+    touristTax: ["touristPaid", "touristPaidDate"],
+    insurance: ["insurancePaid", "insurancePaidDate"],
+    propertyTax: ["propertyTaxPaid", "propertyTaxPaidDate"]
+  };
+  return fields[rowType] || [];
+}
+function financeRowFrequency(rowType, f = {}) {
+  const fields = {
+    mortgage: "mortgageFrequency",
+    salesTax: "salesFrequency",
+    touristTax: "touristFrequency",
+    insurance: "insuranceFrequency",
+    propertyTax: "propertyTaxFrequency"
+  };
+  const fallback = ["insurance", "propertyTax"].includes(rowType) ? "annual" : "monthly";
+  return normalizedFinanceFrequency(f[fields[rowType]], fallback);
+}
 
-  switch(rowType){
-    case 'mortgage':
-      f.mortgageCompany=''; f.mortgageNumber=''; f.mortgageLogin=''; f.mortgageAmount=0;
+function financeRowDueDate(f, rowType) {
+  if (rowType === "mortgage") return dueDateForDay(f.mortgageDueDay);
+  if (rowType === "salesTax") return dueDateForDay(f.salesDueDay);
+  if (rowType === "touristTax") return dueDateForDay(f.touristDueDay);
+  if (rowType === "insurance") return f.insuranceDue || todayISO();
+  if (rowType === "propertyTax") return f.propertyTaxDue || todayISO();
+  return todayISO();
+}
+
+function buildNextFinanceItemFrom(item) {
+  if (!item) return null;
+  const frequency = financeItemFrequency(item);
+  return {
+    ...item,
+    id: uid(),
+    frequency,
+    amount: shouldCarryAmountForward(item.keepSameAmountNextPeriod) ? Number(item.amount || 0) : 0,
+    due: nextRecurringDate(item.due, frequency),
+    paid: "unpaid",
+    paidDate: ""
+  };
+}
+
+function financeRowKeepSameAmount(f, rowType) {
+  const fields = {
+    mortgage: "mortgageKeepSameAmountNextPeriod",
+    salesTax: "salesKeepSameAmountNextPeriod",
+    touristTax: "touristKeepSameAmountNextPeriod",
+    insurance: "insuranceKeepSameAmountNextPeriod",
+    propertyTax: "propertyTaxKeepSameAmountNextPeriod"
+  };
+  return shouldCarryAmountForward(f && f[fields[rowType]]);
+}
+
+function financeRowAmountForNextPeriod(amount, f, rowType) {
+  return financeRowKeepSameAmount(f, rowType) ? Number(amount || 0) : 0;
+}
+
+function buildNextFinanceItemFromRow(houseId, rowType, f) {
+  const frequency = financeRowFrequency(rowType, f);
+  const due = financeRowDueDate(f, rowType);
+  const templates = {
+    mortgage: {
+      name: "Mortgage",
+      company: f.mortgageCompany || "",
+      login: f.mortgageLogin || "",
+      account: f.mortgageNumber || "",
+      amount: financeRowAmountForNextPeriod(f.mortgageAmount, f, rowType),
+      keepSameAmountNextPeriod: f.mortgageKeepSameAmountNextPeriod || "no",
+      notes: f.mortgageNotes || f.notes || ""
+    },
+    salesTax: {
+      name: "Florida Sales Tax",
+      company: f.salesAgency || "Florida Sales Tax",
+      login: f.salesLogin || "",
+      account: "",
+      amount: financeRowAmountForNextPeriod(salesTaxAmount(f.salesTaxable), f, rowType),
+      keepSameAmountNextPeriod: f.salesKeepSameAmountNextPeriod || "no",
+      notes: f.salesNotes || ""
+    },
+    touristTax: {
+      name: "Tourist Tax",
+      company: f.touristAgency || "",
+      login: f.touristLogin || "",
+      account: "",
+      amount: financeRowAmountForNextPeriod(touristTaxAmount(f.touristTaxable), f, rowType),
+      keepSameAmountNextPeriod: f.touristKeepSameAmountNextPeriod || "no",
+      notes: f.touristNotes || ""
+    },
+    insurance: {
+      name: "Hazardous Insurance",
+      company: f.insuranceCompany || "",
+      login: f.insuranceLogin || "",
+      account: f.insurancePolicyNumber || "",
+      amount: financeRowAmountForNextPeriod(f.insuranceAmount, f, rowType),
+      keepSameAmountNextPeriod: f.insuranceKeepSameAmountNextPeriod || "no",
+      notes: f.insuranceNotes || ""
+    },
+    propertyTax: {
+      name: "Property Taxes",
+      company: f.propertyTaxAgency || "",
+      login: f.propertyTaxLogin || "",
+      account: "",
+      amount: financeRowAmountForNextPeriod(f.propertyTaxAmount, f, rowType),
+      keepSameAmountNextPeriod: f.propertyTaxKeepSameAmountNextPeriod || "no",
+      notes: f.propertyTaxNotes || ""
+    }
+  };
+  return {
+    id: uid(),
+    houseId,
+    sourceRowType: rowType,
+    frequency,
+    ...templates[rowType],
+    due: nextRecurringDate(due, frequency),
+    paid: "unpaid",
+    paidDate: ""
+  };
+}
+
+function hasMatchingUnpaidFinanceItem(item) {
+  if (!item) return false;
+  return (state.financeItems || []).some(existing =>
+    existing.id !== item.id &&
+    existing.houseId === item.houseId &&
+    (existing.sourceRowType || "") === (item.sourceRowType || "") &&
+    existing.name === item.name &&
+    existing.company === item.company &&
+    existing.account === item.account &&
+    existing.due === item.due &&
+    existing.paid !== "paid"
+  );
+}
+
+function addNextFinanceItem(item) {
+  if (!state.financeItems) state.financeItems = [];
+  if (!item || hasMatchingUnpaidFinanceItem(item)) return false;
+  state.financeItems.push(item);
+  return true;
+}
+
+function addNextFinanceItemFromPaidItem(item) {
+  addNextFinanceItem(buildNextFinanceItemFrom(item));
+}
+
+
+function isFinanceRowVisible(f, rowType) {
+  if (!f) return false;
+  if (rowType === "mortgage") return f.mortgageVisible !== "no";
+  if (rowType === "salesTax") return f.salesVisible !== "no";
+  if (rowType === "touristTax") return f.touristVisible !== "no";
+  if (rowType === "insurance") return f.insuranceVisible !== "no";
+  if (rowType === "propertyTax") return f.propertyTaxVisible !== "no";
+  return true;
+}
+
+
+function markFinanceRowPaid(houseId, rowType) {
+  const f = state.finance.find(x => x.houseId === houseId);
+  const [paidField, paidDateField] = financeRowPaymentFields(rowType);
+  if (!f || !paidField || !paidDateField) return;
+  if (f[paidField] === "inactive") {
+    alert("INACTIVE finance records do not roll forward. Edit the item and set it to PAID if it should become active again.");
+    return;
+  }
+  f[paidField] = "paid";
+  f[paidDateField] = todayISO();
+  addNextFinanceItem(buildNextFinanceItemFromRow(houseId, rowType, f));
+  saveData();
+}
+
+function markFinanceRowUnpaid(houseId, rowType) {
+  const f = state.finance.find(x => x.houseId === houseId);
+  const [paidField, paidDateField] = financeRowPaymentFields(rowType);
+  if (!f || !paidField || !paidDateField) return;
+  f[paidField] = "unpaid";
+  f[paidDateField] = "";
+  saveData();
+}
+
+function markFinanceItemPaid(id) {
+  const item = (state.financeItems || []).find(x => x.id === id);
+  if (!item) return;
+  if (item.paid === "inactive") {
+    alert("INACTIVE finance records do not roll forward. Edit the item and set it to PAID if it should become active again.");
+    return;
+  }
+  item.paid = "paid";
+  item.paidDate = todayISO();
+  addNextFinanceItemFromPaidItem(item);
+  saveData();
+}
+
+function markFinanceItemUnpaid(id) {
+  const item = (state.financeItems || []).find(x => x.id === id);
+  if (!item) return;
+  item.paid = "unpaid";
+  item.paidDate = "";
+  saveData();
+}
+
+
+function deleteFinanceRow(houseId, rowType) {
+  if (!confirm("Delete this item?")) return;
+  const f = state.finance.find(x => x.houseId === houseId);
+  if (!f) return;
+
+  switch (rowType) {
+    case "mortgage":
+      f.mortgageVisible = "no";
+      f.mortgageCompany = "";
+      f.mortgageNumber = "";
+      f.mortgageLogin = "";
+      f.mortgageAmount = 0;
+      f.mortgageKeepSameAmountNextPeriod = "no";
+      f.mortgagePaid = "unpaid";
+      f.mortgagePaidDate = "";
+      f.mortgageNotes = "";
       break;
-    case 'salesTax':
-      f.salesVisible='no';
+    case "salesTax":
+      f.salesVisible = "no";
+      f.salesTaxable = 0;
+      f.salesKeepSameAmountNextPeriod = "no";
+      f.salesPaid = "unpaid";
+      f.salesPaidDate = "";
+      f.salesNotes = "";
       break;
-    case 'touristTax':
-      f.touristVisible='no';
+    case "touristTax":
+      f.touristVisible = "no";
+      f.touristTaxable = 0;
+      f.touristKeepSameAmountNextPeriod = "no";
+      f.touristPaid = "unpaid";
+      f.touristPaidDate = "";
+      f.touristNotes = "";
       break;
-    case 'insurance':
-      f.insuranceCompany=''; f.insurancePolicyNumber=''; f.insuranceAmount=0; f.insuranceDue='';
+    case "insurance":
+      f.insuranceVisible = "no";
+      f.insuranceCompany = "";
+      f.insurancePolicyNumber = "";
+      f.insuranceLogin = "";
+      f.insuranceStart = "";
+      f.insuranceEnd = "";
+      f.insuranceAmount = 0;
+      f.insuranceKeepSameAmountNextPeriod = "no";
+      f.insuranceDue = "";
+      f.insurancePaid = "unpaid";
+      f.insurancePaidDate = "";
+      f.insuranceNotes = "";
       break;
-    case 'propertyTax':
-      f.propertyTaxAgency=''; f.propertyTaxAmount=0; f.propertyTaxDue='';
+    case "propertyTax":
+      f.propertyTaxVisible = "no";
+      f.propertyTaxAgency = "";
+      f.propertyTaxLogin = "";
+      f.propertyTaxAmount = 0;
+      f.propertyTaxKeepSameAmountNextPeriod = "no";
+      f.propertyTaxDue = "";
+      f.propertyTaxPaid = "unpaid";
+      f.propertyTaxPaidDate = "";
+      f.propertyTaxNotes = "";
       break;
   }
   saveData();
 }
+function financeTableRow(values, html) {
+  return {
+    values,
+    sortValues: {
+      amount: values.amount,
+      due: values.due
+    },
+    statusKey: values.statusKey,
+    html,
+    mobileHtml: ""
+  };
+}
+
 function renderFinance() {
   ensureFinanceRecords();
 
@@ -1147,96 +2417,113 @@ function renderFinance() {
     const f = state.finance.find(x => x.houseId === house.id);
     if (!f) return;
 
-    const searchable = `${houseDisplayName(house)} mortgage hazardous insurance property taxes florida sales tax tourist tax ${f.mortgageCompany||''} ${f.mortgageNumber||''} ${f.salesAgency||''} ${f.touristAgency||''} ${f.insuranceCompany||''} ${f.insurancePolicyNumber||''} ${f.propertyTaxAgency||''} ${f.notes||''}`.toLowerCase();
+    const searchable = `${houseDisplayName(house)} mortgage hazardous insurance property taxes florida sales tax tourist tax ${f.mortgageCompany||''} ${f.mortgageNumber||''} ${f.mortgageNotes||''} ${f.salesAgency||''} ${f.salesNotes||''} ${f.touristAgency||''} ${f.touristNotes||''} ${f.insuranceCompany||''} ${f.insurancePolicyNumber||''} ${f.insuranceNotes||''} ${f.propertyTaxAgency||''} ${f.propertyTaxNotes||''} ${f.notes||''}`.toLowerCase();
     if (q && !searchable.includes(q)) return;
 
     const mortgageDue = dueDateForDay(f.mortgageDueDay);
     const salesDue = dueDateForDay(f.salesDueDay);
     const touristDue = dueDateForDay(f.touristDueDay);
 
-    const mortgageSt = financeStatus(f.mortgagePaid, mortgageDue);
-    const salesSt = financeStatus(f.salesPaid, salesDue);
-    const touristSt = financeStatus(f.touristPaid, touristDue);
-    const insuranceSt = f.insuranceDue ? financeStatus(f.insurancePaid, f.insuranceDue) : {key:"", text:""};
-    const propertyTaxSt = f.propertyTaxDue ? financeStatus(f.propertyTaxPaid, f.propertyTaxDue) : {key:"", text:""};
+    const mortgageSt = financeStatus(f.mortgagePaid, mortgageDue, f.mortgagePaidDate);
+    const salesSt = financeStatus(f.salesPaid, salesDue, f.salesPaidDate);
+    const touristSt = financeStatus(f.touristPaid, touristDue, f.touristPaidDate);
+    const insuranceSt = (f.insurancePaid === "inactive" || f.insuranceDue) ? financeStatus(f.insurancePaid, f.insuranceDue, f.insurancePaidDate) : {key:"", text:""};
+    const propertyTaxSt = (f.propertyTaxPaid === "inactive" || f.propertyTaxDue) ? financeStatus(f.propertyTaxPaid, f.propertyTaxDue, f.propertyTaxPaidDate) : {key:"", text:""};
 
     const allowedByStatus = (paid, st) => {
-      return statusFilter === "all" ||
+      const showingAllStatuses = statusFilter === "all";
+      const showingAllDue = statusFilter === "allDue";
+      return showingAllStatuses ||
+        (showingAllDue && paid !== "paid") ||
         (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
         (statusFilter === "unpaid" && paid === "unpaid") ||
-        (statusFilter === "paid" && paid === "paid");
+        (statusFilter === "paid" && paid === "paid") ||
+        (statusFilter === "inactive" && paid === "inactive");
     };
 
     const link = (url, text) => url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${text}</a>` : "";
+    const paymentButton = (rowType, paid) => paid === "paid"
+      ? `<button class="light" onclick="markFinanceRowUnpaid('${house.id}','${rowType}')">Mark not paid</button>`
+      : `<button class="light" onclick="markFinanceRowPaid('${house.id}','${rowType}')">Mark paid</button>`;
 
-    if (allowedByStatus(f.mortgagePaid, mortgageSt)) {
-      monthlyRows.push(`
+    if (isFinanceRowVisible(f, "mortgage") && allowedByStatus(f.mortgagePaid, mortgageSt)) {
+      monthlyRows.push(financeTableRow({
+        house: houseDisplayName(house), item: "Mortgage", company: `${f.mortgageCompany || ""} ${f.mortgageNumber || ""}`, login: f.mortgageLogin ? "Login" : "", amount: Number(f.mortgageAmount || 0), due: mortgageDue, status: mortgageSt.text, statusKey: mortgageSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Mortgage</b></td>
           <td>${escapeHtml(f.mortgageCompany || "")}<br><span class="small">Mortgage #: ${escapeHtml(f.mortgageNumber || "")}</span></td>
           <td>${link(f.mortgageLogin, "Login")}</td>
           <td>${money(f.mortgageAmount)}</td>
-          <td>Due ${escapeHtml(f.mortgageDueDay || 1)} of month<br><span class="small">${mortgageDue}</span></td>
+          <td><span class="${dueDateClass(f.mortgagePaid)}">Due ${escapeHtml(f.mortgageDueDay || 1)} of month</span><br><span class="small ${dueDateClass(f.mortgagePaid)}">${escapeHtml(mortgageDue)}</span></td>
           <td class="status ${mortgageSt.key}">${mortgageSt.text}</td>
-          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','mortgage')">Delete</button></div></td>
-        </tr>`);
+          <td><div class="actions">${paymentButton("mortgage", f.mortgagePaid)}<button class="secondary" onclick="editFinance('${house.id}','mortgage')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','mortgage')">Delete</button></div></td>
+        </tr>`));
     }
 
-    if (f.salesVisible !== "no" && allowedByStatus(f.salesPaid, salesSt)) {
-      monthlyRows.push(`
+    if (isFinanceRowVisible(f, "salesTax") && allowedByStatus(f.salesPaid, salesSt)) {
+      monthlyRows.push(financeTableRow({
+        house: houseDisplayName(house), item: `Florida Sales Tax ${f.salesFiled || ""}`, company: f.salesAgency || "Florida Sales Tax", login: f.salesLogin ? "Login" : "", amount: salesTaxAmount(f.salesTaxable), due: salesDue, status: salesSt.text, statusKey: salesSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Florida Sales Tax</b><br><span class="small">Return: ${escapeHtml(f.salesFiled || "not filed")}</span></td>
           <td>${escapeHtml(f.salesAgency || "Florida Sales Tax")}</td>
           <td>${link(f.salesLogin, "Login")}</td>
           <td>${money(salesTaxAmount(f.salesTaxable))}<br><span class="small">Taxable: ${money(f.salesTaxable)}</span></td>
-          <td>Due ${salesDue}<br><span class="small">For ${previousMonthForDueDate(salesDue)}</span><br><span class="small">${daysLeftText(salesDue)}</span></td>
+          <td><span class="${dueDateClass(f.salesPaid)}">Due ${escapeHtml(salesDue)}</span><br><span class="small">For ${previousMonthForDueDate(salesDue)}</span><br><span class="small">${daysLeftText(salesDue)}</span></td>
           <td class="status ${salesSt.key}">${salesSt.text}</td>
-          <td><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','salesTax')">Delete</button></td>
-        </tr>`);
+          <td><div class="actions">${paymentButton("salesTax", f.salesPaid)}<button class="secondary" onclick="editFinance('${house.id}','salesTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','salesTax')">Delete</button></div></td>
+        </tr>`));
     }
 
-    if (f.touristVisible !== "no" && allowedByStatus(f.touristPaid, touristSt)) {
-      monthlyRows.push(`
+    if (isFinanceRowVisible(f, "touristTax") && allowedByStatus(f.touristPaid, touristSt)) {
+      monthlyRows.push(financeTableRow({
+        house: houseDisplayName(house), item: `Tourist Tax ${f.touristFiled || ""}`, company: f.touristAgency || "", login: f.touristLogin ? "Login" : "", amount: touristTaxAmount(f.touristTaxable), due: touristDue, status: touristSt.text, statusKey: touristSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Tourist Tax</b><br><span class="small">Return: ${escapeHtml(f.touristFiled || "not filed")}</span></td>
           <td>${escapeHtml(f.touristAgency || "")}</td>
           <td>${link(f.touristLogin, "Login")}</td>
           <td>${money(touristTaxAmount(f.touristTaxable))}<br><span class="small">Taxable: ${money(f.touristTaxable)}</span></td>
-          <td>Due ${touristDue}<br><span class="small">For ${previousMonthForDueDate(touristDue)}</span><br><span class="small">${daysLeftText(touristDue)}</span></td>
+          <td><span class="${dueDateClass(f.touristPaid)}">Due ${escapeHtml(touristDue)}</span><br><span class="small">For ${previousMonthForDueDate(touristDue)}</span><br><span class="small">${daysLeftText(touristDue)}</span></td>
           <td class="status ${touristSt.key}">${touristSt.text}</td>
-          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
-        </tr>`);
+          <td><div class="actions">${paymentButton("touristTax", f.touristPaid)}<button class="secondary" onclick="editFinance('${house.id}','touristTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','touristTax')">Delete</button></div></td>
+        </tr>`));
     }
 
-    if (allowedByStatus(f.insurancePaid, insuranceSt)) {
-      annualRows.push(`
+    if (isFinanceRowVisible(f, "insurance") && allowedByStatus(f.insurancePaid, insuranceSt)) {
+      annualRows.push(financeTableRow({
+        house: houseDisplayName(house), item: "Hazardous Insurance", company: `${f.insuranceCompany || ""} ${f.insurancePolicyNumber || ""}`, login: f.insuranceLogin ? "Login" : "", amount: Number(f.insuranceAmount || 0), due: f.insuranceDue || "", status: insuranceSt.text, statusKey: insuranceSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Hazardous Insurance</b></td>
           <td>${escapeHtml(f.insuranceCompany || "")}<br><span class="small">Policy #: ${escapeHtml(f.insurancePolicyNumber || "")}</span></td>
           <td>${link(f.insuranceLogin, "Login")}</td>
           <td>${money(f.insuranceAmount)}</td>
-          <td>Due ${escapeHtml(f.insuranceDue || "")}<br><span class="small">Period ${escapeHtml(f.insuranceStart || "")} to ${escapeHtml(f.insuranceEnd || "")}</span></td>
+          <td><span class="${dueDateClass(f.insurancePaid)}">Due ${escapeHtml(f.insuranceDue || "")}</span><br><span class="small">Period ${escapeHtml(f.insuranceStart || "")} to ${escapeHtml(f.insuranceEnd || "")}</span></td>
           <td class="status ${insuranceSt.key}">${insuranceSt.text}</td>
-          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
-        </tr>`);
+          <td><div class="actions">${paymentButton("insurance", f.insurancePaid)}<button class="secondary" onclick="editFinance('${house.id}','insurance')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','insurance')">Delete</button></div></td>
+        </tr>`));
     }
 
-    if (allowedByStatus(f.propertyTaxPaid, propertyTaxSt)) {
-      annualRows.push(`
+    if (isFinanceRowVisible(f, "propertyTax") && allowedByStatus(f.propertyTaxPaid, propertyTaxSt)) {
+      annualRows.push(financeTableRow({
+        house: houseDisplayName(house), item: "Property Taxes", company: f.propertyTaxAgency || "", login: f.propertyTaxLogin ? "County tax page" : "", amount: Number(f.propertyTaxAmount || 0), due: f.propertyTaxDue || "", status: propertyTaxSt.text, statusKey: propertyTaxSt.key
+      }, `
         <tr>
           <td><b>${escapeHtml(houseDisplayName(house))}</b></td>
           <td><b>Property Taxes</b></td>
           <td>${escapeHtml(f.propertyTaxAgency || "")}</td>
           <td>${link(f.propertyTaxLogin, "County tax page")}</td>
           <td>${money(f.propertyTaxAmount)}</td>
-          <td>Due ${escapeHtml(f.propertyTaxDue || "")}</td>
+          <td><span class="${dueDateClass(f.propertyTaxPaid)}">Due ${escapeHtml(f.propertyTaxDue || "")}</span></td>
           <td class="status ${propertyTaxSt.key}">${propertyTaxSt.text}</td>
-          <td><div class="actions"><button class="secondary" onclick="editFinance('${house.id}')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
-        </tr>`);
+          <td><div class="actions">${paymentButton("propertyTax", f.propertyTaxPaid)}<button class="secondary" onclick="editFinance('${house.id}','propertyTax')">Edit</button><button class="danger" onclick="deleteFinanceRow('${house.id}','propertyTax')">Delete</button></div></td>
+        </tr>`));
     }
   });
 
@@ -1248,11 +2535,15 @@ function renderFinance() {
     const searchable = `${houseDisplayName(house)} ${item.name} ${item.company} ${item.account} ${item.notes}`.toLowerCase();
     if (q && !searchable.includes(q)) return;
 
-    const st = item.due ? financeStatus(item.paid, item.due) : {key:"", text:""};
-    const statusMatch = statusFilter === "all" ||
+    const st = (item.paid === "inactive" || item.due) ? financeStatus(item.paid, item.due, item.paidDate) : {key:"", text:""};
+    const showingAllStatuses = statusFilter === "all";
+    const showingAllDue = statusFilter === "allDue";
+    const statusMatch = showingAllStatuses ||
+      (showingAllDue && item.paid !== "paid") ||
       (statusFilter === "overdue" && st.key === "unpaid-overdue") ||
       (statusFilter === "unpaid" && item.paid === "unpaid") ||
-      (statusFilter === "paid" && item.paid === "paid");
+      (statusFilter === "paid" && item.paid === "paid") ||
+      (statusFilter === "inactive" && item.paid === "inactive");
     if (!statusMatch) return;
 
     const linkHtml = item.login ? `<a href="${escapeHtml(item.login)}" target="_blank" rel="noopener">Login</a>` : "";
@@ -1263,62 +2554,58 @@ function renderFinance() {
         <td>${escapeHtml(item.company || "")}<br><span class="small">Account/policy #: ${escapeHtml(item.account || "")}</span></td>
         <td>${linkHtml}</td>
         <td>${money(item.amount)}</td>
-        <td>Due ${escapeHtml(item.due || "")}</td>
+        <td><span class="${dueDateClass(item.paid)}">Due ${escapeHtml(item.due || "")}</span></td>
         <td class="status ${st.key}">${st.text}</td>
-        <td><div class="actions"><button class="secondary" onclick="editFinanceItem('${item.id}')">Edit</button>${String(item.name||'').toLowerCase().includes('flood insurance') ? '' : `<button class="danger" onclick="deleteFinanceItem('${item.id}')">Delete</button>`}</div></td>
+        <td><div class="actions">${item.paid === "paid" ? `<button class="light" onclick="markFinanceItemUnpaid('${item.id}')">Mark not paid</button>` : `<button class="light" onclick="markFinanceItemPaid('${item.id}')">Mark paid</button>`}<button class="secondary" onclick="editFinanceItem('${item.id}')">Edit</button>${String(item.name||'').toLowerCase().includes('flood insurance') ? '' : `<button class="danger" onclick="deleteFinanceItem('${item.id}')">Delete</button>`}</div></td>
       </tr>`;
 
-    if (item.frequency === "annual") annualRows.push(row);
-    else monthlyRows.push(row);
+    const financeRow = financeTableRow({
+      house: houseDisplayName(house),
+      item: item.name || "Custom item",
+      company: `${item.company || ""} ${item.account || ""}`,
+      login: item.login ? "Login" : "",
+      amount: Number(item.amount || 0),
+      due: item.due || "",
+      status: st.text,
+      statusKey: st.key
+    }, row);
+
+    if (item.frequency === "annual") annualRows.push(financeRow);
+    else monthlyRows.push(financeRow);
   });
+
+  const visibleMonthlyRows = prepareTableRows(monthlyRows, "finance");
+  const visibleAnnualRows = prepareTableRows(annualRows, "finance");
+  visibleMonthlyRows.forEach(row => { row.mobileHtml = financeMobileCard(row); });
+  visibleAnnualRows.forEach(row => { row.mobileHtml = financeMobileCard(row); });
 
   financeApp.innerHTML = `
     <section class="card" style="margin-bottom:16px;">
       <div class="house-title">
         <h2>Monthly Dues — All Houses</h2>
-        <div class="summary"><span class="pill">${monthlyRows.length} item(s)</span></div>
+        <div class="summary"><span class="pill">${visibleMonthlyRows.length} visible item(s)</span></div>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap desktop-table-only">
         <table class="utility-table">
-          <thead>
-            <tr>
-              <th>House</th>
-              <th>Item</th>
-              <th>Company / agency</th>
-              <th>Login</th>
-              <th>Amount</th>
-              <th>Due</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>${monthlyRows.length ? monthlyRows.join("") : `<tr><td colspan="8" class="small">No monthly dues match this filter.</td></tr>`}</tbody>
+          ${configuredTableHeaderHtml("finance")}
+          <tbody>${visibleMonthlyRows.length ? visibleMonthlyRows.map(row => row.html).join("") : `<tr><td colspan="8" class="small">No monthly dues match this filter.</td></tr>`}</tbody>
         </table>
       </div>
+      ${mobileCardListHtml(visibleMonthlyRows, "No monthly dues match this filter.")}
     </section>
 
     <section class="card">
       <div class="house-title">
         <h2>Annual Dues — All Houses</h2>
-        <div class="summary"><span class="pill">${annualRows.length} item(s)</span></div>
+        <div class="summary"><span class="pill">${visibleAnnualRows.length} visible item(s)</span></div>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap desktop-table-only">
         <table class="utility-table">
-          <thead>
-            <tr>
-              <th>House</th>
-              <th>Item</th>
-              <th>Company / agency</th>
-              <th>Login</th>
-              <th>Amount</th>
-              <th>Due</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>${annualRows.length ? annualRows.join("") : `<tr><td colspan="8" class="small">No annual dues match this filter.</td></tr>`}</tbody>
+          ${configuredTableHeaderHtml("finance")}
+          <tbody>${visibleAnnualRows.length ? visibleAnnualRows.map(row => row.html).join("") : `<tr><td colspan="8" class="small">No annual dues match this filter.</td></tr>`}</tbody>
         </table>
       </div>
+      ${mobileCardListHtml(visibleAnnualRows, "No annual dues match this filter.")}
     </section>`;
 }
 
@@ -1333,6 +2620,7 @@ function openFinanceItemModal() {
   financeItemLogin.value = "";
   financeItemAccount.value = "";
   financeItemAmount.value = "";
+  financeItemKeepSameAmount.value = "no";
   financeItemDue.value = "";
   financeItemPaid.value = "unpaid";
   financeItemPaidDate.value = "";
@@ -1352,6 +2640,7 @@ function editFinanceItem(id) {
   financeItemLogin.value = item.login || "";
   financeItemAccount.value = item.account || "";
   financeItemAmount.value = item.amount || "";
+  financeItemKeepSameAmount.value = item.keepSameAmountNextPeriod || "no";
   financeItemDue.value = item.due || "";
   financeItemPaid.value = item.paid || "unpaid";
   financeItemPaidDate.value = item.paidDate || "";
@@ -1371,11 +2660,13 @@ function saveFinanceItem(e) {
     login: financeItemLogin.value.trim(),
     account: financeItemAccount.value.trim(),
     amount: Number(financeItemAmount.value || 0),
+    keepSameAmountNextPeriod: financeItemKeepSameAmount.value,
     due: financeItemDue.value,
     paid: financeItemPaid.value,
     paidDate: financeItemPaid.value === "paid" ? financeItemPaidDate.value : "",
     notes: financeItemNotes.value.trim()
   };
+  normalizeFinanceItemRecord(item);
   const idx = state.financeItems.findIndex(x => x.id === item.id);
   if (idx >= 0) state.financeItems[idx] = item;
   else state.financeItems.push(item);
@@ -1393,48 +2684,79 @@ function deleteFinanceItem(id) {
 
 function openFinanceModal() {
   const houseId = financeHouseFilter.value !== "all" ? financeHouseFilter.value : state.houses[0].id;
-  editFinance(houseId);
+  editFinance(houseId, "all");
 }
 
-function editFinance(houseId) {
+function financeSectionTitle(section) {
+  const titles = {
+    all: "Edit mortgage / insurance / taxes",
+    mortgage: "Edit mortgage entry",
+    salesTax: "Edit Florida sales tax entry",
+    touristTax: "Edit tourist tax entry",
+    insurance: "Edit hazardous insurance entry",
+    propertyTax: "Edit property tax entry"
+  };
+  return titles[section] || titles.all;
+}
+
+function setFinanceSectionVisibility(section = "all") {
+  document.querySelectorAll("#financeDialog [data-finance-section]").forEach(el => {
+    const rowSection = el.dataset.financeSection;
+    el.style.display = section === "all" || rowSection === section ? "" : "none";
+  });
+}
+
+function editFinance(houseId, section = "all") {
   ensureFinanceRecords();
   const f = state.finance.find(x => x.houseId === houseId);
   if (!f) return;
+  financeModalTitle.textContent = financeSectionTitle(section);
+  setFinanceSectionVisibility(section);
   financeHouse.value = houseId;
   finMortgageCompany.value = f.mortgageCompany || "";
   finMortgageNumber.value = f.mortgageNumber || "";
   finMortgageLogin.value = f.mortgageLogin || "";
   finMortgageAmount.value = f.mortgageAmount || "";
+  finMortgageKeepSameAmount.value = f.mortgageKeepSameAmountNextPeriod || "no";
   finMortgageDueDay.value = f.mortgageDueDay || 1;
   finMortgagePaid.value = f.mortgagePaid || "unpaid";
   finMortgagePaidDate.value = f.mortgagePaidDate || "";
+  finMortgageNotes.value = f.mortgageNotes || "";
   finSalesVisible.value = f.salesVisible || "yes";
   finSalesAgency.value = f.salesAgency || "Florida Sales Tax";
   finSalesLogin.value = f.salesLogin || "";
   finSalesFiled.value = f.salesFiled || "not filed";
   finSalesTaxable.value = f.salesTaxable || "";
+  finSalesKeepSameAmount.value = f.salesKeepSameAmountNextPeriod || "no";
   finSalesPaid.value = f.salesPaid || "unpaid";
   finSalesDueDay.value = f.salesDueDay || 20;
+  finSalesNotes.value = f.salesNotes || "";
   finTouristVisible.value = f.touristVisible || "yes";
   finTouristAgency.value = f.touristAgency || `${countyNameForHouse(houseId)} - tourist county tax`;
   finTouristLogin.value = f.touristLogin || "";
   finTouristFiled.value = f.touristFiled || "not filed";
   finTouristTaxable.value = f.touristTaxable || "";
+  finTouristKeepSameAmount.value = f.touristKeepSameAmountNextPeriod || "no";
   finTouristPaid.value = f.touristPaid || "unpaid";
   finTouristDueDay.value = f.touristDueDay || 20;
+  finTouristNotes.value = f.touristNotes || "";
   finInsuranceCompany.value = f.insuranceCompany || "";
   finInsurancePolicyNumber.value = f.insurancePolicyNumber || "";
   finInsuranceLogin.value = f.insuranceLogin || "";
   finInsuranceStart.value = f.insuranceStart || "";
   finInsuranceEnd.value = f.insuranceEnd || "";
   finInsuranceAmount.value = f.insuranceAmount || "";
+  finInsuranceKeepSameAmount.value = f.insuranceKeepSameAmountNextPeriod || "no";
   finInsuranceDue.value = f.insuranceDue || "";
   finInsurancePaid.value = f.insurancePaid || "unpaid";
+  finInsuranceNotes.value = f.insuranceNotes || "";
   finPropertyTaxAgency.value = f.propertyTaxAgency || `${countyNameForHouse(houseId)} property tax`;
   finPropertyTaxLogin.value = f.propertyTaxLogin || "";
   finPropertyTaxAmount.value = f.propertyTaxAmount || "";
+  finPropertyTaxKeepSameAmount.value = f.propertyTaxKeepSameAmountNextPeriod || "no";
   finPropertyTaxDue.value = f.propertyTaxDue || "";
   finPropertyTaxPaid.value = f.propertyTaxPaid || "unpaid";
+  finPropertyTaxNotes.value = f.propertyTaxNotes || "";
   finNotes.value = f.notes || "";
   financeDialog.showModal();
 }
@@ -1442,44 +2764,86 @@ function editFinance(houseId) {
 function saveFinance(e) {
   e.preventDefault();
   const houseId = financeHouse.value;
+  const existing = state.finance.find(f => f.houseId === houseId) || {};
+  const mortgageCompany = finMortgageCompany.value.trim();
+  const mortgageNumber = finMortgageNumber.value.trim();
+  const mortgageLogin = finMortgageLogin.value.trim();
+  const mortgageNotes = finMortgageNotes.value.trim();
+  const mortgageAmount = Number(finMortgageAmount.value || 0);
+  const insuranceCompany = finInsuranceCompany.value.trim();
+  const insurancePolicyNumber = finInsurancePolicyNumber.value.trim();
+  const insuranceLogin = finInsuranceLogin.value.trim();
+  const insuranceNotes = finInsuranceNotes.value.trim();
+  const insuranceAmount = Number(finInsuranceAmount.value || 0);
+  const propertyTaxAgency = finPropertyTaxAgency.value.trim();
+  const propertyTaxLogin = finPropertyTaxLogin.value.trim();
+  const propertyTaxNotes = finPropertyTaxNotes.value.trim();
+  const propertyTaxAmount = Number(finPropertyTaxAmount.value || 0);
+  const mortgageHasData = Boolean(mortgageCompany || mortgageNumber || mortgageLogin || mortgageNotes || mortgageAmount);
+  const insuranceHasData = Boolean(insuranceCompany || insurancePolicyNumber || insuranceLogin || finInsuranceStart.value || finInsuranceEnd.value || finInsuranceDue.value || insuranceNotes || insuranceAmount);
+  const defaultPropertyTaxAgency = `${countyNameForHouse(houseId)} property tax`;
+  const propertyTaxHasData = Boolean(propertyTaxLogin || finPropertyTaxDue.value || propertyTaxNotes || propertyTaxAmount || (propertyTaxAgency && propertyTaxAgency !== defaultPropertyTaxAgency));
   const record = {
     houseId,
-    mortgageCompany: finMortgageCompany.value.trim(),
-    mortgageNumber: finMortgageNumber.value.trim(),
-    mortgageLogin: finMortgageLogin.value.trim(),
-    mortgageAmount: Number(finMortgageAmount.value || 0),
+    mortgageVisible: existing.mortgageVisible === "no" && !mortgageHasData ? "no" : "yes",
+    mortgageCompany,
+    mortgageNumber,
+    mortgageLogin,
+    mortgageAmount,
+    mortgageKeepSameAmountNextPeriod: finMortgageKeepSameAmount.value,
     mortgageDueDay: Number(finMortgageDueDay.value || 1),
     mortgagePaid: finMortgagePaid.value,
-    mortgagePaidDate: finMortgagePaidDate.value,
+    mortgagePaidDate: finMortgagePaid.value === "paid" ? finMortgagePaidDate.value : "",
+    mortgageFrequency: "monthly",
+    mortgageNotes,
     salesVisible: finSalesVisible.value,
     salesAgency: finSalesAgency.value.trim() || "Florida Sales Tax",
     salesLogin: finSalesLogin.value.trim(),
     salesFiled: finSalesFiled.value,
     salesTaxable: Number(finSalesTaxable.value || 0),
+    salesKeepSameAmountNextPeriod: finSalesKeepSameAmount.value,
     salesPaid: finSalesPaid.value,
+    salesPaidDate: finSalesPaid.value === "paid" ? (existing.salesPaidDate || "") : "",
     salesDueDay: Number(finSalesDueDay.value || 20),
+    salesFrequency: "monthly",
+    salesNotes: finSalesNotes.value.trim(),
     touristVisible: finTouristVisible.value,
     touristAgency: finTouristAgency.value.trim() || `${countyNameForHouse(houseId)} - tourist county tax`,
     touristLogin: finTouristLogin.value.trim(),
     touristFiled: finTouristFiled.value,
     touristTaxable: Number(finTouristTaxable.value || 0),
+    touristKeepSameAmountNextPeriod: finTouristKeepSameAmount.value,
     touristPaid: finTouristPaid.value,
+    touristPaidDate: finTouristPaid.value === "paid" ? (existing.touristPaidDate || "") : "",
     touristDueDay: Number(finTouristDueDay.value || 20),
-    insuranceCompany: finInsuranceCompany.value.trim(),
-    insurancePolicyNumber: finInsurancePolicyNumber.value.trim(),
-    insuranceLogin: finInsuranceLogin.value.trim(),
+    touristFrequency: "monthly",
+    touristNotes: finTouristNotes.value.trim(),
+    insuranceVisible: existing.insuranceVisible === "no" && !insuranceHasData ? "no" : "yes",
+    insuranceCompany,
+    insurancePolicyNumber,
+    insuranceLogin,
     insuranceStart: finInsuranceStart.value,
     insuranceEnd: finInsuranceEnd.value,
-    insuranceAmount: Number(finInsuranceAmount.value || 0),
+    insuranceAmount,
+    insuranceKeepSameAmountNextPeriod: finInsuranceKeepSameAmount.value,
     insuranceDue: finInsuranceDue.value,
     insurancePaid: finInsurancePaid.value,
-    propertyTaxAgency: finPropertyTaxAgency.value.trim() || `${countyNameForHouse(houseId)} property tax`,
-    propertyTaxLogin: finPropertyTaxLogin.value.trim(),
-    propertyTaxAmount: Number(finPropertyTaxAmount.value || 0),
+    insurancePaidDate: finInsurancePaid.value === "paid" ? (existing.insurancePaidDate || "") : "",
+    insuranceFrequency: "annual",
+    insuranceNotes,
+    propertyTaxVisible: existing.propertyTaxVisible === "no" && !propertyTaxHasData ? "no" : "yes",
+    propertyTaxAgency: propertyTaxAgency || defaultPropertyTaxAgency,
+    propertyTaxLogin,
+    propertyTaxAmount,
+    propertyTaxKeepSameAmountNextPeriod: finPropertyTaxKeepSameAmount.value,
     propertyTaxDue: finPropertyTaxDue.value,
     propertyTaxPaid: finPropertyTaxPaid.value,
+    propertyTaxPaidDate: finPropertyTaxPaid.value === "paid" ? (existing.propertyTaxPaidDate || "") : "",
+    propertyTaxFrequency: "annual",
+    propertyTaxNotes,
     notes: finNotes.value.trim()
   };
+  normalizeFinanceRecord(record);
   const idx = state.finance.findIndex(f => f.houseId === houseId);
   if (idx >= 0) state.finance[idx] = record;
   else state.finance.push(record);
@@ -1498,7 +2862,7 @@ function otherBillStatus(b) {
 }
 
 function renderOtherBills() {
-  if (!Array.isArray(state.otherBills)) state.otherBills = [];
+  if (!state.otherBills) state.otherBills = makeDefaultOtherBills();
   const q = otherBillsSearch.value.toLowerCase().trim();
   const statusFilter = otherBillsStatusFilter.value;
   let bills = state.otherBills.filter(b => {
@@ -1509,14 +2873,15 @@ function renderOtherBills() {
   }).sort((a,b) => parseDate(a.due) - parseDate(b.due));
   const totalUnpaid = bills.filter(b => b.paid !== "paid").reduce((sum,b) => sum + Number(b.amount || 0), 0);
   otherBillsApp.innerHTML = `<div class="house-title"><h2>Other Bills</h2><div class="summary"><span class="pill">${bills.length} bill(s)</span><span class="pill">${money(totalUnpaid)} unpaid</span></div></div>
-    <div class="table-wrap"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account #</th><th>Statement date</th><th>Amount due</th><th>Due date</th><th>Paid status</th><th>Actions</th></tr></thead>
-    <tbody>${bills.length ? bills.map(otherBillRowHtml).join("") : `<tr><td colspan="8" class="small">No other bills match this view.</td></tr>`}</tbody></table></div>`;
+    <div class="table-wrap desktop-table-only"><table class="utility-table"><thead><tr><th>Bill type</th><th>Provider / login</th><th>Account #</th><th>Statement date</th><th>Amount due</th><th>Due date</th><th>Paid status</th><th>Actions</th></tr></thead>
+    <tbody>${bills.length ? bills.map(otherBillRowHtml).join("") : `<tr><td colspan="8" class="small">No other bills match this view.</td></tr>`}</tbody></table></div>
+    <div class="mobile-card-list mobile-only">${bills.length ? bills.map(otherBillMobileCard).join("") : mobileEmptyHtml("No other bills match this view.")}</div>`;
 }
 
 function otherBillRowHtml(b) {
   const s = otherBillStatus(b);
   const link = b.login ? `<a href="${escapeHtml(b.login)}" target="_blank" rel="noopener">Open login</a>` : "";
-  return `<tr><td><b>${escapeHtml(b.type || "")}</b></td><td><b>${escapeHtml(b.provider || "")}</b><br><span class="small">${link}</span></td><td>${escapeHtml(b.account || "")}</td><td>${escapeHtml(b.statementDate || "")}</td><td><b>${money(b.amount)}</b></td><td>${escapeHtml(b.due || "")}</td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markOtherBillPaid('${b.id}')">Mark paid</button><button class="secondary" onclick="editOtherBill('${b.id}')">Edit</button><button class="danger" onclick="deleteOtherBill('${b.id}')">Delete</button></div></td></tr>`;
+  return `<tr><td><b>${escapeHtml(b.type || "")}</b></td><td><b>${escapeHtml(b.provider || "")}</b><br><span class="small">${link}</span></td><td>${escapeHtml(b.account || "")}</td><td>${escapeHtml(b.statementDate || "")}</td><td><b>${money(b.amount)}</b></td><td><span class="${dueDateClass(b.paid)}">${escapeHtml(b.due || "")}</span></td><td class="status ${s.key}">${s.text}</td><td><div class="actions"><button class="light" onclick="markOtherBillPaid('${b.id}')">Mark paid</button><button class="secondary" onclick="editOtherBill('${b.id}')">Edit</button><button class="danger" onclick="deleteOtherBill('${b.id}')">Delete</button></div></td></tr>`;
 }
 
 function openOtherBillModal() {
@@ -1551,37 +2916,231 @@ function deleteOtherBill(id) {
 }
 
 
+function creditCardStatusText(card) {
+  return card.status === "closed" ? "Closed" : "Active";
+}
+
+function creditCardTableRow(card) {
+  const status = creditCardStatusText(card);
+  const notes = `${card.businessName || ""} ${card.notes || ""}`.trim();
+  return {
+    values: {
+      bank: card.bank || "",
+      card: `${card.name || ""} ${card.businessName || ""}`,
+      owner: card.owner || "",
+      type: card.type || "",
+      last4: card.last4 || "",
+      dueDate: card.dueDate || "",
+      annualFee: Number(card.annualFee || 0),
+      interestRate: formatInterestRate(card.interestRate),
+      openedDate: card.openedDate || "",
+      notes,
+      status
+    },
+    displayValues: {
+      dueDate: formatISODateForDisplay(card.dueDate),
+      annualFee: money(card.annualFee),
+      interestRate: formatInterestRate(card.interestRate),
+      openedDate: formatISODateForDisplay(card.openedDate)
+    },
+    sortValues: {
+      bank: card.bank || "",
+      card: card.name || "",
+      owner: card.owner || "",
+      type: card.type || "",
+      dueDate: card.dueDate || "",
+      annualFee: Number(card.annualFee || 0),
+      interestRate: formatInterestRate(card.interestRate),
+      openedDate: card.openedDate || "",
+      status
+    },
+    statusKey: card.status === "closed" ? "inactive" : "ok",
+    html: creditCardRowHtml(card),
+    mobileHtml: creditCardMobileCard(card)
+  };
+}
+
+function creditCardRowHtml(card) {
+  const statusClass = card.status === "closed" ? "inactive" : "ok";
+  const business = card.businessName ? `<br><span class="small">${escapeHtml(card.businessName)}</span>` : "";
+  const notes = card.notes ? `<span class="small">${escapeHtml(card.notes).replace(/\n/g, "<br>")}</span>` : "";
+  return `<tr>
+    <td><b>${escapeHtml(card.bank || "")}</b></td>
+    <td><b>${escapeHtml(card.name || "")}</b>${business}</td>
+    <td>${escapeHtml(card.owner || "")}</td>
+    <td>${escapeHtml(card.type || "")}</td>
+    <td>${escapeHtml(card.last4 || "")}</td>
+    <td><span class="credit-card-due-date">${escapeHtml(formatISODateForDisplay(card.dueDate))}</span></td>
+    <td>${money(card.annualFee)}</td>
+    <td><span class="credit-card-interest-rate">${escapeHtml(formatInterestRate(card.interestRate))}</span></td>
+    <td>${escapeHtml(formatISODateForDisplay(card.openedDate))}</td>
+    <td>${notes}</td>
+    <td class="status ${statusClass}">${creditCardStatusText(card)}</td>
+    <td><div class="actions"><button class="secondary" onclick="editCreditCard('${card.id}')">Edit</button><button class="danger" onclick="deleteCreditCard('${card.id}')">Delete</button></div></td>
+  </tr>`;
+}
+
+function renderCreditCards() {
+  if (!Array.isArray(state.creditCards)) state.creditCards = makeDefaultCreditCards();
+  state.creditCards.forEach(normalizeCreditCardRecord);
+
+  const q = creditCardSearch.value.toLowerCase().trim();
+  const ownerFilter = creditCardOwnerFilter.value;
+  const statusFilter = creditCardStatusFilter.value;
+
+  let cards = state.creditCards.filter(card => {
+    const text = `${card.bank} ${card.name} ${card.owner} ${card.type} ${card.last4} ${card.dueDate} ${card.openedDate} ${card.annualFee} ${card.interestRate} ${card.businessName} ${card.status} ${card.notes}`.toLowerCase();
+    const ownerMatch = ownerFilter === "all" || card.owner === ownerFilter;
+    const statusMatch = statusFilter === "all" || card.status === statusFilter;
+    return (!q || text.includes(q)) && ownerMatch && statusMatch;
+  });
+
+  const rows = prepareTableRows(cards.map(card => creditCardTableRow(card)), "creditCards");
+  const activeCount = state.creditCards.filter(card => card.status !== "closed").length;
+  const closedCount = state.creditCards.filter(card => card.status === "closed").length;
+  const visibleAnnualFees = cards.reduce((sum, card) => card.status === "closed" ? sum : sum + Number(card.annualFee || 0), 0);
+
+  creditCardsApp.innerHTML = `
+    <div class="house-title">
+      <h2>Credit card payments</h2>
+      <div class="summary"><span class="pill">${rows.length} visible card(s)</span><span class="pill">${activeCount} active</span><span class="pill">${closedCount} closed</span><span class="pill">${money(visibleAnnualFees)} visible active annual fees</span></div>
+    </div>
+    <div class="table-wrap desktop-table-only"><table class="credit-card-table">
+      ${configuredTableHeaderHtml("creditCards")}
+      <tbody>${rows.length ? rows.map(row => row.html).join("") : `<tr><td colspan="12" class="small">No credit cards match the current filters.</td></tr>`}</tbody>
+    </table></div>
+    ${mobileCardListHtml(rows, "No credit cards match the current filters.")}`;
+}
+
+function openCreditCardModal() {
+  creditCardModalTitle.textContent = "Add credit card";
+  creditCardEditId.value = "";
+  creditCardBank.value = "";
+  creditCardName.value = "";
+  creditCardOwner.value = "Anna";
+  creditCardType.value = "Personal";
+  creditCardLast4.value = "";
+  creditCardAnnualFee.value = "";
+  creditCardInterestRate.value = "";
+  creditCardDueDate.value = "";
+  creditCardOpenedDate.value = "";
+  creditCardStatus.value = "active";
+  creditCardBusinessName.value = "";
+  creditCardNotes.value = "";
+  creditCardDialog.showModal();
+}
+
+function editCreditCard(id) {
+  const card = state.creditCards.find(x => x.id === id);
+  if (!card) return;
+  normalizeCreditCardRecord(card);
+  creditCardModalTitle.textContent = "Edit credit card";
+  creditCardEditId.value = card.id;
+  creditCardBank.value = card.bank || "";
+  creditCardName.value = card.name || "";
+  creditCardOwner.value = card.owner || "Anna";
+  creditCardType.value = card.type || "Personal";
+  creditCardLast4.value = card.last4 || "";
+  creditCardAnnualFee.value = card.annualFee || "";
+  creditCardInterestRate.value = card.interestRate || "";
+  creditCardDueDate.value = card.dueDate || "";
+  creditCardOpenedDate.value = card.openedDate || "";
+  creditCardStatus.value = card.status || "active";
+  creditCardBusinessName.value = card.businessName || "";
+  creditCardNotes.value = card.notes || "";
+  creditCardDialog.showModal();
+}
+
+function saveCreditCard(e) {
+  e.preventDefault();
+  if (!Array.isArray(state.creditCards)) state.creditCards = [];
+  const card = normalizeCreditCardRecord({
+    id: creditCardEditId.value || uid(),
+    bank: creditCardBank.value.trim(),
+    name: creditCardName.value.trim(),
+    owner: creditCardOwner.value,
+    type: creditCardType.value,
+    last4: creditCardLast4.value.trim(),
+    annualFee: Number(creditCardAnnualFee.value || 0),
+    interestRate: creditCardInterestRate.value.trim(),
+    dueDate: creditCardDueDate.value.trim(),
+    openedDate: creditCardOpenedDate.value.trim(),
+    status: creditCardStatus.value,
+    businessName: creditCardBusinessName.value.trim(),
+    notes: creditCardNotes.value.trim()
+  });
+  const idx = state.creditCards.findIndex(c => c.id === card.id);
+  if (idx >= 0) state.creditCards[idx] = card;
+  else state.creditCards.push(card);
+  creditCardDialog.close();
+  saveData();
+}
+
+function deleteCreditCard(id) {
+  if (confirm("Delete this credit card record?")) {
+    state.creditCards = state.creditCards.filter(card => card.id !== id);
+    saveData();
+  }
+}
+
+
 function renderContacts() {
   const q = contactSearch.value.toLowerCase().trim();
   const serviceFilter = contactServiceFilter.value;
   const houseFilter = contactHouseFilter.value;
 
   contactsApp.innerHTML = "";
-  const housesToShow = state.houses.filter(h => houseFilter === "all" || h.id === houseFilter);
-
   setupContactButtons();
-  housesToShow.forEach(house => {
-    let contacts = (state.contacts || []).filter(c => c.houseId === house.id);
-    contacts = contacts.filter(c => {
-      const text = `${c.name} ${c.email} ${c.phone} ${c.type} ${c.address} ${c.website} ${c.notes} ${house.name}`.toLowerCase();
-      const serviceMatch = serviceFilter === "all" || c.type === serviceFilter;
-      return (!q || text.includes(q)) && serviceMatch;
-    }).sort((a,b) => (a.type || "").localeCompare(b.type || "") || (a.name || "").localeCompare(b.name || ""));
 
-    const card = document.createElement("section");
-    card.className = "card";
-    card.style.marginBottom = "16px";
-    card.innerHTML = `
-      <div class="house-title">
-        <h2>${escapeHtml(houseDisplayName(house))}</h2>
-        <div class="summary"><span class="pill">${contacts.length} contact(s)</span></div>
-      </div>
-      <table>
-        <thead><tr><th>Name</th><th>Service</th><th>Email / phone</th><th>Address</th><th>Actions</th></tr></thead>
-        <tbody>${contacts.length ? contacts.map(contactRowHtml).join("") : `<tr><td colspan="5" class="small">No contacts for this property yet.</td></tr>`}</tbody>
-      </table>`;
-    contactsApp.appendChild(card);
+  let contacts = (state.contacts || []).filter(c => houseFilter === "all" || c.houseId === houseFilter);
+  contacts = contacts.filter(c => {
+    const house = state.houses.find(h => h.id === c.houseId);
+    const text = `${c.name} ${c.email} ${c.phone} ${c.type} ${c.address} ${c.website} ${c.notes} ${houseDisplayName(house)}`.toLowerCase();
+    const serviceMatch = serviceFilter === "all" || c.type === serviceFilter;
+    return (!q || text.includes(q)) && serviceMatch;
   });
+  const contactRows = prepareTableRows(contacts.map(contact => contactTableRow(contact)), "contacts");
+
+  const card = document.createElement("section");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="house-title">
+      <h2>Contacts</h2>
+      <div class="summary"><span class="pill">${contactRows.length} visible contact(s)</span></div>
+    </div>
+    <table class="desktop-table-only">
+      ${configuredTableHeaderHtml("contacts")}
+      <tbody>${contactRows.length ? contactRows.map(row => row.html).join("") : `<tr><td colspan="6" class="small">No contacts match the current filters yet.</td></tr>`}</tbody>
+    </table>
+    ${mobileCardListHtml(contactRows, "No contacts match the current filters yet.")}`;
+  contactsApp.appendChild(card);
+}
+
+function contactHouseOptionsHtml(selectedHouseId) {
+  return state.houses.map(h =>
+    `<option value="${escapeHtml(h.id)}"${h.id === selectedHouseId ? " selected" : ""}>${escapeHtml(houseDisplayName(h))}</option>`
+  ).join("");
+}
+
+function contactTableRow(contact) {
+  const house = state.houses.find(h => h.id === contact.houseId);
+  const houseName = houseDisplayName(house);
+  return {
+    values: {
+      name: `${contact.name || ""} ${contact.website || ""} ${contact.notes || ""}`,
+      house: houseName,
+      service: contact.type || "",
+      emailPhone: `${contact.email || ""} ${contact.phone || ""}`,
+      address: contact.address || ""
+    },
+    sortValues: {
+      house: houseName,
+      service: contact.type || "",
+      name: contact.name || ""
+    },
+    html: contactRowHtml(contact),
+    mobileHtml: contactMobileCard(contact)
+  };
 }
 
 function contactRowHtml(c) {
@@ -1590,6 +3149,7 @@ function contactRowHtml(c) {
   const website = c.website ? `<br><a href="${escapeHtml(c.website)}" target="_blank" rel="noopener">Website</a>` : "";
   return `<tr>
     <td><b>${escapeHtml(c.name || "")}</b>${website}<br><span class="small">${escapeHtml(c.notes || "")}</span></td>
+    <td><select class="contact-house-select" data-contact-id="${escapeHtml(c.id)}" aria-label="House for ${escapeHtml(c.name || "contact")}">${contactHouseOptionsHtml(c.houseId)}</select></td>
     <td>${escapeHtml(c.type || "")}</td>
     <td>${email}${phone}</td>
     <td>${escapeHtml(c.address || "")}</td>
@@ -1685,6 +3245,19 @@ function setupContactButtons() {
       deleteContact(deleteButton.dataset.contactId);
     }
   });
+  contactsApp.addEventListener("change", function(event) {
+    const houseSelect = event.target.closest(".contact-house-select");
+    if (!houseSelect) return;
+    updateContactHouse(houseSelect.dataset.contactId, houseSelect.value);
+  });
+}
+
+function updateContactHouse(id, houseId) {
+  if (!state.contacts) state.contacts = [];
+  const contact = state.contacts.find(c => String(c.id) === String(id));
+  if (!contact || contact.houseId === houseId) return;
+  contact.houseId = houseId;
+  saveData();
 }
 
 function openHouseModal() {
@@ -1709,7 +3282,7 @@ function openHouseModal() {
         </div>
       </div>
       <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px;">
-        ${pending 
+        ${pending
           ? `<button type="button" class="light" onclick="undoDeleteHouse('${h.id}')">Undo delete</button><button type="button" class="danger" disabled style="opacity:.6; cursor:not-allowed;">Delete marked</button>`
           : editing
             ? `<button type="button" class="light" onclick="lockHouseCard('${h.id}')">Done editing</button><button type="button" class="danger" onclick="markHouseForDelete('${h.id}')">Delete</button>`
@@ -1804,10 +3377,72 @@ if (!state.contacts) state.contacts = [];
   saveData();
 }
 
+async function downloadIndexHtml() {
+  let html = "<!doctype html>\n" + document.documentElement.outerHTML;
+
+  try {
+    const sourceUrl = new URL("index.html", window.location.href);
+    const response = await fetch(sourceUrl, { cache: "no-store" });
+    if (response.ok) {
+      html = await response.text();
+    }
+  } catch (err) {
+    console.warn("Could not fetch index.html source; downloading current page markup instead.", err);
+  }
+
+  const blob = new Blob([html], { type: "text/html" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "index.html";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+
+const AUTO_BACKUP_KEY = `${STORAGE_KEY}-auto-backup`;
+let autoBackupTimer = null;
+
+function initializeAutoBackupSetting() {
+  if (!window.autoBackupToggle) return;
+  const saved = safeLocalStorageGet(AUTO_BACKUP_KEY);
+  autoBackupToggle.checked = saved === null ? true : saved === "true";
+}
+
+function setAutoBackup(enabled) {
+  safeLocalStorageSet(AUTO_BACKUP_KEY, enabled ? "true" : "false");
+}
+
+function backupFilename(prefix) {
+  return `${prefix}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+}
+
+function downloadJsonBackup(filename) {
+  const backup = {
+    app: "House Maintenance Utilities Contacts Finance Credit Card Tracker",
+    exportedAt: new Date().toISOString(),
+    storageKey: STORAGE_KEY,
+    data: state
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+
+function normalizeImportedData(source) {
+  return normalizeLoadedData(source);
+}
+
+
+
 search.addEventListener("input", render);
 filterStatus.addEventListener("change", render);
 houseSelect.addEventListener("change", render);
 utilityHouse.addEventListener("change", updateUtilityTypeOptionsFromHouse);
+utilityType.addEventListener("change", updateUtilityCustomTypeVisibility);
 utilityPaid.addEventListener("change", updateUtilityPaidDateVisibility);
 utilitySearch.addEventListener("input", render);
 utilityStatusFilter.addEventListener("change", render);
@@ -1820,6 +3455,9 @@ otherBillsStatusFilter.addEventListener("change", render);
 contactSearch.addEventListener("input", render);
 contactServiceFilter.addEventListener("change", render);
 contactHouseFilter.addEventListener("change", render);
+creditCardSearch.addEventListener("input", render);
+creditCardOwnerFilter.addEventListener("change", render);
+creditCardStatusFilter.addEventListener("change", render);
 initializeApp();
 </script>
 </body>

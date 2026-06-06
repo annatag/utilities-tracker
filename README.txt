@@ -1,6 +1,8 @@
 House Tracker Utilities
 
-This app is intended to run in Cloudflare Pages cloud mode only. Data is loaded from and saved only to Cloudflare KV through the /api/items Pages Function.
+This app can run in two ways:
+1. Local/offline mode: open public/index.html in your browser. Data saves in that browser's localStorage.
+2. Cloud mode: deploy to Cloudflare Pages. Data is shared across devices through Cloudflare KV.
 
 Important security note
 This tracker contains private property, account, and bill details. Do not publish it as an unprotected public website.
@@ -39,8 +41,9 @@ How cloud saving works
 - functions/api/items.js reads the shared state from the TRACKER_BACKUPS KV namespace.
 - If KV is empty, it seeds the namespace once from public/data.json.
 - Every save posts the full tracker state back to /api/items.
-- If the API or KV binding is unavailable, the browser does not load a local backup and changes are not persisted.
-- The page shows a cloud-storage status banner. If it says cloud storage is not configured or unreachable, fix the Pages Function and TRACKER_BACKUPS KV binding before editing.
+- If the API is unavailable, the browser falls back to the local browser backup.
+- The page now shows a cloud-storage status banner. If it says cloud storage is not configured or unreachable, edits are only in the current browser and will not appear on another phone/computer until the Pages Function and TRACKER_BACKUPS KV binding are fixed.
+- Safari Private Browsing or restrictive site settings can block localStorage. The app treats localStorage as a backup only, so Safari local backup failures should not stop saves from posting to Cloudflare KV when cloud storage is connected.
 
 
 Fixing "Cloud storage is not configured"
@@ -55,7 +58,8 @@ If the banner remains after redeploying, check that the deployed project uses th
 
 
 Local use
-Run the app with the Cloudflare Pages Function and a TRACKER_BACKUPS KV binding, for example with `npm run dev` after configuring Wrangler. Opening public/index.html directly is read-only/unpersisted because the app no longer saves to browser localStorage.
+1. Open public/index.html in your browser, or serve the folder with a small static server.
+2. Your data saves locally in that browser.
 
 Utilities now opens as the default tab.
 
@@ -160,3 +164,27 @@ You can:
 - Choose Monthly or Annual
 - Enter your own item name
 - Use the same fields: company/agency, login, account/policy number, amount, due date, paid status, paid date, notes
+
+## Email due-date notifications
+The app now includes a Cloudflare Pages Function at `/api/notifications` that sends email reminders to:
+- Anna: annagoranova17@gmail.com
+- Lubo: liubomirm@gmail.com
+
+The notification looks for utility bills and active credit cards that are due exactly 2 days after the day the endpoint runs. Paid or inactive utility bills and closed credit cards are skipped. A KV marker prevents duplicate sends for the same recipient, item, and due date.
+
+Email delivery uses Resend. Configure these environment variables in the Cloudflare Pages project before turning on the notification schedule:
+- `RESEND_API_KEY`: Resend API key.
+- `NOTIFICATION_FROM_EMAIL`: verified sender email address, for example `Utilities Tracker <reminders@yourdomain.com>`.
+- `NOTIFICATION_SECRET`: a private token required by the notification endpoint.
+
+To test without sending email, make a POST request with `dryRun=true`:
+```bash
+curl -X POST "https://YOUR-PAGES-DOMAIN/api/notifications?dryRun=true" \
+  -H "Authorization: Bearer YOUR_NOTIFICATION_SECRET"
+```
+
+Reminders are sent by the GitHub Actions workflow in `.github/workflows/send-notifications.yml`. The workflow runs every day at 12:20 PM EST (17:20 UTC) and makes a POST request to `/api/notifications` with the same bearer token. Add these repository secrets before relying on the schedule:
+- `NOTIFICATION_BASE_URL`: the deployed Pages site URL, for example `https://YOUR-PAGES-DOMAIN`.
+- `NOTIFICATION_SECRET`: the same private token configured in Cloudflare Pages.
+
+The endpoint computes the target due date as today plus 2 days. You can also run the workflow manually from GitHub Actions using `workflow_dispatch`.
