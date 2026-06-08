@@ -1,5 +1,5 @@
 House Tracker Utilities
-
+Test revert
 This app can run in two ways:
 1. Local/offline mode: open public/index.html in your browser. Data saves in that browser's localStorage.
 2. Cloud mode: deploy to Cloudflare Pages. Data is shared across devices through Cloudflare KV.
