@@ -1,5 +1,5 @@
 House Tracker Utilities
-Test revert
+
 This app can run in two ways:
 1. Local/offline mode: open public/index.html in your browser. Data saves in that browser's localStorage.
 2. Cloud mode: deploy to Cloudflare Pages. Data is shared across devices through Cloudflare KV.
@@ -67,14 +67,6 @@ Utilities now opens as the default tab.
 ## Utility Autopay
 Each utility bill now has an Autopay On/Off option.
 If Autopay is On and the bill due date is today or earlier, the tracker automatically marks the bill as Paid and sets the paid date to today.
-
-## Utility Billing Frequency
-Each utility bill has a Billing Frequency option:
-- Monthly
-- Annual
-- One time
-
-One-time utility bills stay as single records when marked paid; the tracker does not create a new unpaid follow-up record for them.
 
 
 ## Autopay paid date behavior
