@@ -724,7 +724,7 @@ function financeSourceRowDefaultFrequency(rowType) {
   return sourceTypeDefaults[rowType] || "monthly";
 }
 
-function financeItemFrequency(item) {
+function financeItemBillingFrequency(item) {
   if (!item) return "monthly";
 
   if (item.frequency === "monthly" || item.frequency === "annual") {
@@ -1315,7 +1315,7 @@ function normalizeFinanceRecord(record) {
 
 function normalizeFinanceItemRecord(item) {
   if (!item || typeof item !== "object") return item;
-  item.frequency = financeItemFrequency(item);
+  item.frequency = financeItemBillingFrequency(item);
   item.keepSameAmountNextPeriod = item.keepSameAmountNextPeriod || "no";
   return item;
 }
@@ -2169,7 +2169,7 @@ function financeRowDueDate(f, rowType) {
 
 function buildNextFinanceItemFrom(item) {
   if (!item) return null;
-  const frequency = financeItemFrequency(item);
+  const frequency = financeItemBillingFrequency(item);
   return {
     ...item,
     id: uid(),
@@ -2584,7 +2584,7 @@ function renderFinance() {
       statusKey: st.key
     }, row);
 
-    if (financeItemFrequency(item) === "annual") annualRows.push(financeRow);
+    if (financeItemBillingFrequency(item) === "annual") annualRows.push(financeRow);
     else monthlyRows.push(financeRow);
   });
 
