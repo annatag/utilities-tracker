@@ -1106,11 +1106,11 @@ async function createNextMonthUtilityForHouseType(houseId, selectedType) {
   }
 
   const source = state.utilities
-    .filter(u => u.houseId === houseId && String(u.type || "").toLowerCase().includes(selectedType) && getUtilityBillingFrequency(u) === "monthly")
+    .filter(u => u.houseId === houseId && String(u.type || "").toLowerCase().includes(selectedType))
     .sort((a,b) => parseDate(b.statementDate || b.due || "1900-01-01") - parseDate(a.statementDate || a.due || "1900-01-01"))[0];
 
   if (!source) {
-    alert(`No monthly recurring ${selectedType} entry found for this house yet.`);
+    alert(`No ${selectedType} entry found for this house yet.`);
     return;
   }
 
@@ -1125,7 +1125,7 @@ async function createNextMonthUtilityForHouseType(houseId, selectedType) {
 
 async function createNextMonthUtilitiesForHouse(houseId) {
   const types = [...new Set(state.utilities
-    .filter(u => u.houseId === houseId && isRecurringMonthlyUtility(u))
+    .filter(u => u.houseId === houseId && isMonthlyUtilityType(u.type))
     .map(u => u.type))];
 
   if (!types.length) {
@@ -1926,7 +1926,6 @@ function utilityRowHtml(u) {
     : `<button class="light" onclick="markUtilityPaid('${u.id}')">Mark paid</button>`;
   return `<tr>
     <td><b>${escapeHtml(u.type || "")}</b></td>
-    <td>${escapeHtml(frequencyLabels[frequency] || frequency)}</td>
     <td><b>${escapeHtml(u.provider || "")}</b><br><span class="small">${link}</span></td>
     <td>${escapeHtml(u.account || "")}</td>
     <td><b>${money(u.amount)}</b></td>
