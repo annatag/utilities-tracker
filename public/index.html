@@ -713,21 +713,29 @@ function normalizedFinanceFrequency(value, fallback = "monthly") {
   return value === "annual" ? "annual" : fallback;
 }
 
+function financeSourceRowDefaultFrequency(rowType) {
+  const sourceTypeDefaults = {
+    mortgage: "monthly",
+    salesTax: "monthly",
+    touristTax: "monthly",
+    insurance: "annual",
+    propertyTax: "annual"
+  };
+  return sourceTypeDefaults[rowType] || "monthly";
+}
+
 function financeItemFrequency(item) {
   if (!item) return "monthly";
 
-  if (item.sourceRowType) {
-    const sourceTypeDefaults = {
-      mortgage: "monthly",
-      salesTax: "monthly",
-      touristTax: "monthly",
-      insurance: "annual",
-      propertyTax: "annual"
-    };
-    return sourceTypeDefaults[item.sourceRowType] || normalizedFinanceFrequency(item.frequency, "monthly");
+  if (item.frequency === "monthly" || item.frequency === "annual") {
+    return item.frequency;
   }
 
-  return normalizedFinanceFrequency(item.frequency, "monthly");
+  if (item.sourceRowType) {
+    return financeSourceRowDefaultFrequency(item.sourceRowType);
+  }
+
+  return "monthly";
 }
 
 function isInactiveUtility(u) {
@@ -2576,7 +2584,7 @@ function renderFinance() {
       statusKey: st.key
     }, row);
 
-    if (item.frequency === "annual") annualRows.push(financeRow);
+    if (financeItemFrequency(item) === "annual") annualRows.push(financeRow);
     else monthlyRows.push(financeRow);
   });
 
