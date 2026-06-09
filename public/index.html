@@ -715,12 +715,19 @@ function normalizedFinanceFrequency(value, fallback = "monthly") {
 
 function financeItemFrequency(item) {
   if (!item) return "monthly";
-  const text = `${item.name || ""} ${item.sourceRowType || ""}`.toLowerCase();
 
-  if (text.includes("insurance") || text.includes("property tax")) return "annual";
-  if (text.includes("mortgage") || text.includes("sales tax") || text.includes("tourist tax")) return "monthly";
+  if (item.sourceRowType) {
+    const sourceTypeDefaults = {
+      mortgage: "monthly",
+      salesTax: "monthly",
+      touristTax: "monthly",
+      insurance: "annual",
+      propertyTax: "annual"
+    };
+    return sourceTypeDefaults[item.sourceRowType] || normalizedFinanceFrequency(item.frequency, "monthly");
+  }
 
-  return item.frequency === "annual" ? "annual" : "monthly";
+  return normalizedFinanceFrequency(item.frequency, "monthly");
 }
 
 function isInactiveUtility(u) {
