@@ -7,6 +7,8 @@ const NOTIFICATION_RECIPIENTS = [
   { name: "Lubo", email: "liubomirm@gmail.com" }
 ];
 const REMINDER_DAYS_BEFORE_DUE = 2;
+const REMINDER_ITEM_LABEL = "utility bill, finance item, or credit card due date";
+const REMINDER_ITEM_LABEL_PLURAL = "utility bills, finance items, or credit card due dates";
 
 function jsonResponse(body, init = {}) {
   return Response.json(body, {
@@ -171,10 +173,125 @@ function creditCardReminderItems(data, targetDate, todayISO) {
     }));
 }
 
+function isUnpaidStatus(status) {
+  return status !== "paid" && status !== "inactive" && status !== "closed";
+}
+
+function isPaidInSameMonth(paidDate, dueDate) {
+  return /^\d{4}-\d{2}-/.test(String(paidDate || "")) && String(paidDate).slice(0, 7) === String(dueDate || "").slice(0, 7);
+}
+
+function isUnpaidMonthlyStatus(status, paidDate, dueDate) {
+  if (status === "inactive" || status === "closed") return false;
+  if (status === "paid") return !isPaidInSameMonth(paidDate, dueDate);
+  return true;
+}
+
+function dueDateForMonthlyDay(day, targetDate) {
+  const dayNumber = Math.min(Math.max(Number(day || 1), 1), 28);
+  const [, , targetDay] = String(targetDate || "").split("-").map(Number);
+  return targetDay === dayNumber ? targetDate : "";
+}
+
+function financeReminderItem({ id, title, subtitle, amount, dueDate, account = "" }) {
+  return {
+    id,
+    category: "Finance",
+    title,
+    subtitle,
+    amount: Number(amount || 0),
+    dueDate,
+    account
+  };
+}
+
+function financeReminderItems(data, targetDate) {
+  const houses = new Map((data.houses || []).map(house => {
+    const normalized = normalizeHouseRecord(house);
+    return [normalized.id, normalized];
+  }));
+  const items = [];
+
+  for (const finance of data.finance || []) {
+    if (!finance || !finance.houseId) continue;
+    const houseName = houseDisplayName(houses.get(finance.houseId));
+
+    const mortgageDue = dueDateForMonthlyDay(finance.mortgageDueDay, targetDate);
+    if (finance.mortgageVisible !== "no" && mortgageDue && isUnpaidMonthlyStatus(finance.mortgagePaid, finance.mortgagePaidDate, mortgageDue)) {
+      items.push(financeReminderItem({
+        id: `${finance.houseId}-mortgage-${mortgageDue}`,
+        title: "Mortgage",
+        subtitle: [houseName, finance.mortgageCompany, finance.mortgageNumber].filter(Boolean).join(" · "),
+        amount: finance.mortgageAmount,
+        dueDate: mortgageDue,
+        account: finance.mortgageNumber || ""
+      }));
+    }
+
+    const salesDue = dueDateForMonthlyDay(finance.salesDueDay, targetDate);
+    if (finance.salesVisible !== "no" && salesDue && isUnpaidMonthlyStatus(finance.salesPaid, finance.salesPaidDate, salesDue)) {
+      items.push(financeReminderItem({
+        id: `${finance.houseId}-sales-tax-${salesDue}`,
+        title: "Florida Sales Tax",
+        subtitle: [houseName, finance.salesAgency, finance.salesFiled].filter(Boolean).join(" · "),
+        amount: Number(finance.salesTaxable || 0) * 0.06,
+        dueDate: salesDue
+      }));
+    }
+
+    const touristDue = dueDateForMonthlyDay(finance.touristDueDay, targetDate);
+    if (finance.touristVisible !== "no" && touristDue && isUnpaidMonthlyStatus(finance.touristPaid, finance.touristPaidDate, touristDue)) {
+      items.push(financeReminderItem({
+        id: `${finance.houseId}-tourist-tax-${touristDue}`,
+        title: "Tourist Tax",
+        subtitle: [houseName, finance.touristAgency, finance.touristFiled].filter(Boolean).join(" · "),
+        amount: Number(finance.touristTaxable || 0) * 0.06,
+        dueDate: touristDue
+      }));
+    }
+
+    if (finance.insuranceVisible !== "no" && isUnpaidStatus(finance.insurancePaid) && finance.insuranceDue === targetDate) {
+      items.push(financeReminderItem({
+        id: `${finance.houseId}-hazardous-insurance-${finance.insuranceDue}`,
+        title: "Hazardous Insurance",
+        subtitle: [houseName, finance.insuranceCompany, finance.insurancePolicyNumber].filter(Boolean).join(" · "),
+        amount: finance.insuranceAmount,
+        dueDate: finance.insuranceDue,
+        account: finance.insurancePolicyNumber || ""
+      }));
+    }
+
+    if (finance.propertyTaxVisible !== "no" && isUnpaidStatus(finance.propertyTaxPaid) && finance.propertyTaxDue === targetDate) {
+      items.push(financeReminderItem({
+        id: `${finance.houseId}-property-tax-${finance.propertyTaxDue}`,
+        title: "Property Taxes",
+        subtitle: [houseName, finance.propertyTaxAgency].filter(Boolean).join(" · "),
+        amount: finance.propertyTaxAmount,
+        dueDate: finance.propertyTaxDue
+      }));
+    }
+  }
+
+  for (const item of data.financeItems || []) {
+    if (!item || item.due !== targetDate || !isUnpaidStatus(item.paid)) continue;
+    items.push(financeReminderItem({
+      id: item.id || `${item.houseId}-${item.name}-${item.due}`,
+      title: item.name || "Finance item",
+      subtitle: [houseDisplayName(houses.get(item.houseId)), item.company, item.account].filter(Boolean).join(" · "),
+      amount: item.amount,
+      dueDate: item.due,
+      account: item.account || ""
+    }));
+  }
+
+  return items;
+}
+
 function buildReminderItems(data, todayISO) {
   const targetDate = addDaysISO(todayISO, REMINDER_DAYS_BEFORE_DUE);
   return [
     ...utilityReminderItems(data, targetDate),
+    ...financeReminderItems(data, targetDate),
     ...creditCardReminderItems(data, targetDate, todayISO)
   ];
 }
@@ -196,11 +313,11 @@ async function filterUnsentItems(env, items, recipients, force = false) {
 }
 
 function buildEmailSubject(items, targetDate) {
-  const utilityCount = items.filter(item => item.category === "Utility").length;
-  const creditCardCount = items.filter(item => item.category === "Credit card").length;
+  const counts = items.reduce((all, item) => ({ ...all, [item.category]: (all[item.category] || 0) + 1 }), {});
   const parts = [];
-  if (utilityCount) parts.push(`${utilityCount} utility bill${utilityCount === 1 ? "" : "s"}`);
-  if (creditCardCount) parts.push(`${creditCardCount} credit card due date${creditCardCount === 1 ? "" : "s"}`);
+  if (counts.Utility) parts.push(`${counts.Utility} utility bill${counts.Utility === 1 ? "" : "s"}`);
+  if (counts.Finance) parts.push(`${counts.Finance} finance item${counts.Finance === 1 ? "" : "s"}`);
+  if (counts["Credit card"]) parts.push(`${counts["Credit card"]} credit card due date${counts["Credit card"] === 1 ? "" : "s"}`);
   return `Reminder: ${parts.join(" and ")} due ${formatISODate(targetDate)}`;
 }
 
@@ -216,7 +333,7 @@ function buildEmailHtml(items, targetDate) {
   return `
     <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.45;">
       <h2 style="margin-bottom:8px;">Utilities Tracker reminder</h2>
-      <p>The following utilities or credit card due dates are due in ${REMINDER_DAYS_BEFORE_DUE} days, on <strong>${escapeHtml(formatISODate(targetDate))}</strong>.</p>
+      <p>The following ${items.length === 1 ? REMINDER_ITEM_LABEL : REMINDER_ITEM_LABEL_PLURAL} are due in ${REMINDER_DAYS_BEFORE_DUE} days, on <strong>${escapeHtml(formatISODate(targetDate))}</strong>.</p>
       <table style="border-collapse:collapse;width:100%;max-width:760px;">
         <thead>
           <tr style="background:#f3f4f6;">
@@ -235,7 +352,7 @@ function buildEmailHtml(items, targetDate) {
 function buildEmailText(items, targetDate) {
   const lines = [
     "Utilities Tracker reminder",
-    `The following utilities or credit card due dates are due in ${REMINDER_DAYS_BEFORE_DUE} days, on ${formatISODate(targetDate)}.`,
+    `The following ${items.length === 1 ? REMINDER_ITEM_LABEL : REMINDER_ITEM_LABEL_PLURAL} are due in ${REMINDER_DAYS_BEFORE_DUE} days, on ${formatISODate(targetDate)}.`,
     ""
   ];
 
@@ -286,47 +403,103 @@ async function markItemsSent(env, items, recipients) {
   )));
 }
 
-function requestIsAuthorized(request, env) {
-  if (!env.NOTIFICATION_SECRET) return false;
+function requestNotificationToken(request) {
   const authorization = request.headers.get("Authorization") || "";
-  const token = authorization.replace(/^Bearer\s+/i, "");
-  return token === env.NOTIFICATION_SECRET || request.headers.get("X-Notification-Secret") === env.NOTIFICATION_SECRET;
+  const bearerToken = authorization.replace(/^Bearer\s+/i, "");
+  return bearerToken || request.headers.get("X-Notification-Secret") || "";
+}
+
+function validateNotificationAuth(request, env) {
+  if (!env.NOTIFICATION_SECRET) {
+    return {
+      ok: false,
+      status: 500,
+      body: {
+        success: false,
+        sent: false,
+        error: "NOTIFICATION_SECRET is not configured in Cloudflare Pages.",
+        troubleshooting: "Add a Cloudflare Pages environment variable named exactly NOTIFICATION_SECRET, then redeploy. This must match the GitHub Actions repository secret with the same name."
+      }
+    };
+  }
+
+  const token = requestNotificationToken(request);
+  if (!token) {
+    return {
+      ok: false,
+      status: 401,
+      body: {
+        success: false,
+        sent: false,
+        error: "Missing notification secret header.",
+        troubleshooting: "Send Authorization: Bearer YOUR_NOTIFICATION_SECRET, or X-Notification-Secret, from GitHub Actions or curl."
+      }
+    };
+  }
+
+  if (token !== env.NOTIFICATION_SECRET) {
+    return {
+      ok: false,
+      status: 401,
+      body: {
+        success: false,
+        sent: false,
+        error: "Notification secret does not match Cloudflare Pages configuration.",
+        troubleshooting: "Make the GitHub Actions NOTIFICATION_SECRET repository secret exactly match the Cloudflare Pages NOTIFICATION_SECRET environment variable, then rerun the workflow."
+      }
+    };
+  }
+
+  return { ok: true };
 }
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   const url = new URL(request.url);
 
-  if (!requestIsAuthorized(request, env)) {
-    return jsonResponse({ error: "Unauthorized notification request." }, { status: 401 });
+  const auth = validateNotificationAuth(request, env);
+  if (!auth.ok) {
+    return jsonResponse(auth.body, { status: auth.status });
   }
 
-  const body = await request.json().catch(() => ({}));
-  const today = body.today || url.searchParams.get("today") || new Date().toISOString().slice(0, 10);
-  const dryRun = body.dryRun === true || url.searchParams.get("dryRun") === "true";
-  const force = body.force === true || url.searchParams.get("force") === "true";
-  const targetDate = addDaysISO(today, REMINDER_DAYS_BEFORE_DUE);
+  try {
+    const body = await request.json().catch(() => ({}));
+    const today = body.today || url.searchParams.get("today") || new Date().toISOString().slice(0, 10);
+    const dryRun = body.dryRun === true || url.searchParams.get("dryRun") === "true";
+    const force = body.force === true || url.searchParams.get("force") === "true";
+    const targetDate = addDaysISO(today, REMINDER_DAYS_BEFORE_DUE);
 
-  if (!targetDate) {
-    return jsonResponse({ error: "Invalid today date. Use YYYY-MM-DD." }, { status: 400 });
+    if (!targetDate) {
+      return jsonResponse({ error: "Invalid today date. Use YYYY-MM-DD." }, { status: 400 });
+    }
+
+    const data = await getTrackerData(env, url);
+    const allDueItems = buildReminderItems(data, today);
+    const items = await filterUnsentItems(env, allDueItems, NOTIFICATION_RECIPIENTS, force);
+
+    if (!items.length) {
+      return jsonResponse({ success: true, sent: false, today, targetDate, checkedItemTypes: ["Utility", "Finance", "Credit card"], message: "No unsent due date reminders found." });
+    }
+
+    if (dryRun) {
+      return jsonResponse({ success: true, dryRun: true, sent: false, today, targetDate, recipients: NOTIFICATION_RECIPIENTS, items });
+    }
+
+    const emailResult = await sendReminderEmail(env, NOTIFICATION_RECIPIENTS, items, targetDate);
+    await markItemsSent(env, items, NOTIFICATION_RECIPIENTS);
+
+    return jsonResponse({ success: true, sent: true, today, targetDate, recipients: NOTIFICATION_RECIPIENTS, itemCount: items.length, emailResult });
+  } catch (error) {
+    return jsonResponse(
+      {
+        success: false,
+        sent: false,
+        error: error && error.message ? error.message : "Notification request failed.",
+        troubleshooting: "Check Cloudflare Pages environment variables, the TRACKER_BACKUPS KV binding, Resend configuration, and GitHub Actions logs."
+      },
+      { status: 500 }
+    );
   }
-
-  const data = await getTrackerData(env, url);
-  const allDueItems = buildReminderItems(data, today);
-  const items = await filterUnsentItems(env, allDueItems, NOTIFICATION_RECIPIENTS, force);
-
-  if (!items.length) {
-    return jsonResponse({ success: true, sent: false, today, targetDate, message: "No unsent utility or credit card due date reminders found." });
-  }
-
-  if (dryRun) {
-    return jsonResponse({ success: true, dryRun: true, sent: false, today, targetDate, recipients: NOTIFICATION_RECIPIENTS, items });
-  }
-
-  const emailResult = await sendReminderEmail(env, NOTIFICATION_RECIPIENTS, items, targetDate);
-  await markItemsSent(env, items, NOTIFICATION_RECIPIENTS);
-
-  return jsonResponse({ success: true, sent: true, today, targetDate, recipients: NOTIFICATION_RECIPIENTS, itemCount: items.length, emailResult });
 }
 
 export async function onRequestGet() {
