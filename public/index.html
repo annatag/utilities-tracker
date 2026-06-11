@@ -50,21 +50,22 @@
     .credit-card-table th { font-size:10px; letter-spacing:.02em; }
     .credit-card-table .sort-header { font-size:10px; gap:3px; letter-spacing:.02em; }
     .credit-card-table .column-filter { min-width:0; padding:5px 4px; font-size:11px; }
-    .credit-card-table th:nth-child(1), .credit-card-table td:nth-child(1) { width:9%; }
-    .credit-card-table th:nth-child(2), .credit-card-table td:nth-child(2) { width:14%; }
-    .credit-card-table th:nth-child(3), .credit-card-table td:nth-child(3) { width:8%; }
+    .credit-card-table th:nth-child(1), .credit-card-table td:nth-child(1) { width:8%; }
+    .credit-card-table th:nth-child(2), .credit-card-table td:nth-child(2) { width:13%; }
+    .credit-card-table th:nth-child(3), .credit-card-table td:nth-child(3) { width:7%; }
     .credit-card-table th:nth-child(4), .credit-card-table td:nth-child(4) { width:8%; }
     .credit-card-table th:nth-child(5), .credit-card-table td:nth-child(5) { width:5%; }
-    .credit-card-table th:nth-child(6), .credit-card-table td:nth-child(6) { width:8%; }
-    .credit-card-table th:nth-child(7), .credit-card-table td:nth-child(7) { width:7%; }
+    .credit-card-table th:nth-child(6), .credit-card-table td:nth-child(6) { width:7%; }
+    .credit-card-table th:nth-child(7), .credit-card-table td:nth-child(7) { width:8%; }
     .credit-card-table th:nth-child(8), .credit-card-table td:nth-child(8) { width:7%; }
-    .credit-card-table th:nth-child(9), .credit-card-table td:nth-child(9) { width:8%; }
-    .credit-card-table th:nth-child(10), .credit-card-table td:nth-child(10) { width:13%; }
-    .credit-card-table th:nth-child(11), .credit-card-table td:nth-child(11) { width:6%; }
-    .credit-card-table th:nth-child(12), .credit-card-table td:nth-child(12) { width:7%; }
+    .credit-card-table th:nth-child(9), .credit-card-table td:nth-child(9) { width:7%; }
+    .credit-card-table th:nth-child(10), .credit-card-table td:nth-child(10) { width:8%; }
+    .credit-card-table th:nth-child(11), .credit-card-table td:nth-child(11) { width:12%; }
+    .credit-card-table th:nth-child(12), .credit-card-table td:nth-child(12) { width:5%; }
+    .credit-card-table th:nth-child(13), .credit-card-table td:nth-child(13) { width:5%; }
     .credit-card-table .actions { gap:4px; }
     .credit-card-table .actions button { padding:5px 6px; font-size:11px; }
-    #financeApp table td:nth-child(5), #creditCardsApp table td:nth-child(7) { font-weight:800; }
+    #financeApp table td:nth-child(5), #creditCardsApp table td:nth-child(8) { font-weight:800; }
     .credit-card-due-date { color:var(--danger); font-weight:800; }
     .credit-card-interest-rate { color:#f97316; font-weight:800; }
     th, td { text-align:left; padding:10px 8px; border-top:1px solid var(--border); vertical-align:top; font-size:14px; }
@@ -392,7 +393,8 @@
         <div><label>Last 4 numbers</label><input id="creditCardLast4" maxlength="4" inputmode="numeric" placeholder="5836"></div>
         <div><label>Annual fee</label><input id="creditCardAnnualFee" type="number" step="0.01" min="0" placeholder="0.00"></div>
         <div><label>Interest rate</label><div class="input-suffix-wrap"><input id="creditCardInterestRate" inputmode="decimal" placeholder="0, 24.99, 0 until Feb 2028..."><span class="input-suffix" aria-hidden="true">%</span></div></div>
-        <div><label>Due date / fee date</label><input id="creditCardDueDate" type="date"></div>
+        <div><label>Monthly payment due day</label><input id="creditCardMonthlyPaymentDueDay" type="number" min="1" max="31" step="1" placeholder="1-31"></div>
+        <div><label>Annual fee due</label><input id="creditCardAnnualFeeDueDate" type="date"></div>
         <div><label>Date opened</label><input id="creditCardOpenedDate" type="date"></div>
         <div><label>Status</label><select id="creditCardStatus"><option value="active">Active</option><option value="closed">Closed</option></select></div>
         <div><label>Business / property name</label><input id="creditCardBusinessName" placeholder="Venice Pines, Drysdale LLC..."></div>
@@ -918,7 +920,8 @@ const CREDIT_CARD_TABLE_COLUMNS = [
   { key: "owner", label: "Owner", filter: "select", options: ["Anna", "Lubo", "Anna + Lubo"] },
   { key: "type", label: "Business / Personal", filter: "select", options: ["Business", "Personal"] },
   { key: "last4", label: "Last 4", filter: "text" },
-  { key: "dueDate", label: "Due / fee date", filter: "text", type: "date" },
+  { key: "monthlyPaymentDueDay", label: "Monthly due day", filter: "text", type: "number" },
+  { key: "annualFeeDueDate", label: "Annual fee due", filter: "text", type: "date" },
   { key: "annualFee", label: "Annual fee", filter: "text", type: "number" },
   { key: "interestRate", label: "Interest rate", filter: "text" },
   { key: "openedDate", label: "Opened", filter: "text", type: "date" },
@@ -1377,27 +1380,38 @@ function makeDefaultOtherBills() {
 
 function makeDefaultCreditCards() {
   return [
-    {id:uid(), bank:"Chase", name:"Ink Business Unlimited", owner:"Anna", type:"Business", last4:"5836", dueDate:"", openedDate:"", annualFee:0, businessName:"Venice Pines", status:"active", notes:"No annual fee."},
-    {id:uid(), bank:"Chase", name:"Ink Business Preferred", owner:"Anna", type:"Business", last4:"1412", dueDate:"", openedDate:"", annualFee:95, businessName:"Corals Realty", status:"closed", notes:"CLOSED."},
-    {id:uid(), bank:"Chase", name:"Southwest Business Rapid Rewards", owner:"Anna", type:"Business", last4:"7512", dueDate:"April 1", openedDate:"", annualFee:199, businessName:"Drysdale", status:"closed", notes:"Membership fee. Keep till April 1 to get the 9K bonus points and then cancel. CLOSED on April 7, 2026. Reapply for new points after April 1, 2027."},
-    {id:uid(), bank:"Chase", name:"Amazon Chase", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee."},
-    {id:uid(), bank:"Chase", name:"Southwest Plus", owner:"Anna", type:"Personal", last4:"8665", dueDate:"August 1", openedDate:"", annualFee:69, businessName:"", status:"active", notes:"3K anniversary points."},
-    {id:uid(), bank:"Chase", name:"Sapphire Reserve", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"May 2026", annualFee:795, businessName:"", status:"active", notes:"Once in a lifetime."},
-    {id:uid(), bank:"Chase", name:"Southwest Rapid Rewards", owner:"Lubo", type:"Personal", last4:"", dueDate:"August 1", openedDate:"", annualFee:99, businessName:"", status:"active", notes:"Wait for the points to show up before closing."},
-    {id:uid(), bank:"Chase", name:"Ink Unlimited", owner:"Lubo", type:"Business", last4:"1397", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee."},
-    {id:uid(), bank:"Chase", name:"Ink Business Preferred", owner:"Lubo", type:"Business", last4:"1943", dueDate:"June 1", openedDate:"", annualFee:99, businessName:"", status:"closed", notes:"CLOSED 1/22/26."},
-    {id:uid(), bank:"Chase", name:"Ink Hyatt", owner:"Lubo", type:"Business", last4:"", dueDate:"", openedDate:"February 2026", annualFee:95, businessName:"", status:"active", notes:""},
-    {id:uid(), bank:"Barclays", name:"AAdvantage® Aviator® Red Mastercard", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"April 30, 2025", annualFee:99, businessName:"", status:"closed", notes:"5K points. CLOSED beginning of 2026."},
-    {id:uid(), bank:"Barclays", name:"American", owner:"Lubo", type:"Personal", last4:"", dueDate:"May 30", openedDate:"", annualFee:99, businessName:"", status:"closed", notes:"11K points. CLOSED."},
-    {id:uid(), bank:"Barclays", name:"Wyndham", owner:"Lubo", type:"Personal", last4:"", dueDate:"May 30", openedDate:"", annualFee:99, businessName:"", status:"active", notes:"30K points. Close after the bonus points."},
-    {id:uid(), bank:"Capital One", name:"Venture X", owner:"Lubo", type:"Personal", last4:"", dueDate:"November", openedDate:"", annualFee:395, businessName:"", status:"active", notes:"47K points. Used them for travel."},
-    {id:uid(), bank:"Wells Fargo", name:"Signify Business Cash", owner:"Anna", type:"Business", last4:"2508", dueDate:"", openedDate:"", annualFee:0, businessName:"Drysdale LLC", status:"active", notes:""},
-    {id:uid(), bank:"Wells Fargo", name:"Reflect Visa", owner:"Anna", type:"Personal", last4:"3121", dueDate:"", openedDate:"April 5, 2026", annualFee:0, businessName:"", status:"active", notes:"17K. 0% for 21 months, until Feb 2028."},
-    {id:uid(), bank:"Wells Fargo", name:"Reflect Visa", owner:"Lubo", type:"Personal", last4:"5844", dueDate:"", openedDate:"April 5, 2026", annualFee:0, businessName:"", status:"active", notes:"11K. 0% for 21 months, until Feb 2028."},
-    {id:uid(), bank:"US Bank", name:"Platinum", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:""},
-    {id:uid(), bank:"Citi", name:"Mastercard", owner:"Anna + Lubo", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"On Lubo account."},
-    {id:uid(), bank:"Discover", name:"Discover", owner:"Anna", type:"Personal", last4:"", dueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee. Will change to Wells Fargo."}
+    {id:uid(), bank:"Chase", name:"Ink Business Unlimited", owner:"Anna", type:"Business", last4:"5836", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"", annualFee:0, businessName:"Venice Pines", status:"active", notes:"No annual fee."},
+    {id:uid(), bank:"Chase", name:"Ink Business Preferred", owner:"Anna", type:"Business", last4:"1412", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"", annualFee:95, businessName:"Corals Realty", status:"closed", notes:"CLOSED."},
+    {id:uid(), bank:"Chase", name:"Southwest Business Rapid Rewards", owner:"Anna", type:"Business", last4:"7512", monthlyPaymentDueDay:"", annualFeeDueDate:"2026-04-01", openedDate:"", annualFee:199, businessName:"Drysdale", status:"closed", notes:"Membership fee. Keep till April 1 to get the 9K bonus points and then cancel. CLOSED on April 7, 2026. Reapply for new points after April 1, 2027."},
+    {id:uid(), bank:"Chase", name:"Amazon Chase", owner:"Anna", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee."},
+    {id:uid(), bank:"Chase", name:"Southwest Plus", owner:"Anna", type:"Personal", last4:"8665", monthlyPaymentDueDay:"", annualFeeDueDate:"2026-08-01", openedDate:"", annualFee:69, businessName:"", status:"active", notes:"3K anniversary points."},
+    {id:uid(), bank:"Chase", name:"Sapphire Reserve", owner:"Anna", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"May 2026", annualFee:795, businessName:"", status:"active", notes:"Once in a lifetime."},
+    {id:uid(), bank:"Chase", name:"Southwest Rapid Rewards", owner:"Lubo", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"2026-08-01", openedDate:"", annualFee:99, businessName:"", status:"active", notes:"Wait for the points to show up before closing."},
+    {id:uid(), bank:"Chase", name:"Ink Unlimited", owner:"Lubo", type:"Business", last4:"1397", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee."},
+    {id:uid(), bank:"Chase", name:"Ink Business Preferred", owner:"Lubo", type:"Business", last4:"1943", monthlyPaymentDueDay:"", annualFeeDueDate:"2026-06-01", openedDate:"", annualFee:99, businessName:"", status:"closed", notes:"CLOSED 1/22/26."},
+    {id:uid(), bank:"Chase", name:"Ink Hyatt", owner:"Lubo", type:"Business", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"February 2026", annualFee:95, businessName:"", status:"active", notes:""},
+    {id:uid(), bank:"Barclays", name:"AAdvantage® Aviator® Red Mastercard", owner:"Anna", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"April 30, 2025", annualFee:99, businessName:"", status:"closed", notes:"5K points. CLOSED beginning of 2026."},
+    {id:uid(), bank:"Barclays", name:"American", owner:"Lubo", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"2026-05-30", openedDate:"", annualFee:99, businessName:"", status:"closed", notes:"11K points. CLOSED."},
+    {id:uid(), bank:"Barclays", name:"Wyndham", owner:"Lubo", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"2026-05-30", openedDate:"", annualFee:99, businessName:"", status:"active", notes:"30K points. Close after the bonus points."},
+    {id:uid(), bank:"Capital One", name:"Venture X", owner:"Lubo", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"2026-11-01", openedDate:"", annualFee:395, businessName:"", status:"active", notes:"47K points. Used them for travel."},
+    {id:uid(), bank:"Wells Fargo", name:"Signify Business Cash", owner:"Anna", type:"Business", last4:"2508", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"", annualFee:0, businessName:"Drysdale LLC", status:"active", notes:""},
+    {id:uid(), bank:"Wells Fargo", name:"Reflect Visa", owner:"Anna", type:"Personal", last4:"3121", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"April 5, 2026", annualFee:0, businessName:"", status:"active", notes:"17K. 0% for 21 months, until Feb 2028."},
+    {id:uid(), bank:"Wells Fargo", name:"Reflect Visa", owner:"Lubo", type:"Personal", last4:"5844", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"April 5, 2026", annualFee:0, businessName:"", status:"active", notes:"11K. 0% for 21 months, until Feb 2028."},
+    {id:uid(), bank:"US Bank", name:"Platinum", owner:"Anna", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:""},
+    {id:uid(), bank:"Citi", name:"Mastercard", owner:"Anna + Lubo", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"On Lubo account."},
+    {id:uid(), bank:"Discover", name:"Discover", owner:"Anna", type:"Personal", last4:"", monthlyPaymentDueDay:"", annualFeeDueDate:"", openedDate:"", annualFee:0, businessName:"", status:"active", notes:"No annual fee. Will change to Wells Fargo."}
   ];
+}
+
+function normalizeCreditCardDueDay(value) {
+  const day = Number(value || 0);
+  if (!Number.isFinite(day) || day < 1) return "";
+  return String(Math.min(Math.max(Math.round(day), 1), 31));
+}
+
+function creditCardMonthlyDueDayText(card) {
+  const day = normalizeCreditCardDueDay(card && card.monthlyPaymentDueDay);
+  return day ? `Day ${day}` : "";
 }
 
 function normalizeCreditCardRecord(card) {
@@ -1408,7 +1422,9 @@ function normalizeCreditCardRecord(card) {
   card.owner = card.owner || "Anna";
   card.type = card.type || "Personal";
   card.last4 = card.last4 || "";
-  card.dueDate = normalizeDatePickerValue(card.dueDate);
+  card.monthlyPaymentDueDay = normalizeCreditCardDueDay(card.monthlyPaymentDueDay);
+  card.annualFeeDueDate = normalizeDatePickerValue(card.annualFeeDueDate || card.dueDate);
+  card.dueDate = card.annualFeeDueDate;
   card.openedDate = normalizeDatePickerValue(card.openedDate);
   card.annualFee = Number(card.annualFee || 0);
   card.interestRate = card.interestRate || "";
@@ -1774,7 +1790,8 @@ function creditCardMobileCard(card) {
       <div class="status ${statusClass}">${creditCardStatusText(card)}</div>
     </div>
     <div class="mobile-card-fields">
-      ${mobileFieldHtml("Due / fee date", `<span class="credit-card-due-date">${escapeHtml(formatISODateForDisplay(card.dueDate))}</span>`)}
+      ${mobileFieldHtml("Monthly payment due", `<span class="credit-card-due-date">${escapeHtml(creditCardMonthlyDueDayText(card))}</span>`)}
+      ${mobileFieldHtml("Annual fee due", `<span class="credit-card-due-date">${escapeHtml(formatISODateForDisplay(card.annualFeeDueDate))}</span>`)}
       ${mobileFieldHtml("Annual fee", money(card.annualFee))}
       ${card.interestRate ? mobileFieldHtml("Interest", `<span class="credit-card-interest-rate">${escapeHtml(formatInterestRate(card.interestRate))}</span>`) : ""}
     </div>
@@ -2978,7 +2995,8 @@ function creditCardTableRow(card) {
       owner: card.owner || "",
       type: card.type || "",
       last4: card.last4 || "",
-      dueDate: card.dueDate || "",
+      monthlyPaymentDueDay: card.monthlyPaymentDueDay || "",
+      annualFeeDueDate: card.annualFeeDueDate || "",
       annualFee: Number(card.annualFee || 0),
       interestRate: formatInterestRate(card.interestRate),
       openedDate: card.openedDate || "",
@@ -2986,7 +3004,8 @@ function creditCardTableRow(card) {
       status
     },
     displayValues: {
-      dueDate: formatISODateForDisplay(card.dueDate),
+      monthlyPaymentDueDay: creditCardMonthlyDueDayText(card),
+      annualFeeDueDate: formatISODateForDisplay(card.annualFeeDueDate),
       annualFee: money(card.annualFee),
       interestRate: formatInterestRate(card.interestRate),
       openedDate: formatISODateForDisplay(card.openedDate)
@@ -2996,7 +3015,8 @@ function creditCardTableRow(card) {
       card: card.name || "",
       owner: card.owner || "",
       type: card.type || "",
-      dueDate: card.dueDate || "",
+      monthlyPaymentDueDay: Number(card.monthlyPaymentDueDay || 0),
+      annualFeeDueDate: card.annualFeeDueDate || "",
       annualFee: Number(card.annualFee || 0),
       interestRate: formatInterestRate(card.interestRate),
       openedDate: card.openedDate || "",
@@ -3018,7 +3038,8 @@ function creditCardRowHtml(card) {
     <td>${escapeHtml(card.owner || "")}</td>
     <td>${escapeHtml(card.type || "")}</td>
     <td>${escapeHtml(card.last4 || "")}</td>
-    <td><span class="credit-card-due-date">${escapeHtml(formatISODateForDisplay(card.dueDate))}</span></td>
+    <td><span class="credit-card-due-date">${escapeHtml(creditCardMonthlyDueDayText(card))}</span></td>
+    <td><span class="credit-card-due-date">${escapeHtml(formatISODateForDisplay(card.annualFeeDueDate))}</span></td>
     <td>${money(card.annualFee)}</td>
     <td><span class="credit-card-interest-rate">${escapeHtml(formatInterestRate(card.interestRate))}</span></td>
     <td>${escapeHtml(formatISODateForDisplay(card.openedDate))}</td>
@@ -3037,7 +3058,7 @@ function renderCreditCards() {
   const statusFilter = creditCardStatusFilter.value;
 
   let cards = state.creditCards.filter(card => {
-    const text = `${card.bank} ${card.name} ${card.owner} ${card.type} ${card.last4} ${card.dueDate} ${card.openedDate} ${card.annualFee} ${card.interestRate} ${card.businessName} ${card.status} ${card.notes}`.toLowerCase();
+    const text = `${card.bank} ${card.name} ${card.owner} ${card.type} ${card.last4} ${card.monthlyPaymentDueDay} ${card.annualFeeDueDate} ${card.openedDate} ${card.annualFee} ${card.interestRate} ${card.businessName} ${card.status} ${card.notes}`.toLowerCase();
     const ownerMatch = ownerFilter === "all" || card.owner === ownerFilter;
     const statusMatch = statusFilter === "all" || card.status === statusFilter;
     return (!q || text.includes(q)) && ownerMatch && statusMatch;
@@ -3055,7 +3076,7 @@ function renderCreditCards() {
     </div>
     <div class="table-wrap desktop-table-only"><table class="credit-card-table">
       ${configuredTableHeaderHtml("creditCards")}
-      <tbody>${rows.length ? rows.map(row => row.html).join("") : `<tr><td colspan="12" class="small">No credit cards match the current filters.</td></tr>`}</tbody>
+      <tbody>${rows.length ? rows.map(row => row.html).join("") : `<tr><td colspan="13" class="small">No credit cards match the current filters.</td></tr>`}</tbody>
     </table></div>
     ${mobileCardListHtml(rows, "No credit cards match the current filters.")}`;
 }
@@ -3070,7 +3091,8 @@ function openCreditCardModal() {
   creditCardLast4.value = "";
   creditCardAnnualFee.value = "";
   creditCardInterestRate.value = "";
-  creditCardDueDate.value = "";
+  creditCardMonthlyPaymentDueDay.value = "";
+  creditCardAnnualFeeDueDate.value = "";
   creditCardOpenedDate.value = "";
   creditCardStatus.value = "active";
   creditCardBusinessName.value = "";
@@ -3091,7 +3113,8 @@ function editCreditCard(id) {
   creditCardLast4.value = card.last4 || "";
   creditCardAnnualFee.value = card.annualFee || "";
   creditCardInterestRate.value = card.interestRate || "";
-  creditCardDueDate.value = card.dueDate || "";
+  creditCardMonthlyPaymentDueDay.value = card.monthlyPaymentDueDay || "";
+  creditCardAnnualFeeDueDate.value = card.annualFeeDueDate || "";
   creditCardOpenedDate.value = card.openedDate || "";
   creditCardStatus.value = card.status || "active";
   creditCardBusinessName.value = card.businessName || "";
@@ -3111,7 +3134,8 @@ function saveCreditCard(e) {
     last4: creditCardLast4.value.trim(),
     annualFee: Number(creditCardAnnualFee.value || 0),
     interestRate: creditCardInterestRate.value.trim(),
-    dueDate: creditCardDueDate.value.trim(),
+    monthlyPaymentDueDay: creditCardMonthlyPaymentDueDay.value.trim(),
+    annualFeeDueDate: creditCardAnnualFeeDueDate.value.trim(),
     openedDate: creditCardOpenedDate.value.trim(),
     status: creditCardStatus.value,
     businessName: creditCardBusinessName.value.trim(),
