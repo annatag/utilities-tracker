@@ -463,13 +463,14 @@
         "owner": "Anna",
         "type": "Business",
         "last4": "5836",
-        "dueDate": "",
         "openedDate": "",
         "annualFee": 0,
         "businessName": "Venice Pines",
         "status": "active",
         "notes": "No annual fee.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-anna-chase-ink-preferred-1412",
@@ -478,13 +479,14 @@
         "owner": "Anna",
         "type": "Business",
         "last4": "1412",
-        "dueDate": "",
         "openedDate": "",
         "annualFee": 95,
         "businessName": "Corals Realty",
         "status": "closed",
         "notes": "CLOSED.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-anna-chase-southwest-business-7512",
@@ -493,13 +495,14 @@
         "owner": "Anna",
         "type": "Business",
         "last4": "7512",
-        "dueDate": "April 1",
         "openedDate": "",
         "annualFee": 199,
         "businessName": "Drysdale",
         "status": "closed",
         "notes": "Membership fee. Keep till April 1 to get the 9K bonus points and then cancel. CLOSED on April 7, 2026. Reapply for new points after April 1, 2027.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": "2026-04-01"
       },
       {
         "id": "cc-anna-chase-amazon",
@@ -508,13 +511,14 @@
         "owner": "Anna",
         "type": "Personal",
         "last4": "",
-        "dueDate": "",
         "openedDate": "",
         "annualFee": 0,
         "businessName": "",
         "status": "active",
         "notes": "No annual fee.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-anna-chase-southwest-plus-8665",
@@ -523,13 +527,14 @@
         "owner": "Anna",
         "type": "Personal",
         "last4": "8665",
-        "dueDate": "August 1",
         "openedDate": "",
         "annualFee": 69,
         "businessName": "",
         "status": "active",
         "notes": "3K anniversary points.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": "2026-08-01"
       },
       {
         "id": "cc-anna-chase-sapphire-reserve",
@@ -538,13 +543,14 @@
         "owner": "Anna",
         "type": "Personal",
         "last4": "",
-        "dueDate": "",
         "openedDate": "May 2026",
         "annualFee": 795,
         "businessName": "",
         "status": "active",
         "notes": "Once in a lifetime.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-lubo-chase-southwest-rapid",
@@ -553,13 +559,14 @@
         "owner": "Lubo",
         "type": "Personal",
         "last4": "",
-        "dueDate": "August 1",
         "openedDate": "",
         "annualFee": 99,
         "businessName": "",
         "status": "active",
         "notes": "Wait for the points to show up before closing.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": "2026-08-01"
       },
       {
         "id": "cc-lubo-chase-ink-unlimited-1397",
@@ -568,13 +575,14 @@
         "owner": "Lubo",
         "type": "Business",
         "last4": "1397",
-        "dueDate": "",
         "openedDate": "",
         "annualFee": 0,
         "businessName": "",
         "status": "active",
         "notes": "No annual fee.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-lubo-chase-ink-preferred-1943",
@@ -583,13 +591,14 @@
         "owner": "Lubo",
         "type": "Business",
         "last4": "1943",
-        "dueDate": "June 1",
         "openedDate": "",
         "annualFee": 99,
         "businessName": "",
         "status": "closed",
         "notes": "CLOSED 1/22/26.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": "2026-06-01"
       },
       {
         "id": "cc-lubo-chase-ink-hyatt",
@@ -598,13 +607,14 @@
         "owner": "Lubo",
         "type": "Business",
         "last4": "",
-        "dueDate": "",
         "openedDate": "February 2026",
         "annualFee": 95,
         "businessName": "",
         "status": "active",
         "notes": "",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-anna-barclays-aviator-red",
@@ -613,13 +623,14 @@
         "owner": "Anna",
         "type": "Personal",
         "last4": "",
-        "dueDate": "",
         "openedDate": "April 30, 2025",
         "annualFee": 99,
         "businessName": "",
         "status": "closed",
         "notes": "5K points. CLOSED beginning of 2026.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-lubo-barclays-american",
@@ -628,13 +639,14 @@
         "owner": "Lubo",
         "type": "Personal",
         "last4": "",
-        "dueDate": "May 30",
         "openedDate": "",
         "annualFee": 99,
         "businessName": "",
         "status": "closed",
         "notes": "11K points. CLOSED.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": "2026-05-30"
       },
       {
         "id": "cc-lubo-barclays-wyndham",
@@ -643,13 +655,14 @@
         "owner": "Lubo",
         "type": "Personal",
         "last4": "",
-        "dueDate": "May 30",
         "openedDate": "",
         "annualFee": 99,
         "businessName": "",
         "status": "active",
         "notes": "30K points. Close after the bonus points.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": "2026-05-30"
       },
       {
         "id": "cc-lubo-capital-one-venture-x",
@@ -658,13 +671,14 @@
         "owner": "Lubo",
         "type": "Personal",
         "last4": "",
-        "dueDate": "November",
         "openedDate": "",
         "annualFee": 395,
         "businessName": "",
         "status": "active",
         "notes": "47K points. Used them for travel.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": "2026-11-01"
       },
       {
         "id": "cc-anna-wells-fargo-signify-2508",
@@ -673,13 +687,14 @@
         "owner": "Anna",
         "type": "Business",
         "last4": "2508",
-        "dueDate": "",
         "openedDate": "",
         "annualFee": 0,
         "businessName": "Drysdale LLC",
         "status": "active",
         "notes": "",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-anna-wells-fargo-reflect-3121",
@@ -688,13 +703,14 @@
         "owner": "Anna",
         "type": "Personal",
         "last4": "3121",
-        "dueDate": "",
         "openedDate": "April 5, 2026",
         "annualFee": 0,
         "businessName": "",
         "status": "active",
         "notes": "17K. 0% for 21 months, until Feb 2028.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-lubo-wells-fargo-reflect-5844",
@@ -703,13 +719,14 @@
         "owner": "Lubo",
         "type": "Personal",
         "last4": "5844",
-        "dueDate": "",
         "openedDate": "April 5, 2026",
         "annualFee": 0,
         "businessName": "",
         "status": "active",
         "notes": "11K. 0% for 21 months, until Feb 2028.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-anna-us-bank-platinum",
@@ -718,13 +735,14 @@
         "owner": "Anna",
         "type": "Personal",
         "last4": "",
-        "dueDate": "",
         "openedDate": "",
         "annualFee": 0,
         "businessName": "",
         "status": "active",
         "notes": "",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-anna-lubo-citi-mastercard",
@@ -733,13 +751,14 @@
         "owner": "Anna + Lubo",
         "type": "Personal",
         "last4": "",
-        "dueDate": "",
         "openedDate": "",
         "annualFee": 0,
         "businessName": "",
         "status": "active",
         "notes": "On Lubo account.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       },
       {
         "id": "cc-anna-discover",
@@ -748,13 +767,14 @@
         "owner": "Anna",
         "type": "Personal",
         "last4": "",
-        "dueDate": "",
         "openedDate": "",
         "annualFee": 0,
         "businessName": "",
         "status": "active",
         "notes": "No annual fee. Will change to Wells Fargo.",
-        "interestRate": ""
+        "interestRate": "",
+        "monthlyPaymentDueDay": "",
+        "annualFeeDueDate": ""
       }
     ]
   }
