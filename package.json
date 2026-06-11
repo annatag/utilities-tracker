@@ -1,6 +1,7 @@
 {
   "name": "utilities-tracker",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "wrangler pages dev public --functions functions",
     "deploy": "wrangler pages deploy public --project-name utilities-tracker",

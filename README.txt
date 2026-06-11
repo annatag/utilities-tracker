@@ -170,7 +170,7 @@ The app now includes a Cloudflare Pages Function at `/api/notifications` that se
 - Anna: annagoranova17@gmail.com
 - Lubo: liubomirm@gmail.com
 
-The notification looks for utility bills and active credit cards that are due exactly 2 days after the day the endpoint runs. Paid or inactive utility bills and closed credit cards are skipped. A KV marker prevents duplicate sends for the same recipient, item, and due date.
+The notification looks for utility bills, Mortgage / Taxes / Insurance finance rows, custom finance items, and active credit cards that are due exactly 2 days after the day the endpoint runs. Paid, inactive, hidden/deleted finance rows, and closed credit cards are skipped. Monthly finance rows are considered due again when their paid date is from an earlier month than the upcoming due date. A KV marker prevents duplicate sends for the same recipient, item, and due date.
 
 Email delivery uses Resend. Configure these environment variables in the Cloudflare Pages project before turning on the notification schedule:
 - `RESEND_API_KEY`: Resend API key.
@@ -180,11 +180,19 @@ Email delivery uses Resend. Configure these environment variables in the Cloudfl
 To test without sending email, make a POST request with `dryRun=true`:
 ```bash
 curl -X POST "https://YOUR-PAGES-DOMAIN/api/notifications?dryRun=true" \
-  -H "Authorization: Bearer YOUR_NOTIFICATION_SECRET"
+  -H "Authorization: Bearer YOUR_NOTIFICATION_SECRET" \
+  -H "Content-Type: application/json" \
+  --data '{}'
 ```
 
-Reminders are sent by the GitHub Actions workflow in `.github/workflows/send-notifications.yml`. The workflow runs every day at 12:20 PM EST (17:20 UTC) and makes a POST request to `/api/notifications` with the same bearer token. Add these repository secrets before relying on the schedule:
+Reminders are sent by the GitHub Actions workflow in `.github/workflows/send-notifications.yml`. The workflow runs every day at 17:20 UTC (12:20 PM EST / 1:20 PM EDT) and makes a POST request to `/api/notifications` with the same bearer token. Add these repository secrets before relying on the schedule:
 - `NOTIFICATION_BASE_URL`: the deployed Pages site URL, for example `https://YOUR-PAGES-DOMAIN`.
 - `NOTIFICATION_SECRET`: the same private token configured in Cloudflare Pages.
+
+If the Pages site is protected by Cloudflare Access, also create a Cloudflare Access service token and add both optional repository secrets so GitHub Actions can reach the protected endpoint:
+- `CF_ACCESS_CLIENT_ID`: Cloudflare Access service token client ID.
+- `CF_ACCESS_CLIENT_SECRET`: Cloudflare Access service token client secret.
+
+The workflow prints the endpoint HTTP status and JSON response. If it fails, check whether the response says `Unauthorized notification request` (the GitHub secret does not match the Pages `NOTIFICATION_SECRET`), mentions missing `RESEND_API_KEY` or `NOTIFICATION_FROM_EMAIL` (missing Pages environment variables), or returns a Cloudflare Access page/403 (missing Access service-token secrets).
 
 The endpoint computes the target due date as today plus 2 days. You can also run the workflow manually from GitHub Actions using `workflow_dispatch`.
