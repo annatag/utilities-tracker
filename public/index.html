@@ -661,6 +661,25 @@ function normalizeDatePickerValue(value, fallbackYear = new Date().getFullYear()
   return "";
 }
 
+function datePartsFromISO(value) {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  return { year: Number(match[1]), month: Number(match[2]), day: Number(match[3]) };
+}
+
+function isoDateFromParts(year, month, day) {
+  const lastDay = new Date(year, month, 0).getDate();
+  const clampedDay = Math.min(day, lastDay);
+  return `${year}-${String(month).padStart(2, "0")}-${String(clampedDay).padStart(2, "0")}`;
+}
+
+function annualFeeDueDateFromOpened(openedDate) {
+  const normalizedOpenedDate = normalizeDatePickerValue(openedDate);
+  const parts = datePartsFromISO(normalizedOpenedDate);
+  if (!parts) return "";
+  return isoDateFromParts(new Date().getFullYear(), parts.month, parts.day);
+}
+
 function houseDisplayName(house) {
   if (!house) return "";
   return house.nickname || house.name || "Unnamed house";
@@ -1423,9 +1442,9 @@ function normalizeCreditCardRecord(card) {
   card.type = card.type || "Personal";
   card.last4 = card.last4 || "";
   card.monthlyPaymentDueDay = normalizeCreditCardDueDay(card.monthlyPaymentDueDay);
-  card.annualFeeDueDate = normalizeDatePickerValue(card.annualFeeDueDate || card.dueDate);
-  card.dueDate = card.annualFeeDueDate;
   card.openedDate = normalizeDatePickerValue(card.openedDate);
+  card.annualFeeDueDate = annualFeeDueDateFromOpened(card.openedDate) || normalizeDatePickerValue(card.annualFeeDueDate || card.dueDate);
+  card.dueDate = card.annualFeeDueDate;
   card.annualFee = Number(card.annualFee || 0);
   card.interestRate = card.interestRate || "";
   card.businessName = card.businessName || "";
@@ -3081,6 +3100,11 @@ function renderCreditCards() {
     ${mobileCardListHtml(rows, "No credit cards match the current filters.")}`;
 }
 
+function syncCreditCardAnnualFeeDueDateFromOpened() {
+  const derivedDueDate = annualFeeDueDateFromOpened(creditCardOpenedDate.value);
+  if (derivedDueDate) creditCardAnnualFeeDueDate.value = derivedDueDate;
+}
+
 function openCreditCardModal() {
   creditCardModalTitle.textContent = "Add credit card";
   creditCardEditId.value = "";
@@ -3135,7 +3159,7 @@ function saveCreditCard(e) {
     annualFee: Number(creditCardAnnualFee.value || 0),
     interestRate: creditCardInterestRate.value.trim(),
     monthlyPaymentDueDay: creditCardMonthlyPaymentDueDay.value.trim(),
-    annualFeeDueDate: creditCardAnnualFeeDueDate.value.trim(),
+    annualFeeDueDate: annualFeeDueDateFromOpened(creditCardOpenedDate.value) || creditCardAnnualFeeDueDate.value.trim(),
     openedDate: creditCardOpenedDate.value.trim(),
     status: creditCardStatus.value,
     businessName: creditCardBusinessName.value.trim(),
@@ -3530,6 +3554,8 @@ contactHouseFilter.addEventListener("change", render);
 creditCardSearch.addEventListener("input", render);
 creditCardOwnerFilter.addEventListener("change", render);
 creditCardStatusFilter.addEventListener("change", render);
+creditCardOpenedDate.addEventListener("change", syncCreditCardAnnualFeeDueDateFromOpened);
+creditCardOpenedDate.addEventListener("input", syncCreditCardAnnualFeeDueDateFromOpened);
 initializeApp();
 </script>
 </body>
