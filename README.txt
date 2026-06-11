@@ -193,4 +193,10 @@ Quick checklist for the previous `NOTIFICATION_SECRET` failure:
 3. Do not name either secret `NOTIFICATIO_SECRET`, `NOTIFICATION_SECRETS`, or any lowercase variation.
 4. Manually rerun the `Send due-date notifications` workflow and confirm the log prints a 200 HTTP status.
 
+If the Pages site is protected by Cloudflare Access, also create a Cloudflare Access service token and add both optional repository secrets so GitHub Actions can reach the protected endpoint:
+- `CF_ACCESS_CLIENT_ID`: Cloudflare Access service token client ID.
+- `CF_ACCESS_CLIENT_SECRET`: Cloudflare Access service token client secret.
+
+The workflow prints the endpoint HTTP status and JSON response. If it fails, check whether the response says `Unauthorized notification request` (the GitHub secret does not match the Pages `NOTIFICATION_SECRET`), mentions missing `RESEND_API_KEY` or `NOTIFICATION_FROM_EMAIL` (missing Pages environment variables), or returns a Cloudflare Access page/403 (missing Access service-token secrets).
+
 The endpoint computes the target due date as today plus 2 days. You can also run the workflow manually from GitHub Actions using `workflow_dispatch`.
