@@ -1,4 +1,5 @@
 House Tracker Utilities
+
 Adding notification secrets in cloudflare and github 
 This app can run in two ways:
 1. Local/offline mode: open public/index.html in your browser. Data saves in that browser's localStorage.
