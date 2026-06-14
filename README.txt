@@ -5,6 +5,7 @@ This app can run in two ways:
 1. Local/offline mode: open public/index.html in your browser. Data saves in that browser's localStorage.
 2. Cloud mode: deploy to Cloudflare Pages. Data is shared across devices through Cloudflare KV.
 
+Added NOTIFICATION_FROM_EMAIL, RESEND_API_KEY env secrets in Cloudflare
 Important security note
 This tracker contains private property, account, and bill details. Do not publish it as an unprotected public website.
 For Cloudflare Pages, protect the whole site with Cloudflare Access or another authentication layer before sharing the URL.
