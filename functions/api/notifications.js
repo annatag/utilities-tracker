@@ -411,6 +411,37 @@ function requestNotificationToken(request) {
   return bearerToken || request.headers.get("X-Notification-Secret") || "";
 }
 
+function notificationConfigError(name, troubleshooting) {
+  return {
+    ok: false,
+    status: 500,
+    body: {
+      success: false,
+      sent: false,
+      error: `${name} is not configured in Cloudflare Pages.`,
+      troubleshooting
+    }
+  };
+}
+
+function validateNotificationConfig(env) {
+  if (!env.RESEND_API_KEY) {
+    return notificationConfigError(
+      "RESEND_API_KEY",
+      "Add a Cloudflare Pages environment variable named exactly RESEND_API_KEY with your Resend API key, save it for Production, redeploy the Pages project, then rerun the notification workflow."
+    );
+  }
+
+  if (!env.NOTIFICATION_FROM_EMAIL) {
+    return notificationConfigError(
+      "NOTIFICATION_FROM_EMAIL",
+      "Add a Cloudflare Pages environment variable named exactly NOTIFICATION_FROM_EMAIL using a Resend-verified sender, save it for Production, redeploy the Pages project, then rerun the notification workflow."
+    );
+  }
+
+  return { ok: true };
+}
+
 function validateNotificationAuth(request, env) {
   if (!env.NOTIFICATION_SECRET) {
     return {
@@ -487,6 +518,11 @@ export async function onRequestPost(context) {
       return jsonResponse({ success: true, dryRun: true, sent: false, today, targetDate, recipients: NOTIFICATION_RECIPIENTS, items });
     }
 
+    const config = validateNotificationConfig(env);
+    if (!config.ok) {
+      return jsonResponse(config.body, { status: config.status });
+    }
+
     const emailResult = await sendReminderEmail(env, NOTIFICATION_RECIPIENTS, items, targetDate);
     await markItemsSent(env, items, NOTIFICATION_RECIPIENTS);
 
@@ -519,5 +555,6 @@ export const __testing = {
   buildEmailText,
   filterUnsentItems,
   sentKeyForItem,
-  validateNotificationAuth
+  validateNotificationAuth,
+  validateNotificationConfig
 };
