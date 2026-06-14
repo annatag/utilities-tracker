@@ -194,6 +194,13 @@ Quick checklist for the previous `NOTIFICATION_SECRET` failure:
 3. Do not name either secret `NOTIFICATIO_SECRET`, `NOTIFICATION_SECRETS`, or any lowercase variation.
 4. Manually rerun the `Send due-date notifications` workflow and confirm the log prints a 200 HTTP status.
 
+Quick checklist for `RESEND_API_KEY is not configured`:
+1. In Resend, create or copy an API key that can send from your verified domain or sender address.
+2. In Cloudflare Pages > Workers & Pages > utilities-tracker > Settings > Environment variables, add a Production variable named exactly `RESEND_API_KEY`. The name is case-sensitive and should not be added only as a GitHub Actions secret.
+3. Add `NOTIFICATION_FROM_EMAIL` in the same Cloudflare Pages Production environment, using a Resend-verified sender such as `Utilities Tracker <reminders@yourdomain.com>`.
+4. Save the variables, redeploy the Pages project so Functions receive the new environment, then manually rerun the `Send due-date notifications` workflow.
+5. Keep `RESEND_API_KEY` out of `wrangler.toml`, `public/`, and this repository; it belongs in the Cloudflare Pages dashboard only.
+
 If the Pages site is protected by Cloudflare Access, also create a Cloudflare Access service token and add both optional repository secrets so GitHub Actions can reach the protected endpoint:
 - `CF_ACCESS_CLIENT_ID`: Cloudflare Access service token client ID.
 - `CF_ACCESS_CLIENT_SECRET`: Cloudflare Access service token client secret.

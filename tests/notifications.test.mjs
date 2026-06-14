@@ -9,7 +9,8 @@ const {
   buildEmailText,
   filterUnsentItems,
   sentKeyForItem,
-  validateNotificationAuth
+  validateNotificationAuth,
+  validateNotificationConfig
 } = __testing;
 
 test('addDaysISO validates YYYY-MM-DD dates before adding days', () => {
@@ -86,4 +87,21 @@ test('validateNotificationAuth accepts bearer and rejects missing or mismatched 
   assert.equal(validateNotificationAuth(new Request('https://example.com'), { NOTIFICATION_SECRET: 'secret' }).status, 401);
   assert.equal(validateNotificationAuth(new Request('https://example.com', { headers: { Authorization: 'Bearer wrong' } }), { NOTIFICATION_SECRET: 'secret' }).status, 401);
   assert.deepEqual(validateNotificationAuth(new Request('https://example.com', { headers: { Authorization: 'Bearer secret' } }), { NOTIFICATION_SECRET: 'secret' }), { ok: true });
+});
+
+test('validateNotificationConfig reports exact missing Cloudflare Pages variables', () => {
+  const missingApiKey = validateNotificationConfig({ NOTIFICATION_FROM_EMAIL: 'Utilities Tracker <reminders@example.com>' });
+  assert.equal(missingApiKey.status, 500);
+  assert.equal(missingApiKey.body.error, 'RESEND_API_KEY is not configured in Cloudflare Pages.');
+  assert.match(missingApiKey.body.troubleshooting, /RESEND_API_KEY/);
+
+  const missingSender = validateNotificationConfig({ RESEND_API_KEY: 're_test_key' });
+  assert.equal(missingSender.status, 500);
+  assert.equal(missingSender.body.error, 'NOTIFICATION_FROM_EMAIL is not configured in Cloudflare Pages.');
+  assert.match(missingSender.body.troubleshooting, /Resend-verified sender/);
+
+  assert.deepEqual(validateNotificationConfig({
+    RESEND_API_KEY: 're_test_key',
+    NOTIFICATION_FROM_EMAIL: 'Utilities Tracker <reminders@example.com>'
+  }), { ok: true });
 });
