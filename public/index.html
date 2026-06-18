@@ -459,6 +459,7 @@
         <div data-finance-section="salesTax"><label>Taxable amount</label><input id="finSalesTaxable" type="number" step="0.01" min="0"></div>
         <div data-finance-section="salesTax"><label>Keep same amount next month?</label><select id="finSalesKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="salesTax"><label>Paid?</label><select id="finSalesPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
+        <div data-finance-section="salesTax" id="finSalesPaidDateWrap"><label>Paid date</label><input id="finSalesPaidDate" type="date"></div>
         <div class="full" data-finance-section="salesTax"><label>Notes</label><textarea id="finSalesNotes" placeholder="Sales tax notes..."></textarea></div>
         <div data-finance-section="salesTax"><label>Due on the 1-st</label><input id="finSalesDueDay" type="number" min="1" max="28" value="20"></div>
 
@@ -470,6 +471,7 @@
         <div data-finance-section="touristTax"><label>Taxable amount</label><input id="finTouristTaxable" type="number" step="0.01" min="0"></div>
         <div data-finance-section="touristTax"><label>Keep same amount next month?</label><select id="finTouristKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="touristTax"><label>Paid?</label><select id="finTouristPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
+        <div data-finance-section="touristTax" id="finTouristPaidDateWrap"><label>Paid date</label><input id="finTouristPaidDate" type="date"></div>
         <div class="full" data-finance-section="touristTax"><label>Notes</label><textarea id="finTouristNotes" placeholder="Tourist tax notes..."></textarea></div>
         <div data-finance-section="touristTax"><label>Due on the 1-st</label><input id="finTouristDueDay" type="number" min="1" max="28" value="20"></div>
 
@@ -483,6 +485,7 @@
         <div data-finance-section="insurance"><label>Keep same amount next year?</label><select id="finInsuranceKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="insurance"><label>Due date</label><input id="finInsuranceDue" type="date"></div>
         <div data-finance-section="insurance"><label>Paid?</label><select id="finInsurancePaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
+        <div data-finance-section="insurance" id="finInsurancePaidDateWrap"><label>Paid date</label><input id="finInsurancePaidDate" type="date"></div>
         <div class="full" data-finance-section="insurance"><label>Notes</label><textarea id="finInsuranceNotes" placeholder="Policy notes, escrow, reminders..."></textarea></div>
 
         <div class="full" data-finance-section="propertyTax"><h4>Annual property taxes</h4></div>
@@ -492,6 +495,7 @@
         <div data-finance-section="propertyTax"><label>Keep same amount next year?</label><select id="finPropertyTaxKeepSameAmount"><option value="no">No, reset to $0</option><option value="yes">Yes, keep same amount</option></select></div>
         <div data-finance-section="propertyTax"><label>Due date</label><input id="finPropertyTaxDue" type="date"></div>
         <div data-finance-section="propertyTax"><label>Paid?</label><select id="finPropertyTaxPaid"><option value="unpaid">Not paid</option><option value="paid">Paid</option><option value="inactive">Inactive</option></select></div>
+        <div data-finance-section="propertyTax" id="finPropertyTaxPaidDateWrap"><label>Paid date</label><input id="finPropertyTaxPaidDate" type="date"></div>
         <div class="full" data-finance-section="propertyTax"><label>Notes</label><textarea id="finPropertyTaxNotes" placeholder="Parcel ID, reminders, confirmations..."></textarea></div>
 
         <div class="full" data-finance-section="all"><label>Notes</label><textarea id="finNotes" placeholder="Escrow, parcel ID, confirmation numbers, reminders..."></textarea></div>
@@ -682,7 +686,15 @@ function annualFeeDueDateFromOpened(openedDate) {
 
 function houseDisplayName(house) {
   if (!house) return "";
-  return house.nickname || house.name || "Unnamed house";
+  const nickname = String(house.nickname || "").trim();
+  const name = String(house.name || "").trim();
+  const address = String(house.address || "").trim();
+  if (nickname && !looksLikeStreetAddress(nickname)) return nickname;
+  if (name && !looksLikeStreetAddress(name)) return name;
+  if (address) return shortHouseNameFromAddress(address);
+  if (nickname) return shortHouseNameFromAddress(nickname);
+  if (name) return shortHouseNameFromAddress(name);
+  return "Unnamed house";
 }
 
 function houseAddress(house) {
@@ -691,10 +703,10 @@ function houseAddress(house) {
 }
 
 function normalizeHouseRecord(house) {
-  if (!house.nickname && !house.address) {
-    house.nickname = house.name || "";
-    house.address = house.name || "";
-  }
+  if (!house || typeof house !== "object") return house;
+  const originalName = String(house.name || "").trim();
+  if (!house.address && looksLikeStreetAddress(originalName)) house.address = originalName;
+  if (!house.nickname) house.nickname = houseDisplayName(house);
   house.name = houseDisplayName(house);
   return house;
 }
@@ -2139,6 +2151,26 @@ function updateUtilityPaidDateVisibility() {
   }
 }
 
+function updateFinancePaidDateVisibility(statusEl, dateEl, wrapEl) {
+  if (!statusEl || !dateEl || !wrapEl) return;
+
+  if (statusEl.value === "paid") {
+    wrapEl.style.display = "";
+  } else {
+    wrapEl.style.display = "none";
+    dateEl.value = "";
+  }
+}
+
+function updateFinancePaidDateFields() {
+  [
+    [finSalesPaid, finSalesPaidDate, finSalesPaidDateWrap],
+    [finTouristPaid, finTouristPaidDate, finTouristPaidDateWrap],
+    [finInsurancePaid, finInsurancePaidDate, finInsurancePaidDateWrap],
+    [finPropertyTaxPaid, finPropertyTaxPaidDate, finPropertyTaxPaidDateWrap]
+  ].forEach(([statusEl, dateEl, wrapEl]) => updateFinancePaidDateVisibility(statusEl, dateEl, wrapEl));
+}
+
 
 function openUtilityModal(houseId) {
   utilityModalTitle.textContent = houseId === "other" ? "Add Other bill" : "Add utility bill";
@@ -2813,6 +2845,7 @@ function editFinance(houseId, section = "all") {
   finSalesTaxable.value = f.salesTaxable || "";
   finSalesKeepSameAmount.value = f.salesKeepSameAmountNextPeriod || "no";
   finSalesPaid.value = f.salesPaid || "unpaid";
+  finSalesPaidDate.value = f.salesPaidDate || "";
   finSalesDueDay.value = f.salesDueDay || 20;
   finSalesNotes.value = f.salesNotes || "";
   finTouristVisible.value = f.touristVisible || "yes";
@@ -2822,6 +2855,7 @@ function editFinance(houseId, section = "all") {
   finTouristTaxable.value = f.touristTaxable || "";
   finTouristKeepSameAmount.value = f.touristKeepSameAmountNextPeriod || "no";
   finTouristPaid.value = f.touristPaid || "unpaid";
+  finTouristPaidDate.value = f.touristPaidDate || "";
   finTouristDueDay.value = f.touristDueDay || 20;
   finTouristNotes.value = f.touristNotes || "";
   finInsuranceCompany.value = f.insuranceCompany || "";
@@ -2833,6 +2867,7 @@ function editFinance(houseId, section = "all") {
   finInsuranceKeepSameAmount.value = f.insuranceKeepSameAmountNextPeriod || "no";
   finInsuranceDue.value = f.insuranceDue || "";
   finInsurancePaid.value = f.insurancePaid || "unpaid";
+  finInsurancePaidDate.value = f.insurancePaidDate || "";
   finInsuranceNotes.value = f.insuranceNotes || "";
   finPropertyTaxAgency.value = f.propertyTaxAgency || `${countyNameForHouse(houseId)} property tax`;
   finPropertyTaxLogin.value = f.propertyTaxLogin || "";
@@ -2840,8 +2875,10 @@ function editFinance(houseId, section = "all") {
   finPropertyTaxKeepSameAmount.value = f.propertyTaxKeepSameAmountNextPeriod || "no";
   finPropertyTaxDue.value = f.propertyTaxDue || "";
   finPropertyTaxPaid.value = f.propertyTaxPaid || "unpaid";
+  finPropertyTaxPaidDate.value = f.propertyTaxPaidDate || "";
   finPropertyTaxNotes.value = f.propertyTaxNotes || "";
   finNotes.value = f.notes || "";
+  updateFinancePaidDateFields();
   financeDialog.showModal();
 }
 
@@ -2887,7 +2924,7 @@ function saveFinance(e) {
     salesTaxable: Number(finSalesTaxable.value || 0),
     salesKeepSameAmountNextPeriod: finSalesKeepSameAmount.value,
     salesPaid: finSalesPaid.value,
-    salesPaidDate: finSalesPaid.value === "paid" ? (existing.salesPaidDate || "") : "",
+    salesPaidDate: finSalesPaid.value === "paid" ? finSalesPaidDate.value : "",
     salesDueDay: Number(finSalesDueDay.value || 20),
     salesFrequency: "monthly",
     salesNotes: finSalesNotes.value.trim(),
@@ -2898,7 +2935,7 @@ function saveFinance(e) {
     touristTaxable: Number(finTouristTaxable.value || 0),
     touristKeepSameAmountNextPeriod: finTouristKeepSameAmount.value,
     touristPaid: finTouristPaid.value,
-    touristPaidDate: finTouristPaid.value === "paid" ? (existing.touristPaidDate || "") : "",
+    touristPaidDate: finTouristPaid.value === "paid" ? finTouristPaidDate.value : "",
     touristDueDay: Number(finTouristDueDay.value || 20),
     touristFrequency: "monthly",
     touristNotes: finTouristNotes.value.trim(),
@@ -2912,7 +2949,7 @@ function saveFinance(e) {
     insuranceKeepSameAmountNextPeriod: finInsuranceKeepSameAmount.value,
     insuranceDue: finInsuranceDue.value,
     insurancePaid: finInsurancePaid.value,
-    insurancePaidDate: finInsurancePaid.value === "paid" ? (existing.insurancePaidDate || "") : "",
+    insurancePaidDate: finInsurancePaid.value === "paid" ? finInsurancePaidDate.value : "",
     insuranceFrequency: "annual",
     insuranceNotes,
     propertyTaxVisible: existing.propertyTaxVisible === "no" && !propertyTaxHasData ? "no" : "yes",
@@ -2922,7 +2959,7 @@ function saveFinance(e) {
     propertyTaxKeepSameAmountNextPeriod: finPropertyTaxKeepSameAmount.value,
     propertyTaxDue: finPropertyTaxDue.value,
     propertyTaxPaid: finPropertyTaxPaid.value,
-    propertyTaxPaidDate: finPropertyTaxPaid.value === "paid" ? (existing.propertyTaxPaidDate || "") : "",
+    propertyTaxPaidDate: finPropertyTaxPaid.value === "paid" ? finPropertyTaxPaidDate.value : "",
     propertyTaxFrequency: "annual",
     propertyTaxNotes,
     notes: finNotes.value.trim()
@@ -3540,6 +3577,10 @@ houseSelect.addEventListener("change", render);
 utilityHouse.addEventListener("change", updateUtilityTypeOptionsFromHouse);
 utilityType.addEventListener("change", updateUtilityCustomTypeVisibility);
 utilityPaid.addEventListener("change", updateUtilityPaidDateVisibility);
+finSalesPaid.addEventListener("change", updateFinancePaidDateFields);
+finTouristPaid.addEventListener("change", updateFinancePaidDateFields);
+finInsurancePaid.addEventListener("change", updateFinancePaidDateFields);
+finPropertyTaxPaid.addEventListener("change", updateFinancePaidDateFields);
 utilitySearch.addEventListener("input", render);
 utilityStatusFilter.addEventListener("change", render);
 utilityHouseFilter.addEventListener("change", render);
