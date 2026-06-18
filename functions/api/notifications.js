@@ -405,19 +405,94 @@ async function markItemsSent(env, items, recipients) {
   )));
 }
 
-function requestIsAuthorized(request, env) {
-  if (!env.NOTIFICATION_SECRET) return false;
+function requestNotificationToken(request) {
   const authorization = request.headers.get("Authorization") || "";
-  const token = authorization.replace(/^Bearer\s+/i, "");
-  return token === env.NOTIFICATION_SECRET || request.headers.get("X-Notification-Secret") === env.NOTIFICATION_SECRET;
+  const bearerToken = authorization.replace(/^Bearer\s+/i, "");
+  return bearerToken || request.headers.get("X-Notification-Secret") || "";
+}
+
+function notificationConfigError(name, troubleshooting) {
+  return {
+    ok: false,
+    status: 500,
+    body: {
+      success: false,
+      sent: false,
+      error: `${name} is not configured in Cloudflare Pages.`,
+      troubleshooting
+    }
+  };
+}
+
+function validateNotificationConfig(env) {
+  if (!env.RESEND_API_KEY) {
+    return notificationConfigError(
+      "RESEND_API_KEY",
+      "Add a Cloudflare Pages environment variable named exactly RESEND_API_KEY with your Resend API key, save it for Production, redeploy the Pages project, then rerun the notification workflow."
+    );
+  }
+
+  if (!env.NOTIFICATION_FROM_EMAIL) {
+    return notificationConfigError(
+      "NOTIFICATION_FROM_EMAIL",
+      "Add a Cloudflare Pages environment variable named exactly NOTIFICATION_FROM_EMAIL using a Resend-verified sender, save it for Production, redeploy the Pages project, then rerun the notification workflow."
+    );
+  }
+
+  return { ok: true };
+}
+
+function validateNotificationAuth(request, env) {
+  if (!env.NOTIFICATION_SECRET) {
+    return {
+      ok: false,
+      status: 500,
+      body: {
+        success: false,
+        sent: false,
+        error: "NOTIFICATION_SECRET is not configured in Cloudflare Pages.",
+        troubleshooting: "Add a Cloudflare Pages environment variable named exactly NOTIFICATION_SECRET, then redeploy. This must match the GitHub Actions repository secret with the same name."
+      }
+    };
+  }
+
+  const token = requestNotificationToken(request);
+  if (!token) {
+    return {
+      ok: false,
+      status: 401,
+      body: {
+        success: false,
+        sent: false,
+        error: "Missing notification secret header.",
+        troubleshooting: "Send Authorization: Bearer YOUR_NOTIFICATION_SECRET, or X-Notification-Secret, from GitHub Actions or curl."
+      }
+    };
+  }
+
+  if (token !== env.NOTIFICATION_SECRET) {
+    return {
+      ok: false,
+      status: 401,
+      body: {
+        success: false,
+        sent: false,
+        error: "Notification secret does not match Cloudflare Pages configuration.",
+        troubleshooting: "Make the GitHub Actions NOTIFICATION_SECRET repository secret exactly match the Cloudflare Pages NOTIFICATION_SECRET environment variable, then rerun the workflow."
+      }
+    };
+  }
+
+  return { ok: true };
 }
 
 export async function onRequestPost(context) {
   const { request, env } = context;
   const url = new URL(request.url);
 
-  if (!requestIsAuthorized(request, env)) {
-    return jsonResponse({ error: "Unauthorized notification request." }, { status: 401 });
+  const auth = validateNotificationAuth(request, env);
+  if (!auth.ok) {
+    return jsonResponse(auth.body, { status: auth.status });
   }
 
   try {
@@ -441,6 +516,11 @@ export async function onRequestPost(context) {
 
     if (dryRun) {
       return jsonResponse({ success: true, dryRun: true, sent: false, today, targetDate, recipients: NOTIFICATION_RECIPIENTS, items });
+    }
+
+    const config = validateNotificationConfig(env);
+    if (!config.ok) {
+      return jsonResponse(config.body, { status: config.status });
     }
 
     const emailResult = await sendReminderEmail(env, NOTIFICATION_RECIPIENTS, items, targetDate);
@@ -475,5 +555,6 @@ export const __testing = {
   buildEmailText,
   filterUnsentItems,
   sentKeyForItem,
-  validateNotificationAuth
+  validateNotificationAuth,
+  validateNotificationConfig
 };

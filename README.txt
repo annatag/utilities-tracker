@@ -1,9 +1,11 @@
 House Tracker Utilities
 
+Adding notification secrets in cloudflare and github 
 This app can run in two ways:
 1. Local/offline mode: open public/index.html in your browser. Data saves in that browser's localStorage.
 2. Cloud mode: deploy to Cloudflare Pages. Data is shared across devices through Cloudflare KV.
 
+Added NOTIFICATION_FROM_EMAIL, RESEND_API_KEY env secrets in Cloudflare
 Important security note
 This tracker contains private property, account, and bill details. Do not publish it as an unprotected public website.
 For Cloudflare Pages, protect the whole site with Cloudflare Access or another authentication layer before sharing the URL.
@@ -67,14 +69,6 @@ Utilities now opens as the default tab.
 ## Utility Autopay
 Each utility bill now has an Autopay On/Off option.
 If Autopay is On and the bill due date is today or earlier, the tracker automatically marks the bill as Paid and sets the paid date to today.
-
-## Utility Billing Frequency
-Each utility bill has a Billing Frequency option:
-- Monthly
-- Annual
-- One time
-
-One-time utility bills stay as single records when marked paid; the tracker does not create a new unpaid follow-up record for them.
 
 
 ## Autopay paid date behavior
@@ -175,7 +169,7 @@ The notification looks for utility bills, Mortgage / Taxes / Insurance finance r
 Email delivery uses Resend. Configure these environment variables in the Cloudflare Pages project before turning on the notification schedule:
 - `RESEND_API_KEY`: Resend API key.
 - `NOTIFICATION_FROM_EMAIL`: verified sender email address, for example `Utilities Tracker <reminders@yourdomain.com>`.
-- `NOTIFICATION_SECRET`: a private token required by the notification endpoint.
+- `NOTIFICATION_SECRET`: a private token required by the notification endpoint. The name is case-sensitive and must be spelled exactly `NOTIFICATION_SECRET`.
 
 To test without sending email, make a POST request with `dryRun=true`:
 ```bash
@@ -185,9 +179,28 @@ curl -X POST "https://YOUR-PAGES-DOMAIN/api/notifications?dryRun=true" \
   --data '{}'
 ```
 
-Reminders are sent by the GitHub Actions workflow in `.github/workflows/send-notifications.yml`. The workflow runs every day at 17:20 UTC (12:20 PM EST / 1:20 PM EDT) and makes a POST request to `/api/notifications` with the same bearer token. Add these repository secrets before relying on the schedule:
+Reminders are sent by the GitHub Actions workflow in `.github/workflows/send-notifications.yml`. The workflow runs every day at 16:00 UTC (11:00 AM EST) and makes a POST request to `/api/notifications` with the same bearer token. Add these repository secrets before relying on the schedule:
 - `NOTIFICATION_BASE_URL`: the deployed Pages site URL, for example `https://YOUR-PAGES-DOMAIN`.
-- `NOTIFICATION_SECRET`: the same private token configured in Cloudflare Pages.
+- `NOTIFICATION_SECRET`: the same private token configured in Cloudflare Pages. This repository secret and the Cloudflare Pages environment variable must have identical values.
+
+If the Pages site is protected by Cloudflare Access, also create a Cloudflare Access service token and add both optional repository secrets so GitHub Actions can reach the protected endpoint:
+- `CF_ACCESS_CLIENT_ID`: Cloudflare Access service token client ID.
+- `CF_ACCESS_CLIENT_SECRET`: Cloudflare Access service token client secret.
+
+The workflow prints the endpoint HTTP status and JSON response. If it fails, check whether the response says `NOTIFICATION_SECRET is not configured in Cloudflare Pages` (missing Pages environment variable), `Missing notification secret header` (the workflow did not send the secret), `Notification secret does not match Cloudflare Pages configuration` (the GitHub repository secret and Pages environment variable differ), mentions missing `RESEND_API_KEY` or `NOTIFICATION_FROM_EMAIL` (missing Pages environment variables), or returns a Cloudflare Access page/403 (missing Access service-token secrets).
+
+Quick checklist for the previous `NOTIFICATION_SECRET` failure:
+1. In Cloudflare Pages > Settings > Environment variables, add `NOTIFICATION_SECRET` for Production, save it, and redeploy the Pages project.
+2. In GitHub > Settings > Secrets and variables > Actions, add repository secret `NOTIFICATION_SECRET` with the exact same value.
+3. Do not name either secret `NOTIFICATIO_SECRET`, `NOTIFICATION_SECRETS`, or any lowercase variation.
+4. Manually rerun the `Send due-date notifications` workflow and confirm the log prints a 200 HTTP status.
+
+Quick checklist for `RESEND_API_KEY is not configured`:
+1. In Resend, create or copy an API key that can send from your verified domain or sender address.
+2. In Cloudflare Pages > Workers & Pages > utilities-tracker > Settings > Environment variables, add a Production variable named exactly `RESEND_API_KEY`. The name is case-sensitive and should not be added only as a GitHub Actions secret.
+3. Add `NOTIFICATION_FROM_EMAIL` in the same Cloudflare Pages Production environment, using a Resend-verified sender such as `Utilities Tracker <reminders@yourdomain.com>`.
+4. Save the variables, redeploy the Pages project so Functions receive the new environment, then manually rerun the `Send due-date notifications` workflow.
+5. Keep `RESEND_API_KEY` out of `wrangler.toml`, `public/`, and this repository; it belongs in the Cloudflare Pages dashboard only.
 
 If the Pages site is protected by Cloudflare Access, also create a Cloudflare Access service token and add both optional repository secrets so GitHub Actions can reach the protected endpoint:
 - `CF_ACCESS_CLIENT_ID`: Cloudflare Access service token client ID.
