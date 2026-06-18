@@ -1493,8 +1493,8 @@ function unwrapTrackerData(source) {
 function normalizeLoadedData(source) {
   const data = unwrapTrackerData(source);
 
-  if (!data || typeof data !== "object" || !Array.isArray(data.houses)) {
-    throw new Error("Tracker data is missing a houses array.");
+  if (!data || typeof data !== "object" || !Array.isArray(data.houses) || data.houses.length === 0) {
+    throw new Error("Tracker data is missing at least one house record.");
   }
 
   data.houses.forEach(normalizeHouseRecord);
