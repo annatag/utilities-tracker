@@ -39,6 +39,8 @@ function isoDateFromParts(year, monthIndex, day) {
 function addDaysISO(isoDate, days) {
   const [year, month, day] = String(isoDate || "").split("-").map(Number);
   if (!year || !month || !day) return "";
+  const baseDate = isoDateFromParts(year, month - 1, day);
+  if (!baseDate) return "";
   const date = new Date(Date.UTC(year, month - 1, day + days));
   return date.toISOString().slice(0, 10);
 }
@@ -464,3 +466,14 @@ export async function onRequestGet() {
     { status: 405, headers: { Allow: "POST" } }
   );
 }
+
+export const __testing = {
+  addDaysISO,
+  buildReminderItems,
+  buildEmailHtml,
+  buildEmailSubject,
+  buildEmailText,
+  filterUnsentItems,
+  sentKeyForItem,
+  validateNotificationAuth
+};
