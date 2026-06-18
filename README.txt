@@ -11,7 +11,7 @@ This tracker contains private property, account, and bill details. Do not publis
 For Cloudflare Pages, protect the whole site with Cloudflare Access or another authentication layer before sharing the URL.
 
 Cloudflare Pages deployment
-This repository is a Cloudflare Pages app with Pages Functions. It is not a standalone Cloudflare Worker project. If a separate Worker deployment fails but the Pages deployment succeeds, use the Pages deployment; `/api/items` is served from `functions/api/items.js` by Pages Functions.
+This repository is a Cloudflare Pages app with Pages Functions. It is not a standalone Cloudflare Worker project. If a separate Worker deployment fails but the Pages deployment succeeds, use the Pages deployment; `/api/items` is served from `functions/api/items.js` by Pages Functions. The deployed static output includes `public/_routes.json` so Cloudflare routes `/api/*` requests to Pages Functions instead of treating them as static files.
 
 1. Create a Cloudflare account and install Wrangler if you want to deploy from the command line:
    npm install -g wrangler
@@ -56,7 +56,7 @@ That banner means the Pages Function is running, but Cloudflare did not provide 
 4. Add the same binding to Production and any Preview environment where you test the app.
 5. Redeploy the Pages project, then refresh the app. The banner should change to "Shared cloud storage is connected."
 
-If the banner remains after redeploying, check that the deployed project uses this repository's `functions/` directory and that `/api/items` returns JSON rather than a 404.
+If the banner remains after redeploying, check that the deployed project uses this repository's `functions/` directory, that CLI deploys are run with `npm run deploy` so the `--functions functions` flag is included, and that `/api/items` returns JSON rather than a 404.
 
 
 Local use
